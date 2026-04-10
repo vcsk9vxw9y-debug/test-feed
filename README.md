@@ -17,14 +17,14 @@ An open source cybersecurity threat feed aggregator. Pulls from free public RSS 
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOURUSERNAME/testhreat-feedt-feed.git
+git clone https://github.com/YOURUSERNAME/test-feed.git
 cd test-feed
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Run the app
-python app.py
+python3 app.py
 ```
 
 Open `http://localhost:5000` in your browser. The first fetch runs on startup and takes about 30-60 seconds.
