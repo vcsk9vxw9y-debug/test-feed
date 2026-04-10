@@ -1,4 +1,4 @@
-# Test-Feed
+# Threat-Feed
 
 An open source cybersecurity threat feed aggregator. Pulls from free public RSS feeds, classifies articles into threat categories using keyword matching, and displays them in a clean web interface.
 
@@ -17,7 +17,7 @@ An open source cybersecurity threat feed aggregator. Pulls from free public RSS 
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOURUSERNAME/test-feed.git
+git clone https://github.com/YOURUSERNAME/testhreat-feedt-feed.git
 cd test-feed
 
 # Install dependencies
