@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test-Feed | Security Threat Feed</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Test-Feed</h1>
+        <p class="subtitle">Open Source Cybersecurity Threat Feed</p>
+    </header>
+
+    <main>
+        <section class="filters">
+            <button class="filter-btn active" data-category="All">All</button>
+        </section>
+
+        <section class="stats">
+            <span id="article-count">Loading...</span>
+        </section>
+
+        <section class="article-list" id="article-list">
+            <div class="loading">Fetching latest threat intelligence...</div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Test-Feed — Open Source | Data sourced from public RSS feeds | Updates every 4 hours</p>
+    </footer>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+# Test-Feed Category Keywords
+# Add or edit keywords to improve classification accuracy
+# Each article is checked against these lists in priority order:
+# OT/ICS > Cloud Breach > SaaS Breach > Ransomware > Vulnerability/CVE > Uncategorized
+
+OT/ICS:
+  - scada
+  - ics
+  - ot breach
+  - industrial control
+  - modbus
+  - dnp3
+  - critical infrastructure
+  - power grid
+  - water treatment
+  - operational technology
+  - plc
+  - hmi
+  - distributed control
+  - energy sector
+  - pipeline
+  - manufacturing plant
+
+Cloud Breach:
+  - aws
+  - azure
+  - gcp
+  - s3 bucket
+  - cloud storage
+  - google cloud
+  - misconfiguration
+  - cloud breach
+  - ec2
+  - blob storage
+  - cloud exposure
+  - exposed bucket
+  - cloud security
+  - lambda
+  - cloud database
+
+SaaS Breach:
+  - salesforce
+  - okta
+  - microsoft 365
+  - m365
+  - sharepoint
+  - servicenow
+  - workday
+  - zendesk
+  - saas
+  - third-party app
+  - slack breach
+  - google workspace
+  - dropbox breach
+  - hubspot
+  - atlassian
+
+Ransomware:
+  - ransomware
+  - ransom demand
+  - encrypted files
+  - lockbit
+  - blackcat
+  - cl0p
+  - clop
+  - dark side
+  - ryuk
+  - hive ransomware
+  - alphv
+  - play ransomware
+  - akira
+  - royal ransomware
+  - data extortion
+
+Vulnerability/CVE:
+  - cve
+  - vulnerability
+  - patch tuesday
+  - zero-day
+  - 0-day
+  - exploit
+  - rce
+  - remote code execution
+  - critical flaw
+  - security update
+  - proof of concept
+  - poc exploit
+  - buffer overflow
+  - privilege escalation
+  - sql injection
