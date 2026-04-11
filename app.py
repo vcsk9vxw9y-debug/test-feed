@@ -45,12 +45,12 @@ def get_articles():
     conn = get_db()
     if category and category != "All":
         rows = conn.execute(
-            "SELECT * FROM articles WHERE category = ? ORDER BY created_at DESC LIMIT 200",
+            "SELECT * FROM articles WHERE category = ? ORDER BY created_at DESC LIMIT 500",
             (category,)
         ).fetchall()
     else:
         rows = conn.execute(
-            "SELECT * FROM articles ORDER BY created_at DESC LIMIT 200"
+            "SELECT * FROM articles ORDER BY created_at DESC LIMIT 500"
         ).fetchall()
     conn.close()
     return jsonify([dict(row) for row in rows])

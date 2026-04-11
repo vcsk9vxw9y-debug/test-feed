@@ -24,6 +24,16 @@
             <button class="filter-btn active" data-category="All">All</button>
         </section>
 
+        <div class="toolbar">
+            <div class="date-filters" aria-label="Filter by date range">
+                <button class="tool-btn active" data-range="all">All time</button>
+                <button class="tool-btn" data-range="today">Today</button>
+                <button class="tool-btn" data-range="7days">7 days</button>
+                <button class="tool-btn" data-range="30days">30 days</button>
+            </div>
+            <button class="sort-btn" id="sort-toggle" data-sort="newest" aria-label="Toggle sort order">↓ Newest</button>
+        </div>
+
         <section class="stats" aria-live="polite">
             <span id="article-count"></span>
         </section>

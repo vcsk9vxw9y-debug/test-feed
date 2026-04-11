@@ -5,8 +5,13 @@
 const articleList = document.getElementById("article-list");
 const filterContainer = document.querySelector(".filters");
 const articleCount = document.getElementById("article-count");
+const dateFilterContainer = document.querySelector(".date-filters");
+const sortToggle = document.getElementById("sort-toggle");
 
 let currentCategory = "All";
+let currentSort = "newest";
+let currentDateRange = "all";
+let allArticles = [];
 let articlesRequestController = null;
 let categoriesLoaded = false;
 let latestRequestId = 0;
@@ -55,6 +60,35 @@ function formatDate(dateStr, fallbackStr) {
         minute: "2-digit",
         hour12: true,
     });
+}
+
+// Sort articles by date
+function sortArticles(articles) {
+    return [...articles].sort((a, b) => {
+        const da = new Date(a.published_date || a.created_at || 0);
+        const db = new Date(b.published_date || b.created_at || 0);
+        return currentSort === "newest" ? db - da : da - db;
+    });
+}
+
+// Filter articles by date range
+function filterByDateRange(articles) {
+    if (currentDateRange === "all") return articles;
+    const cutoff = new Date();
+    if (currentDateRange === "today") cutoff.setHours(0, 0, 0, 0);
+    else if (currentDateRange === "7days") cutoff.setDate(cutoff.getDate() - 7);
+    else if (currentDateRange === "30days") cutoff.setDate(cutoff.getDate() - 30);
+    return articles.filter((a) => {
+        const d = new Date(a.published_date || a.created_at || 0);
+        return !Number.isNaN(d.getTime()) && d >= cutoff;
+    });
+}
+
+// Apply sort + date filter then render — no extra API call
+function applyAndRender() {
+    const filtered = filterByDateRange(allArticles);
+    const sorted = sortArticles(filtered);
+    renderArticles(sorted);
 }
 
 function safeHref(rawUrl) {
@@ -148,7 +182,8 @@ async function loadArticles(category = "All") {
             return;
         }
 
-        renderArticles(articles);
+        allArticles = articles;
+        applyAndRender();
     } catch (err) {
         if (err.name === "AbortError") {
             return;
@@ -206,6 +241,27 @@ if (filterContainer) {
 
         currentCategory = button.dataset.category || "All";
         loadArticles(currentCategory);
+    });
+}
+
+// Handle sort toggle
+if (sortToggle) {
+    sortToggle.addEventListener("click", () => {
+        currentSort = currentSort === "newest" ? "oldest" : "newest";
+        sortToggle.textContent = currentSort === "newest" ? "↓ Newest" : "↑ Oldest";
+        applyAndRender();
+    });
+}
+
+// Handle date range filter
+if (dateFilterContainer) {
+    dateFilterContainer.addEventListener("click", (e) => {
+        const btn = e.target.closest(".tool-btn");
+        if (!btn) return;
+        dateFilterContainer.querySelectorAll(".tool-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentDateRange = btn.dataset.range || "all";
+        applyAndRender();
     });
 }
 

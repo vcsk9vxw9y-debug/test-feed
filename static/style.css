@@ -178,6 +178,74 @@ main {
 }
 
 
+/* ---- Toolbar ---- */
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.date-filters {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.tool-btn {
+    padding: 4px 11px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.72rem;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-muted);
+    transition: border-color var(--ease), color var(--ease), background var(--ease);
+    white-space: nowrap;
+}
+
+.tool-btn:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+}
+
+.tool-btn.active {
+    background: var(--surface-2);
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+}
+
+.tool-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.sort-btn {
+    padding: 4px 11px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.72rem;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-muted);
+    transition: border-color var(--ease), color var(--ease);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.sort-btn:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+}
+
+.sort-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
 /* ---- Stats ---- */
 .stats {
     font-size: 0.72rem;
