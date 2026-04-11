@@ -7,10 +7,12 @@ const filterContainer = document.querySelector(".filters");
 const articleCount = document.getElementById("article-count");
 const dateFilterContainer = document.querySelector(".date-filters");
 const sortToggle = document.getElementById("sort-toggle");
+const sourceFilter = document.getElementById("source-filter");
 
 let currentCategory = "All";
 let currentSort = "newest";
 let currentDateRange = "all";
+let currentSource = "All";
 let allArticles = [];
 let articlesRequestController = null;
 let categoriesLoaded = false;
@@ -84,10 +86,32 @@ function filterByDateRange(articles) {
     });
 }
 
-// Apply sort + date filter then render — no extra API call
+// Filter articles by source
+function filterBySource(articles) {
+    if (currentSource === "All") return articles;
+    return articles.filter((a) => a.source_name === currentSource);
+}
+
+// Rebuild source dropdown from current articles
+function buildSourceFilter(articles) {
+    if (!sourceFilter) return;
+    const currentVal = sourceFilter.value;
+    const sources = ["All", ...new Set(articles.map((a) => a.source_name).filter(Boolean))].sort();
+    sourceFilter.replaceChildren();
+    sources.forEach((s) => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s === "All" ? "All sources" : s;
+        if (s === currentVal) opt.selected = true;
+        sourceFilter.appendChild(opt);
+    });
+}
+
+// Apply date filter → source filter → sort → render — no extra API call
 function applyAndRender() {
-    const filtered = filterByDateRange(allArticles);
-    const sorted = sortArticles(filtered);
+    const byDate = filterByDateRange(allArticles);
+    const bySource = filterBySource(byDate);
+    const sorted = sortArticles(bySource);
     renderArticles(sorted);
 }
 
@@ -183,6 +207,8 @@ async function loadArticles(category = "All") {
         }
 
         allArticles = articles;
+        currentSource = "All";
+        buildSourceFilter(articles);
         applyAndRender();
     } catch (err) {
         if (err.name === "AbortError") {
@@ -249,6 +275,14 @@ if (sortToggle) {
     sortToggle.addEventListener("click", () => {
         currentSort = currentSort === "newest" ? "oldest" : "newest";
         sortToggle.textContent = currentSort === "newest" ? "↓ Newest" : "↑ Oldest";
+        applyAndRender();
+    });
+}
+
+// Handle source filter
+if (sourceFilter) {
+    sourceFilter.addEventListener("change", () => {
+        currentSource = sourceFilter.value;
         applyAndRender();
     });
 }

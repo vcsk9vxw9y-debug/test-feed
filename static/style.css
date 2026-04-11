@@ -246,6 +246,46 @@ main {
     outline-offset: 2px;
 }
 
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.source-select {
+    padding: 4px 26px 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-family: 'IBM Plex Mono', monospace;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23484f58' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    transition: border-color var(--ease), color var(--ease);
+    max-width: 160px;
+}
+
+.source-select:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+}
+
+.source-select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.source-select option {
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
 /* ---- Stats ---- */
 .stats {
     font-size: 0.72rem;

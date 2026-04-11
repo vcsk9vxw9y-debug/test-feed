@@ -21,7 +21,6 @@ FEEDS = [
     {"url": "https://isc.sans.edu/rssfeed.xml", "name": "SANS Internet Storm Center"},
     {"url": "https://www.crowdstrike.com/blog/feed/", "name": "CrowdStrike Blog"},
     {"url": "https://cloud.google.com/blog/topics/threat-intelligence/rss.xml", "name": "Google Mandiant"},
-    {"url": "https://nvd.nist.gov/feeds/xml/cve/misc/nvd-rss.xml", "name": "NVD CVE Feed"},
     {"url": "https://www.cisa.gov/uscert/ncas/alerts.xml", "name": "US-CERT Alerts"},
     # --- v2: Reddit Community Feeds (filtered — only categorized articles saved) ---
     {"url": "https://www.reddit.com/r/netsec/.rss", "name": "Reddit r/netsec", "filter_uncategorized": True},

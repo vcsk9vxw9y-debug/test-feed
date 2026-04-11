@@ -31,7 +31,12 @@
                 <button class="tool-btn" data-range="7days">7 days</button>
                 <button class="tool-btn" data-range="30days">30 days</button>
             </div>
-            <button class="sort-btn" id="sort-toggle" data-sort="newest" aria-label="Toggle sort order">↓ Newest</button>
+            <div class="toolbar-right">
+                <select id="source-filter" class="source-select" aria-label="Filter by source">
+                    <option value="All">All sources</option>
+                </select>
+                <button class="sort-btn" id="sort-toggle" data-sort="newest" aria-label="Toggle sort order">↓ Newest</button>
+            </div>
         </div>
 
         <section class="stats" aria-live="polite">
