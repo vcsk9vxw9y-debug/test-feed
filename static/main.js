@@ -36,17 +36,24 @@ function setStatus(message, className = "loading") {
     articleList.appendChild(status);
 }
 
-// Format date string
-function formatDate(dateStr) {
-    if (!dateStr) return "";
+// Format date string — shows published_date with time, falls back to created_at
+function formatDate(dateStr, fallbackStr) {
+    const parse = (str) => {
+        if (!str) return null;
+        const d = new Date(str);
+        return Number.isNaN(d.getTime()) ? null : d;
+    };
 
-    const d = new Date(dateStr);
-    if (Number.isNaN(d.getTime())) return dateStr;
+    const d = parse(dateStr) || parse(fallbackStr);
+    if (!d) return dateStr || fallbackStr || "";
 
-    return d.toLocaleDateString("en-US", {
+    return d.toLocaleString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
     });
 }
 
@@ -101,7 +108,7 @@ function renderArticles(articles) {
 
         const date = document.createElement("span");
         date.className = "article-date";
-        date.textContent = formatDate(article.published_date);
+        date.textContent = formatDate(article.published_date, article.created_at);
 
         meta.append(badge, source, date);
         card.append(link, meta);

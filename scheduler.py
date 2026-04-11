@@ -23,10 +23,10 @@ FEEDS = [
     {"url": "https://cloud.google.com/blog/topics/threat-intelligence/rss.xml", "name": "Google Mandiant"},
     {"url": "https://nvd.nist.gov/feeds/xml/cve/misc/nvd-rss.xml", "name": "NVD CVE Feed"},
     {"url": "https://www.cisa.gov/uscert/ncas/alerts.xml", "name": "US-CERT Alerts"},
-    # --- v2: Reddit Community Feeds ---
-    {"url": "https://www.reddit.com/r/netsec/.rss", "name": "Reddit r/netsec"},
-    {"url": "https://www.reddit.com/r/cybersecurity/.rss", "name": "Reddit r/cybersecurity"},
-    {"url": "https://www.reddit.com/r/malware/.rss", "name": "Reddit r/malware"},
+    # --- v2: Reddit Community Feeds (filtered — only categorized articles saved) ---
+    {"url": "https://www.reddit.com/r/netsec/.rss", "name": "Reddit r/netsec", "filter_uncategorized": True},
+    {"url": "https://www.reddit.com/r/cybersecurity/.rss", "name": "Reddit r/cybersecurity", "filter_uncategorized": True},
+    {"url": "https://www.reddit.com/r/malware/.rss", "name": "Reddit r/malware", "filter_uncategorized": True},
 ]
 
 HEADERS = {
@@ -75,6 +75,10 @@ def fetch_all_feeds(db_path):
                 summary = entry.get("summary", "")
                 published = entry.get("published", str(datetime.now()))
                 category = classify_article(title, summary)
+
+                # Skip uncategorized articles from noisy feeds (e.g. Reddit)
+                if feed.get("filter_uncategorized") and category == "Uncategorized":
+                    continue
 
                 conn.execute(
                     """INSERT OR IGNORE INTO articles
