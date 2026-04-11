@@ -5,6 +5,7 @@ from datetime import datetime
 from classifier import classify_article
 
 FEEDS = [
+    # --- Core Sources ---
     {"url": "https://krebsonsecurity.com/feed/", "name": "Krebs on Security"},
     {"url": "https://feeds.feedburner.com/TheHackersNews", "name": "The Hacker News"},
     {"url": "https://www.bleepingcomputer.com/feed/", "name": "Bleeping Computer"},
@@ -15,6 +16,17 @@ FEEDS = [
     {"url": "https://feeds.feedburner.com/securityweek", "name": "SecurityWeek"},
     {"url": "https://unit42.paloaltonetworks.com/feed/", "name": "Unit42 Palo Alto"},
     {"url": "https://www.malwarebytes.com/blog/feed/", "name": "Malwarebytes Labs"},
+    # --- v2: Research & Threat Intel ---
+    {"url": "https://googleprojectzero.blogspot.com/feeds/posts/default", "name": "Google Project Zero"},
+    {"url": "https://isc.sans.edu/rssfeed.xml", "name": "SANS Internet Storm Center"},
+    {"url": "https://www.crowdstrike.com/blog/feed/", "name": "CrowdStrike Blog"},
+    {"url": "https://cloud.google.com/blog/topics/threat-intelligence/rss.xml", "name": "Google Mandiant"},
+    {"url": "https://nvd.nist.gov/feeds/xml/cve/misc/nvd-rss.xml", "name": "NVD CVE Feed"},
+    {"url": "https://www.cisa.gov/uscert/ncas/alerts.xml", "name": "US-CERT Alerts"},
+    # --- v2: Reddit Community Feeds ---
+    {"url": "https://www.reddit.com/r/netsec/.rss", "name": "Reddit r/netsec"},
+    {"url": "https://www.reddit.com/r/cybersecurity/.rss", "name": "Reddit r/cybersecurity"},
+    {"url": "https://www.reddit.com/r/malware/.rss", "name": "Reddit r/malware"},
 ]
 
 HEADERS = {

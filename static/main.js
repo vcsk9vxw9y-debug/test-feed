@@ -13,12 +13,17 @@ let latestRequestId = 0;
 
 // Badge CSS class map
 const badgeClass = {
-    "Cloud Breach": "badge-cloud",
-    "SaaS Breach": "badge-saas",
-    "OT/ICS": "badge-ot",
-    "Ransomware": "badge-ransomware",
-    "Vulnerability/CVE": "badge-vuln",
-    "Uncategorized": "badge-uncat",
+    "Cloud Breach":                "badge-cloud",
+    "SaaS Breach":                 "badge-saas",
+    "OT/ICS":                      "badge-ot",
+    "Ransomware":                  "badge-ransomware",
+    "Vulnerability/CVE":           "badge-vuln",
+    "Nation State/APT":            "badge-apt",
+    "Malware/Infostealer":         "badge-malware",
+    "AI Security":                 "badge-ai",
+    "Phishing & Social Engineering": "badge-phishing",
+    "Supply Chain":                "badge-supply",
+    "Uncategorized":               "badge-uncat",
 };
 
 function setStatus(message, className = "loading") {

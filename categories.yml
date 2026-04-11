@@ -1,7 +1,9 @@
-# Test-Feed Category Keywords
+# Threat-Feed Category Keywords
 # Add or edit keywords to improve classification accuracy
 # Each article is checked against these lists in priority order:
-# OT/ICS > Cloud Breach > SaaS Breach > Ransomware > Vulnerability/CVE > Uncategorized
+# OT/ICS > Cloud Breach > SaaS Breach > Ransomware > Vulnerability/CVE
+# > Nation State/APT > Malware/Infostealer > AI Security
+# > Phishing & Social Engineering > Supply Chain > Uncategorized
 
 OT/ICS:
   - scada
@@ -88,3 +90,102 @@ Vulnerability/CVE:
   - buffer overflow
   - privilege escalation
   - sql injection
+
+Nation State/APT:
+  - apt
+  - nation state
+  - state-sponsored
+  - state sponsored
+  - gru
+  - dprk
+  - fancy bear
+  - cozy bear
+  - lazarus group
+  - forest blizzard
+  - bluedelta
+  - volt typhoon
+  - salt typhoon
+  - iran-linked
+  - iran linked
+  - n. korean
+  - north korean
+  - china-linked
+  - china linked
+  - russia-linked
+  - russia linked
+  - apt28
+  - apt29
+  - apt41
+  - kimsuky
+  - sandworm
+
+Malware/Infostealer:
+  - infostealer
+  - info stealer
+  - credential stealer
+  - trojan
+  - rootkit
+  - spyware
+  - wiper malware
+  - wiper attack
+  - remote access trojan
+  - rat payload
+  - backdoor malware
+  - keylogger
+  - botnet malware
+  - malware campaign
+  - malware family
+  - stealc
+  - redline stealer
+  - lumma
+  - formbook
+
+AI Security:
+  - ai guardrail
+  - shadow ai
+  - prompt injection
+  - ai-generated malware
+  - agentic ai
+  - ai agent attack
+  - llm attack
+  - llm jailbreak
+  - ai vulnerability
+  - machine learning attack
+  - ai security
+  - ai-powered attack
+  - generative ai risk
+  - ai threat
+  - chatgpt attack
+
+Phishing & Social Engineering:
+  - phishing campaign
+  - spear-phishing
+  - spear phishing
+  - credential harvesting
+  - vishing
+  - smishing
+  - business email compromise
+  - bec attack
+  - qr code phishing
+  - impersonation attack
+  - phishing kit
+  - phishing-as-a-service
+  - social engineering attack
+  - pretexting
+  - whaling attack
+
+Supply Chain:
+  - supply chain attack
+  - supply chain compromise
+  - software supply chain
+  - npm package
+  - pypi package
+  - malicious package
+  - open source attack
+  - dependency confusion
+  - typosquatting package
+  - package hijack
+  - plugin hijack
+  - build pipeline attack
+  - ci/cd attack
+  - third-party compromise
