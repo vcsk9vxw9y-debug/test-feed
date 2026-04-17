@@ -8,7 +8,6 @@
 OT/ICS:
   - scada
   - ics
-  - ot breach
   - industrial control
   - modbus
   - dnp3
@@ -56,6 +55,26 @@ SaaS Breach:
   - dropbox breach
   - hubspot
   - atlassian
+  - anodot
+  - shinyhunters
+  # OAuth / token abuse
+  - oauth token
+  - oauth abuse
+  - token theft
+  - token hijack
+  - access token
+  - stolen token
+  - bearer token
+  - authentication token
+  # Leaked / exposed credentials
+  - credential harvesting
+  - leaked password
+  - password leak
+  - credential stuffing
+  - password spray
+  - exposed credentials
+  - hardcoded credential
+  - plaintext password
 
 Ransomware:
   - ransomware
@@ -161,7 +180,6 @@ Phishing & Social Engineering:
   - phishing campaign
   - spear-phishing
   - spear phishing
-  - credential harvesting
   - vishing
   - smishing
   - business email compromise
