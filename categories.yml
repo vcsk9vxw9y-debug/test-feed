@@ -108,7 +108,10 @@ Vulnerability/CVE:
   - poc exploit
   - buffer overflow
   - privilege escalation
+  - privilege elevation
   - sql injection
+  - fuzzing
+  - byovd
 
 Nation State/APT:
   - apt
@@ -126,8 +129,10 @@ Nation State/APT:
   - salt typhoon
   - iran-linked
   - iran linked
+  - iran
   - n. korean
   - north korean
+  - north korea
   - china-linked
   - china linked
   - russia-linked
@@ -137,6 +142,8 @@ Nation State/APT:
   - apt41
   - kimsuky
   - sandworm
+  - threat cluster
+  - hack-for-hire
 
 Malware/Infostealer:
   - infostealer
@@ -152,12 +159,19 @@ Malware/Infostealer:
   - backdoor malware
   - keylogger
   - botnet malware
+  - botnet
   - malware campaign
   - malware family
   - stealc
   - redline stealer
   - lumma
   - formbook
+  - ddos
+  - dropper
+  - webshell
+  - adware
+  - clickfix
+  - edr killer
 
 AI Security:
   - ai guardrail
@@ -207,3 +221,4 @@ Supply Chain:
   - build pipeline attack
   - ci/cd attack
   - third-party compromise
+  - backdoored
