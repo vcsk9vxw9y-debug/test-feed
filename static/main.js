@@ -13,6 +13,7 @@ let currentCategory = "All";
 let currentSort = "newest";
 let currentDateRange = "all";
 let currentSource = "All";
+let currentSearch = "";
 let allArticles = [];
 let articlesRequestController = null;
 let categoriesLoaded = false;
@@ -92,6 +93,23 @@ function filterBySource(articles) {
     return articles.filter((a) => a.source_name === currentSource);
 }
 
+// Filter articles by search term (title + summary)
+function filterBySearch(articles) {
+    if (!currentSearch) return articles;
+    const term = currentSearch.toLowerCase();
+    return articles.filter((a) =>
+        (a.title || "").toLowerCase().includes(term) ||
+        (a.summary || "").toLowerCase().includes(term)
+    );
+}
+
+// Highlight matched search term in text
+function highlight(text, term) {
+    if (!term || !text) return text || "";
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return text.replace(new RegExp(`(${escaped})`, "gi"), "<mark>$1</mark>");
+}
+
 // Rebuild source dropdown from current articles
 function buildSourceFilter(articles) {
     if (!sourceFilter) return;
@@ -107,11 +125,12 @@ function buildSourceFilter(articles) {
     });
 }
 
-// Apply date filter → source filter → sort → render — no extra API call
+// Apply date filter → source filter → search → sort → render — no extra API call
 function applyAndRender() {
     const byDate = filterByDateRange(allArticles);
     const bySource = filterBySource(byDate);
-    const sorted = sortArticles(bySource);
+    const bySearch = filterBySearch(bySource);
+    const sorted = sortArticles(bySearch);
     renderArticles(sorted);
 }
 
@@ -141,7 +160,11 @@ function renderArticles(articles) {
         return;
     }
 
-    articleCount.textContent = `${articles.length} article${articles.length !== 1 ? "s" : ""}`;
+    if (currentSearch) {
+        articleCount.innerHTML = `${articles.length} result${articles.length !== 1 ? "s" : ""} for <mark>${currentSearch}</mark>`;
+    } else {
+        articleCount.textContent = `${articles.length} article${articles.length !== 1 ? "s" : ""}`;
+    }
 
     for (const article of articles) {
         const card = document.createElement("div");
@@ -151,7 +174,11 @@ function renderArticles(articles) {
         link.href = safeHref(article.url);
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        link.textContent = article.title || "Untitled";
+        if (currentSearch) {
+            link.innerHTML = highlight(article.title || "Untitled", currentSearch);
+        } else {
+            link.textContent = article.title || "Untitled";
+        }
 
         const meta = document.createElement("div");
         meta.className = "article-meta";
@@ -296,6 +323,34 @@ if (dateFilterContainer) {
         btn.classList.add("active");
         currentDateRange = btn.dataset.range || "all";
         applyAndRender();
+    });
+}
+
+// Handle search input
+const searchInput = document.getElementById("search-input");
+const searchClear = document.getElementById("search-clear");
+let searchDebounce;
+
+if (searchInput) {
+    searchInput.addEventListener("input", () => {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(() => {
+            currentSearch = searchInput.value.trim();
+            searchClear.classList.toggle("visible", currentSearch.length > 0);
+            searchInput.classList.toggle("active", currentSearch.length > 0);
+            applyAndRender();
+        }, 150);
+    });
+}
+
+if (searchClear) {
+    searchClear.addEventListener("click", () => {
+        searchInput.value = "";
+        currentSearch = "";
+        searchClear.classList.remove("visible");
+        searchInput.classList.remove("active");
+        applyAndRender();
+        searchInput.focus();
     });
 }
 
