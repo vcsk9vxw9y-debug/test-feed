@@ -1,6 +1,13 @@
 # Database
 *.db
 *.sqlite
+*.db-wal
+*.db-shm
+
+# Local utility / analysis scripts (not for production)
+analyze_uncategorized.py
+backfill_categories.py
+uncategorized_report.csv
 
 # Python
 __pycache__/

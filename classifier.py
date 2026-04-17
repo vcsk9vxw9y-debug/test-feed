@@ -10,9 +10,7 @@ _rules = None
 
 def compile_keyword_pattern(keyword):
     escaped = re.escape(keyword.lower())
-    if re.fullmatch(r"[a-z0-9/.-]+", keyword.lower()):
-        return re.compile(rf"(?<![a-z0-9]){escaped}(?![a-z0-9])")
-    return re.compile(escaped)
+    return re.compile(rf"(?<![a-z0-9]){escaped}(?![a-z0-9])")
 
 
 def load_rules():

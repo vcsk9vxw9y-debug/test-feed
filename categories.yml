@@ -55,7 +55,6 @@ SaaS Breach:
   - dropbox breach
   - hubspot
   - atlassian
-  - anodot
   - shinyhunters
   # OAuth / token abuse
   - oauth token
@@ -75,6 +74,12 @@ SaaS Breach:
   - exposed credentials
   - hardcoded credential
   - plaintext password
+  - data breach
+  - pii
+  - phi
+  - user data exposed
+  - customer data
+  - breach notification
 
 Ransomware:
   - ransomware
