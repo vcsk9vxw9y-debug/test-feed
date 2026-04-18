@@ -44,7 +44,7 @@ function setStatus(message, className = "loading") {
     articleList.appendChild(status);
 }
 
-// Format date string — shows published_date with time, falls back to created_at
+// Format an absolute date string — used for hover tooltips
 function formatDate(dateStr, fallbackStr) {
     const parse = (str) => {
         if (!str) return null;
@@ -63,6 +63,40 @@ function formatDate(dateStr, fallbackStr) {
         minute: "2-digit",
         hour12: true,
     });
+}
+
+// Format a human-readable relative time string — e.g. "3h ago", "yesterday"
+// Falls back to a short absolute date for older articles
+function relativeTime(dateStr, fallbackStr) {
+    const parse = (str) => {
+        if (!str) return null;
+        const d = new Date(str);
+        return Number.isNaN(d.getTime()) ? null : d;
+    };
+
+    const d = parse(dateStr) || parse(fallbackStr);
+    if (!d) return formatDate(dateStr, fallbackStr);
+
+    const diffMs  = Date.now() - d.getTime();
+
+    // Guard against future-dated feed articles
+    if (diffMs < 0) return formatDate(dateStr, fallbackStr);
+
+    const diffMin = Math.floor(diffMs / 60_000);
+    const diffHr  = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHr  / 24);
+
+    if (diffMin < 1)   return "just now";
+    if (diffMin < 60)  return `${diffMin}m ago`;
+    if (diffHr  < 24)  return `${diffHr}h ago`;
+    if (diffDay === 1) return "yesterday";
+    if (diffDay < 7)   return `${diffDay}d ago`;
+    if (diffDay < 30)  return `${Math.floor(diffDay / 7)}w ago`;
+
+    // Older than 30 days — short date, include year only if not the current year
+    const opts = { month: "short", day: "numeric" };
+    if (d.getFullYear() !== new Date().getFullYear()) opts.year = "numeric";
+    return d.toLocaleDateString("en-US", opts);
 }
 
 // Sort articles by date
@@ -193,7 +227,8 @@ function renderArticles(articles) {
 
         const date = document.createElement("span");
         date.className = "article-date";
-        date.textContent = formatDate(article.published_date, article.created_at);
+        date.textContent = relativeTime(article.published_date, article.created_at);
+        date.title = formatDate(article.published_date, article.created_at);
 
         meta.append(badge, source, date);
         card.append(link, meta);

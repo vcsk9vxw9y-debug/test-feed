@@ -433,6 +433,7 @@ mark {
 .article-date {
     font-size: 0.70rem;
     color: var(--text-muted);
+    cursor: default;
 }
 
 
