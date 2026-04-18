@@ -193,7 +193,24 @@ AI Security:
   - ai-powered attack
   - generative ai risk
   - ai threat
-  - chatgpt attack
+  - chatgpt
+  # AI companies — unambiguous as standalone words
+  - anthropic
+  - openai
+  - deepseek
+  - hugging face
+  # AI products — multi-word to avoid false positives on common words
+  - claude ai
+  - claude model
+  - gpt-4
+  - gpt-5
+  - google gemini
+  - gemini ai
+  - microsoft copilot
+  - github copilot
+  - meta llama
+  - llama model
+  - mistral ai
 
 Phishing & Social Engineering:
   - phishing campaign
