@@ -110,6 +110,23 @@ header .subtitle {
     letter-spacing: 0.02em;
 }
 
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.article-count-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    white-space: nowrap;
+}
+
 .header-status {
     display: flex;
     align-items: center;
@@ -346,12 +363,13 @@ mark {
     color: var(--text-primary);
 }
 
-/* ---- Stats ---- */
-.stats {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    margin-bottom: 12px;
+/* ---- Filter Stats (count under active filter) ---- */
+.filter-stats {
     font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.70rem;
+    color: var(--text-muted);
+    margin: 10px 0 4px;
+    min-height: 1.2em;
 }
 
 

@@ -4,7 +4,8 @@
 
 const articleList = document.getElementById("article-list");
 const filterContainer = document.querySelector(".filters");
-const articleCount = document.getElementById("article-count");
+const articleCount = document.getElementById("article-count"); // header pill — shows totalIndexed
+const filterStats = document.getElementById("filter-stats");   // below filters — shows active category count
 const dateFilterContainer = document.querySelector(".date-filters");
 const sortToggle = document.getElementById("sort-toggle");
 const sourceFilter = document.getElementById("source-filter");
@@ -192,20 +193,26 @@ function renderArticles(articles) {
     articleList.className = "article-list";
     articleList.replaceChildren();
 
+    // Header pill always shows the real DB total
+    if (articleCount) {
+        articleCount.textContent = `${totalIndexed.toLocaleString()} articles`;
+    }
+
     if (!Array.isArray(articles) || articles.length === 0) {
         setStatus("No articles found in this category.", "empty");
-        articleCount.textContent = "0 articles indexed";
+        if (filterStats) filterStats.textContent = "";
         return;
     }
 
-    // Use the real DB count for the active category (not the fetched slice)
-    const catTotal = categoryCounts[currentCategory] ?? totalIndexed;
-    const catLabel = currentCategory === "All" ? "articles indexed" : `articles in ${currentCategory}`;
-
-    if (currentSearch) {
-        articleCount.innerHTML = `${articles.length.toLocaleString()} result${articles.length !== 1 ? "s" : ""} &mdash; matching <mark>${currentSearch}</mark>`;
-    } else {
-        articleCount.textContent = `${catTotal.toLocaleString()} ${catLabel}`;
+    // Filter stats line — below the category buttons
+    if (filterStats) {
+        const catTotal = categoryCounts[currentCategory] ?? totalIndexed;
+        const catLabel = currentCategory === "All" ? "articles indexed" : `articles in ${currentCategory}`;
+        if (currentSearch) {
+            filterStats.innerHTML = `${articles.length.toLocaleString()} result${articles.length !== 1 ? "s" : ""} &mdash; matching <mark>${currentSearch}</mark>`;
+        } else {
+            filterStats.textContent = `${catTotal.toLocaleString()} ${catLabel}`;
+        }
     }
 
     for (const article of articles) {
@@ -314,6 +321,7 @@ async function loadCategories() {
         // Sum all category counts to get the real DB total
         totalIndexed = categories.reduce((sum, cat) => sum + cat.count, 0);
         categoryCounts["All"] = totalIndexed;
+        if (articleCount) articleCount.textContent = `${totalIndexed.toLocaleString()} articles`;
         categories.forEach((cat) => {
             categoryCounts[cat.category] = cat.count;
         });

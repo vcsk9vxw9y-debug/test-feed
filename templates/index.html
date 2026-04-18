@@ -13,9 +13,12 @@
             <h1><span class="slash">//</span> Threat-Feed</h1>
             <p class="subtitle">Open Source Cybersecurity Threat Feed</p>
         </div>
-        <div class="header-status">
-            <span class="status-dot" aria-hidden="true"></span>
-            <span>Live</span>
+        <div class="header-right">
+            <span class="article-count-pill" id="article-count"></span>
+            <div class="header-status">
+                <span class="status-dot" aria-hidden="true"></span>
+                <span>Live</span>
+            </div>
         </div>
     </header>
 
@@ -40,6 +43,8 @@
             <button class="search-clear" id="search-clear" aria-label="Clear search">✕</button>
         </div>
 
+        <div class="filter-stats" id="filter-stats" aria-live="polite"></div>
+
         <div class="toolbar">
             <div class="date-filters" aria-label="Filter by date range">
                 <button class="tool-btn active" data-range="all">All time</button>
@@ -54,10 +59,6 @@
                 <button class="sort-btn" id="sort-toggle" data-sort="newest" aria-label="Toggle sort order">↓ Newest</button>
             </div>
         </div>
-
-        <section class="stats" aria-live="polite">
-            <span id="article-count"></span>
-        </section>
 
         <section class="article-list" id="article-list" aria-label="Threat intelligence articles">
             <div class="loading">Fetching latest threat intelligence...</div>
