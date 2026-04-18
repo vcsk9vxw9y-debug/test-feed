@@ -265,6 +265,19 @@ function renderArticles(articles) {
         });
 
         meta.append(badge, source, date);
+
+        // CVE chips — extracted from title, linked to NVD
+        const cves = (article.title || "").match(/CVE-\d{4}-\d{4,7}/gi) || [];
+        cves.forEach((cve) => {
+            const cveLink = document.createElement("a");
+            cveLink.href = `https://nvd.nist.gov/vuln/detail/${cve.toUpperCase()}`;
+            cveLink.target = "_blank";
+            cveLink.rel = "noopener noreferrer";
+            cveLink.className = "cve-tag";
+            cveLink.textContent = cve.toUpperCase();
+            meta.append(cveLink);
+        });
+
         card.append(link, meta, copyBtn);
         articleList.appendChild(card);
     }
