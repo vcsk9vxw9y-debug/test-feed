@@ -18,6 +18,8 @@ let allArticles = [];
 let articlesRequestController = null;
 let categoriesLoaded = false;
 let latestRequestId = 0;
+let totalIndexed = 0;    // Running DB total — updated from /api/categories
+let categoryCounts = {}; // Per-category article counts — keyed by category name
 
 // Badge CSS class map
 const badgeClass = {
@@ -196,10 +198,14 @@ function renderArticles(articles) {
         return;
     }
 
+    // Use the real DB count for the active category (not the fetched slice)
+    const catTotal = categoryCounts[currentCategory] ?? totalIndexed;
+    const catLabel = currentCategory === "All" ? "articles indexed" : `articles in ${currentCategory}`;
+
     if (currentSearch) {
-        articleCount.innerHTML = `${articles.length} article${articles.length !== 1 ? "s" : ""} indexed &mdash; matching <mark>${currentSearch}</mark>`;
+        articleCount.innerHTML = `${articles.length.toLocaleString()} result${articles.length !== 1 ? "s" : ""} &mdash; matching <mark>${currentSearch}</mark>`;
     } else {
-        articleCount.textContent = `${articles.length} article${articles.length !== 1 ? "s" : ""} indexed`;
+        articleCount.textContent = `${catTotal.toLocaleString()} ${catLabel}`;
     }
 
     for (const article of articles) {
@@ -305,12 +311,19 @@ async function loadCategories() {
         const dynamicButtons = filterContainer.querySelectorAll(".filter-btn[data-dynamic='true']");
         dynamicButtons.forEach((button) => button.remove());
 
+        // Sum all category counts to get the real DB total
+        totalIndexed = categories.reduce((sum, cat) => sum + cat.count, 0);
+        categoryCounts["All"] = totalIndexed;
+        categories.forEach((cat) => {
+            categoryCounts[cat.category] = cat.count;
+        });
+
         categories.forEach((cat) => {
             const btn = document.createElement("button");
             btn.className = "filter-btn";
             btn.dataset.category = cat.category;
             btn.dataset.dynamic = "true";
-            btn.textContent = `${cat.category} (${cat.count})`;
+            btn.textContent = cat.category;
             filterContainer.appendChild(btn);
         });
 
