@@ -44,6 +44,8 @@ Cloud Breach:
   - k8s
   - container escape
   - exposed elasticsearch
+  - buckets
+  - exposed buckets
 
 SaaS Breach:
   - salesforce
@@ -89,6 +91,9 @@ SaaS Breach:
   - data leak
   - sensitive data exposure
   - third-party breach
+  - data breaches
+  - data leaks
+  - breach notifications
 
 Ransomware:
   - ransomware
@@ -110,6 +115,8 @@ Ransomware:
   - double extortion
   - triple extortion
   - leak site
+  - ransomware gangs
+  - leak sites
 
 Identity & Access:
   # Active Directory / Kerberos attacks
@@ -146,6 +153,10 @@ Identity & Access:
   - iam misconfiguration
   - privileged account
   - admin credential
+  - two-factor
+  - two-factor authentication
+  - 2fa
+  - iam attack surface
 
 Vulnerability/CVE:
   - cve
@@ -170,6 +181,17 @@ Vulnerability/CVE:
   - security flaw
   - unpatched vulnerability
   - n-day
+  - vulnerabilities
+  - zero-days
+  - 0-days
+  - exploits
+  - exploited
+  - exploiting
+  - exploitation
+  - flaws
+  - security flaws
+  - security patches
+  - security updates
 
 Nation State/APT:
   - apt
@@ -205,6 +227,11 @@ Nation State/APT:
   - state-backed
   - state backed
   - threat group
+  - iranian threat actor
+  - russian-aligned
+  - chinese-aligned
+  - hacktivist
+  - hacktivists
 
 Malware/Infostealer:
   - infostealer
@@ -237,6 +264,13 @@ Malware/Infostealer:
   - fake update
   - drive-by download
   - malicious document
+  - trojans
+  - infostealers
+  - rootkits
+  - malicious documents
+  - malicious extension
+  - malicious extensions
+  - malicious chrome extension
 
 AI Security:
   - ai guardrail
@@ -274,6 +308,17 @@ AI Security:
   - deepfake
   - model poisoning
   - training data poisoning
+  - ai agent
+  - ai agents
+  - ai assistant
+  - ai assistants
+  - ai-powered
+  - ai-driven
+  - ai-led
+  - frontier ai
+  - ai bug
+  - ai in malware
+  - ai soc
 
 Phishing & Social Engineering:
   - phishing campaign
@@ -293,6 +338,9 @@ Phishing & Social Engineering:
   - phishing
   - credential phishing
   - watering hole
+  - phishing campaigns
+  - phishing kits
+  - phishing attacks
 
 Supply Chain:
   - supply chain attack

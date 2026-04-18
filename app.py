@@ -7,7 +7,8 @@ from flask import Flask, jsonify, render_template, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from apscheduler.schedulers.background import BackgroundScheduler
-from scheduler import clean_summary, fetch_all_feeds
+from classifier import classify_article
+from scheduler import fetch_all_feeds
 
 app = Flask(__name__)
 
@@ -68,38 +69,30 @@ def init_db():
             SELECT 'total_processed', COUNT(*) FROM articles
         """)
 
-        # One-time: purge uncategorized articles accumulated before feed-level
-        # filtering was introduced. Safe to remove this block in the next release.
+        # One-time: re-run the classifier against every Uncategorized article
+        # after PR 1.5's keyword expansion. Only promotes rows out of
+        # Uncategorized — never demotes a real category. Safe to remove in the
+        # release after this one ships.
         already_ran = conn.execute(
-            "SELECT 1 FROM migrations WHERE name = 'cleanup_uncategorized_v1'"
-        ).fetchone()
-        if not already_ran:
-            conn.execute("DELETE FROM articles WHERE category = 'Uncategorized'")
-            conn.execute(
-                "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
-                ("cleanup_uncategorized_v1", datetime.now(timezone.utc).isoformat()),
-            )
-
-        # One-time: sanitize legacy summaries stored before ingest-time
-        # sanitization was introduced. Strips HTML/scripts/tracking pixels from
-        # every existing row. Safe to remove in the release after this one ships.
-        already_ran = conn.execute(
-            "SELECT 1 FROM migrations WHERE name = 'sanitize_summaries_v1'"
+            "SELECT 1 FROM migrations WHERE name = 'reclassify_uncategorized_v1'"
         ).fetchone()
         if not already_ran:
             rows = conn.execute(
-                "SELECT id, summary FROM articles WHERE summary IS NOT NULL AND summary != ''"
+                "SELECT id, title, summary FROM articles WHERE category = 'Uncategorized'"
             ).fetchall()
+            reclassified = 0
             for row in rows:
-                cleaned = clean_summary(row["summary"])
-                if cleaned != row["summary"]:
+                new_category = classify_article(row["title"], row["summary"])
+                if new_category != "Uncategorized":
                     conn.execute(
-                        "UPDATE articles SET summary = ? WHERE id = ?",
-                        (cleaned, row["id"]),
+                        "UPDATE articles SET category = ? WHERE id = ?",
+                        (new_category, row["id"]),
                     )
+                    reclassified += 1
+            print(f"[reclassify_uncategorized_v1] promoted {reclassified} articles")
             conn.execute(
                 "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
-                ("sanitize_summaries_v1", datetime.now(timezone.utc).isoformat()),
+                ("reclassify_uncategorized_v1", datetime.now(timezone.utc).isoformat()),
             )
 
         conn.commit()
