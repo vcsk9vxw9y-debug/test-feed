@@ -116,11 +116,16 @@ Identity & Access:
   - azure ad attack
   - entra id
   - saml injection
-  - sso bypass
   - ldap injection
   # MFA attacks
+  - mfa
   - mfa bypass
   - mfa fatigue
+  - multi-factor authentication
+  # SSO
+  - sso
+  - sso bypass
+  - single sign-on
   # General
   - identity attack
   - privileged access management
