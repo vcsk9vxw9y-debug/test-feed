@@ -1,9 +1,9 @@
 # Threat-Feed Category Keywords
 # Add or edit keywords to improve classification accuracy
 # Each article is checked against these lists in priority order:
-# OT/ICS > Cloud Breach > SaaS Breach > Ransomware > Vulnerability/CVE
-# > Nation State/APT > Malware/Infostealer > AI Security
-# > Phishing & Social Engineering > Supply Chain > Uncategorized
+# OT/ICS > Cloud Breach > SaaS Breach > Ransomware > Identity & Access
+# > Vulnerability/CVE > Nation State/APT > Malware/Infostealer > AI Security
+# > Phishing & Social Engineering > Supply Chain > Mobile Security > Uncategorized
 
 OT/ICS:
   - scada
@@ -97,6 +97,34 @@ Ransomware:
   - akira
   - royal ransomware
   - data extortion
+
+Identity & Access:
+  # Active Directory / Kerberos attacks
+  - kerberoasting
+  - golden ticket
+  - silver ticket
+  - pass-the-hash
+  - ntlm relay
+  - dcsync
+  - bloodhound
+  - active directory attack
+  # Credential extraction
+  - mimikatz
+  - lsass
+  - credential dumping
+  # Cloud identity
+  - azure ad attack
+  - entra id
+  - saml injection
+  - sso bypass
+  - ldap injection
+  # MFA attacks
+  - mfa bypass
+  - mfa fatigue
+  # General
+  - identity attack
+  - privileged access management
+  - service account abuse
 
 Vulnerability/CVE:
   - cve
@@ -244,3 +272,28 @@ Supply Chain:
   - ci/cd attack
   - third-party compromise
   - backdoored
+
+Mobile Security:
+  # Android
+  - android malware
+  - android vulnerability
+  - android exploit
+  - android trojan
+  - android rat
+  - play store malware
+  - sideloading malware
+  # iOS / Apple
+  - ios vulnerability
+  - ios exploit
+  - iphone exploit
+  - app store malware
+  # Cross-platform
+  - mobile malware
+  - mobile exploit
+  - mobile spyware
+  - mobile ransomware
+  - stalkerware
+  - zero-click exploit
+  - zero-click attack
+  # Named threats
+  - pegasus spyware

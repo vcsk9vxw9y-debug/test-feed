@@ -21,17 +21,19 @@ let latestRequestId = 0;
 
 // Badge CSS class map
 const badgeClass = {
-    "Cloud Breach":                "badge-cloud",
-    "SaaS Breach":                 "badge-saas",
-    "OT/ICS":                      "badge-ot",
-    "Ransomware":                  "badge-ransomware",
-    "Vulnerability/CVE":           "badge-vuln",
-    "Nation State/APT":            "badge-apt",
-    "Malware/Infostealer":         "badge-malware",
-    "AI Security":                 "badge-ai",
+    "Cloud Breach":                  "badge-cloud",
+    "SaaS Breach":                   "badge-saas",
+    "OT/ICS":                        "badge-ot",
+    "Ransomware":                    "badge-ransomware",
+    "Identity & Access":             "badge-identity",
+    "Vulnerability/CVE":             "badge-vuln",
+    "Nation State/APT":              "badge-apt",
+    "Malware/Infostealer":           "badge-malware",
+    "AI Security":                   "badge-ai",
     "Phishing & Social Engineering": "badge-phishing",
-    "Supply Chain":                "badge-supply",
-    "Uncategorized":               "badge-uncat",
+    "Supply Chain":                  "badge-supply",
+    "Mobile Security":               "badge-mobile",
+    "Uncategorized":                 "badge-uncat",
 };
 
 function setStatus(message, className = "loading") {
@@ -190,14 +192,14 @@ function renderArticles(articles) {
 
     if (!Array.isArray(articles) || articles.length === 0) {
         setStatus("No articles found in this category.", "empty");
-        articleCount.textContent = "0 articles";
+        articleCount.textContent = "0 articles indexed";
         return;
     }
 
     if (currentSearch) {
-        articleCount.innerHTML = `${articles.length} result${articles.length !== 1 ? "s" : ""} for <mark>${currentSearch}</mark>`;
+        articleCount.innerHTML = `${articles.length} article${articles.length !== 1 ? "s" : ""} indexed &mdash; matching <mark>${currentSearch}</mark>`;
     } else {
-        articleCount.textContent = `${articles.length} article${articles.length !== 1 ? "s" : ""}`;
+        articleCount.textContent = `${articles.length} article${articles.length !== 1 ? "s" : ""} indexed`;
     }
 
     for (const article of articles) {

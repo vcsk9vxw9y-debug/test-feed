@@ -5,24 +5,43 @@ from datetime import datetime
 from classifier import classify_article
 
 FEEDS = [
-    # --- Core Sources ---
+    # --- Core News ---
     {"url": "https://krebsonsecurity.com/feed/", "name": "Krebs on Security"},
     {"url": "https://feeds.feedburner.com/TheHackersNews", "name": "The Hacker News"},
     {"url": "https://www.bleepingcomputer.com/feed/", "name": "Bleeping Computer"},
-    {"url": "https://www.cisa.gov/cybersecurity-advisories/advisories.xml", "name": "CISA Alerts"},
     {"url": "https://www.darkreading.com/rss.xml", "name": "Dark Reading"},
-    {"url": "https://www.recordedfuture.com/feed", "name": "Recorded Future", "filter_uncategorized": True},
-    {"url": "https://www.schneier.com/feed/atom", "name": "Schneier on Security", "filter_uncategorized": True},
     {"url": "https://feeds.feedburner.com/securityweek", "name": "SecurityWeek"},
+    {"url": "https://therecord.media/feed", "name": "The Record"},
+    # --- Government & Advisories ---
+    {"url": "https://www.cisa.gov/cybersecurity-advisories/advisories.xml", "name": "CISA Alerts"},
+    {"url": "https://www.cisa.gov/uscert/ncas/alerts.xml", "name": "US-CERT Alerts"},
+    {"url": "https://www.ncsc.gov.uk/api/1/services/v1/all-rss-feed.xml", "name": "NCSC UK"},
+    # --- Vendor Threat Intelligence ---
     {"url": "https://unit42.paloaltonetworks.com/feed/", "name": "Unit42 Palo Alto"},
-    {"url": "https://www.malwarebytes.com/blog/feed/", "name": "Malwarebytes Labs", "filter_uncategorized": True},
-    # --- v2: Research & Threat Intel ---
-    {"url": "https://googleprojectzero.blogspot.com/feeds/posts/default", "name": "Google Project Zero"},
-    {"url": "https://isc.sans.edu/rssfeed.xml", "name": "SANS Internet Storm Center", "filter_uncategorized": True},
     {"url": "https://www.crowdstrike.com/blog/feed/", "name": "CrowdStrike Blog"},
     {"url": "https://cloud.google.com/blog/topics/threat-intelligence/rss.xml", "name": "Google Mandiant"},
-    {"url": "https://www.cisa.gov/uscert/ncas/alerts.xml", "name": "US-CERT Alerts"},
-    # --- v2: Reddit Community Feeds (filtered — only categorized articles saved) ---
+    {"url": "http://feeds.feedburner.com/feedburner/Talos", "name": "Cisco Talos"},
+    {"url": "https://research.checkpoint.com/feed/", "name": "Check Point Research"},
+    {"url": "https://www.sentinelone.com/blog/feed/", "name": "SentinelOne", "filter_uncategorized": True},
+    {"url": "https://www.welivesecurity.com/feed/", "name": "ESET WeLiveSecurity"},
+    {"url": "https://msrc.microsoft.com/blog/feed/", "name": "Microsoft MSRC", "filter_uncategorized": True},
+    {"url": "https://www.malwarebytes.com/blog/feed/", "name": "Malwarebytes Labs", "filter_uncategorized": True},
+    {"url": "https://www.recordedfuture.com/feed", "name": "Recorded Future", "filter_uncategorized": True},
+    # --- Security Research ---
+    {"url": "https://googleprojectzero.blogspot.com/feeds/posts/default", "name": "Google Project Zero"},
+    {"url": "https://security.googleblog.com/feeds/posts/default", "name": "Google Security Blog", "filter_uncategorized": True},
+    {"url": "https://labs.watchtowr.com/rss/", "name": "watchTowr Labs", "filter_uncategorized": True},
+    {"url": "https://www.zerodayinitiative.com/blog?format=rss", "name": "Zero Day Initiative"},
+    {"url": "https://github.blog/tag/github-security-lab/feed/", "name": "GitHub Security Lab", "filter_uncategorized": True},
+    {"url": "https://portswigger.net/research/rss", "name": "PortSwigger Research", "filter_uncategorized": True},
+    {"url": "https://rhinosecuritylabs.com/feed/", "name": "Rhino Security Labs", "filter_uncategorized": True},
+    {"url": "https://samcurry.net/api/feed.rss", "name": "Sam Curry", "filter_uncategorized": True},
+    {"url": "https://www.dragos.com/blog/feed/", "name": "Dragos", "filter_uncategorized": True},
+    {"url": "https://www.schneier.com/feed/atom", "name": "Schneier on Security", "filter_uncategorized": True},
+    # --- AI Security ---
+    {"url": "https://embracethered.com/blog/index.xml", "name": "Embrace The Red", "filter_uncategorized": True},
+    # --- Community ---
+    {"url": "https://isc.sans.edu/rssfeed.xml", "name": "SANS Internet Storm Center", "filter_uncategorized": True},
     {"url": "https://www.reddit.com/r/netsec/.rss", "name": "Reddit r/netsec", "filter_uncategorized": True},
     {"url": "https://www.reddit.com/r/cybersecurity/.rss", "name": "Reddit r/cybersecurity", "filter_uncategorized": True},
     {"url": "https://www.reddit.com/r/malware/.rss", "name": "Reddit r/malware", "filter_uncategorized": True},

@@ -25,12 +25,14 @@
     --saas:       #bc8cff;
     --ot:         #ff7b72;
     --ransomware: #e63946;
+    --identity:   #f0883e;
     --vuln:       #d29922;
     --apt:        #f85149;
     --malware:    #ffa657;
     --ai:         #56d364;
     --phishing:   #e3b341;
     --supply:     #3dc9b0;
+    --mobile:     #79c0ff;
     --uncat:      #484f58;
 
     --radius: 6px;
@@ -382,12 +384,14 @@ mark {
 .article-card:has(.badge-saas)       { border-left-color: var(--saas); }
 .article-card:has(.badge-ot)         { border-left-color: var(--ot); }
 .article-card:has(.badge-ransomware) { border-left-color: var(--ransomware); }
+.article-card:has(.badge-identity)   { border-left-color: var(--identity); }
 .article-card:has(.badge-vuln)       { border-left-color: var(--vuln); }
 .article-card:has(.badge-apt)        { border-left-color: var(--apt); }
 .article-card:has(.badge-malware)    { border-left-color: var(--malware); }
 .article-card:has(.badge-ai)         { border-left-color: var(--ai); }
 .article-card:has(.badge-phishing)   { border-left-color: var(--phishing); }
 .article-card:has(.badge-supply)     { border-left-color: var(--supply); }
+.article-card:has(.badge-mobile)     { border-left-color: var(--mobile); }
 .article-card:has(.badge-uncat)      { border-left-color: var(--uncat); }
 
 @keyframes slideIn {
@@ -454,12 +458,14 @@ mark {
 .badge-saas       { background: rgba(188, 140, 255, 0.12); color: var(--saas); }
 .badge-ot         { background: rgba(255, 123, 114, 0.12); color: var(--ot); }
 .badge-ransomware { background: rgba(230,  57,  70, 0.12); color: var(--ransomware); }
+.badge-identity   { background: rgba(240, 136,  62, 0.12); color: var(--identity); }
 .badge-vuln       { background: rgba(210, 153,  34, 0.12); color: var(--vuln); }
 .badge-apt        { background: rgba(248,  81,  73, 0.12); color: var(--apt); }
 .badge-malware    { background: rgba(255, 166,  87, 0.12); color: var(--malware); }
 .badge-ai         { background: rgba(86,  211, 100, 0.12); color: var(--ai); }
 .badge-phishing   { background: rgba(227, 179,  65, 0.12); color: var(--phishing); }
 .badge-supply     { background: rgba(61,  201, 176, 0.12); color: var(--supply); }
+.badge-mobile     { background: rgba(121, 192, 255, 0.12); color: var(--mobile); }
 .badge-uncat      { background: rgba(72,   79,  88, 0.15); color: var(--text-muted); }
 
 
