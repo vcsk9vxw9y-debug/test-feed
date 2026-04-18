@@ -1,8 +1,50 @@
+import calendar
+import html
+import re
 import sqlite3
+from datetime import datetime, timezone
+
+import bleach
 import feedparser
 import requests
-from datetime import datetime, timezone
+
 from classifier import classify_article
+
+
+def clean_summary(raw):
+    """Strip all HTML from a feed summary, decode entities, normalize whitespace.
+
+    Feed summaries from third-party sources routinely include tracking pixels,
+    <script> tags, style blocks, and malformed markup. We store plain text
+    only — the frontend can present it safely without HTML escaping gymnastics.
+    """
+    if not raw:
+        return ""
+    stripped = bleach.clean(raw, tags=[], attributes={}, strip=True)
+    decoded = html.unescape(stripped)
+    return re.sub(r"\s+", " ", decoded).strip()
+
+
+def normalize_published_date(entry):
+    """Return an ISO 8601 UTC string for an RSS entry's publish date.
+
+    Feeds publish dates in many formats (RFC 2822, RFC 3339, bespoke).
+    ``feedparser`` normalizes them into a ``published_parsed`` struct_time
+    expressed in UTC — we use ``calendar.timegm`` (UTC-aware) rather than
+    ``time.mktime`` (local-time-aware) to avoid a TZ-offset shift on the
+    host. Falls back to ``updated_parsed`` and finally to "now" if nothing
+    usable is provided.
+    """
+    for key in ("published_parsed", "updated_parsed"):
+        parsed = entry.get(key)
+        if not parsed:
+            continue
+        try:
+            dt = datetime.fromtimestamp(calendar.timegm(parsed), tz=timezone.utc)
+            return dt.isoformat()
+        except (TypeError, ValueError, OverflowError):
+            continue
+    return datetime.now(timezone.utc).isoformat()
 
 FEEDS = [
     # --- Core News ---
@@ -91,8 +133,10 @@ def fetch_all_feeds(db_path):
                         continue
 
                     title = entry.get("title", "No Title")
-                    summary = entry.get("summary", "")
-                    published = entry.get("published", datetime.now(timezone.utc).isoformat())
+                    summary = clean_summary(entry.get("summary", ""))
+                    published = normalize_published_date(entry)
+                    # Classify against sanitized text so keyword patterns
+                    # aren't distracted by HTML residue or entities.
                     category = classify_article(title, summary)
 
                     # Skip uncategorized articles from noisy feeds (e.g. Reddit)

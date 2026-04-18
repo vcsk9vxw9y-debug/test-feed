@@ -7,7 +7,7 @@ from flask import Flask, jsonify, render_template, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from apscheduler.schedulers.background import BackgroundScheduler
-from scheduler import fetch_all_feeds
+from scheduler import clean_summary, fetch_all_feeds
 
 app = Flask(__name__)
 
@@ -80,6 +80,28 @@ def init_db():
                 ("cleanup_uncategorized_v1", datetime.now(timezone.utc).isoformat()),
             )
 
+        # One-time: sanitize legacy summaries stored before ingest-time
+        # sanitization was introduced. Strips HTML/scripts/tracking pixels from
+        # every existing row. Safe to remove in the release after this one ships.
+        already_ran = conn.execute(
+            "SELECT 1 FROM migrations WHERE name = 'sanitize_summaries_v1'"
+        ).fetchone()
+        if not already_ran:
+            rows = conn.execute(
+                "SELECT id, summary FROM articles WHERE summary IS NOT NULL AND summary != ''"
+            ).fetchall()
+            for row in rows:
+                cleaned = clean_summary(row["summary"])
+                if cleaned != row["summary"]:
+                    conn.execute(
+                        "UPDATE articles SET summary = ? WHERE id = ?",
+                        (cleaned, row["id"]),
+                    )
+            conn.execute(
+                "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
+                ("sanitize_summaries_v1", datetime.now(timezone.utc).isoformat()),
+            )
+
         conn.commit()
     finally:
         conn.close()
@@ -121,6 +143,10 @@ def set_security_headers(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    # HSTS: tell browsers to only use HTTPS for this origin.
+    # 1 year max-age + includeSubDomains; not submitting to preload list yet
+    # (that's a one-way commitment — revisit once the domain is stable).
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
 
 

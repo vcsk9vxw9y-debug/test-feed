@@ -398,6 +398,14 @@ mark {
 
 .article-card:hover { background: var(--surface-2); }
 
+/* Keyboard navigation focus */
+.article-card.kb-focused {
+    background: var(--surface-2);
+    outline: 1px solid rgba(230, 57, 70, 0.35);
+    outline-offset: -1px;
+    z-index: 1;
+}
+
 /* Left-border color by threat category */
 .article-card:has(.badge-cloud)      { border-left-color: var(--cloud); }
 .article-card:has(.badge-saas)       { border-left-color: var(--saas); }
