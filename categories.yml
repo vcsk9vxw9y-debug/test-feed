@@ -21,6 +21,8 @@ OT/ICS:
   - energy sector
   - pipeline
   - manufacturing plant
+  - industrial cybersecurity
+  - safety instrumented system
 
 Cloud Breach:
   - aws
@@ -38,6 +40,10 @@ Cloud Breach:
   - cloud security
   - lambda
   - cloud database
+  - kubernetes
+  - k8s
+  - container escape
+  - exposed elasticsearch
 
 SaaS Breach:
   - salesforce
@@ -80,6 +86,9 @@ SaaS Breach:
   - user data exposed
   - customer data
   - breach notification
+  - data leak
+  - sensitive data exposure
+  - third-party breach
 
 Ransomware:
   - ransomware
@@ -97,6 +106,10 @@ Ransomware:
   - akira
   - royal ransomware
   - data extortion
+  - ransomware gang
+  - double extortion
+  - triple extortion
+  - leak site
 
 Identity & Access:
   # Active Directory / Kerberos attacks
@@ -130,6 +143,9 @@ Identity & Access:
   - identity attack
   - privileged access management
   - service account abuse
+  - iam misconfiguration
+  - privileged account
+  - admin credential
 
 Vulnerability/CVE:
   - cve
@@ -150,6 +166,10 @@ Vulnerability/CVE:
   - sql injection
   - fuzzing
   - byovd
+  - critical vulnerability
+  - security flaw
+  - unpatched vulnerability
+  - n-day
 
 Nation State/APT:
   - apt
@@ -182,6 +202,9 @@ Nation State/APT:
   - sandworm
   - threat cluster
   - hack-for-hire
+  - state-backed
+  - state backed
+  - threat group
 
 Malware/Infostealer:
   - infostealer
@@ -210,6 +233,10 @@ Malware/Infostealer:
   - adware
   - clickfix
   - edr killer
+  - cryptominer
+  - fake update
+  - drive-by download
+  - malicious document
 
 AI Security:
   - ai guardrail
@@ -244,6 +271,9 @@ AI Security:
   - meta llama
   - llama model
   - mistral ai
+  - deepfake
+  - model poisoning
+  - training data poisoning
 
 Phishing & Social Engineering:
   - phishing campaign
@@ -260,6 +290,9 @@ Phishing & Social Engineering:
   - social engineering attack
   - pretexting
   - whaling attack
+  - phishing
+  - credential phishing
+  - watering hole
 
 Supply Chain:
   - supply chain attack
@@ -277,6 +310,7 @@ Supply Chain:
   - ci/cd attack
   - third-party compromise
   - backdoored
+  - malicious dependency
 
 Mobile Security:
   # Android
