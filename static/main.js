@@ -193,9 +193,9 @@ function renderArticles(articles) {
     articleList.className = "article-list";
     articleList.replaceChildren();
 
-    // Header pill always shows the real DB total
+    // Header pill — real DB total, "indexed" lives here only
     if (articleCount) {
-        articleCount.textContent = `${totalIndexed.toLocaleString()} articles`;
+        articleCount.textContent = `${totalIndexed.toLocaleString()} articles indexed`;
     }
 
     if (!Array.isArray(articles) || articles.length === 0) {
@@ -204,14 +204,15 @@ function renderArticles(articles) {
         return;
     }
 
-    // Filter stats line — below the category buttons
+    // Filter stats — count of articles currently loaded (API-capped, max 500)
     if (filterStats) {
-        const catTotal = categoryCounts[currentCategory] ?? totalIndexed;
-        const catLabel = currentCategory === "All" ? "articles indexed" : `articles in ${currentCategory}`;
         if (currentSearch) {
             filterStats.innerHTML = `${articles.length.toLocaleString()} result${articles.length !== 1 ? "s" : ""} &mdash; matching <mark>${currentSearch}</mark>`;
         } else {
-            filterStats.textContent = `${catTotal.toLocaleString()} ${catLabel}`;
+            const label = currentCategory === "All"
+                ? `${articles.length.toLocaleString()} articles`
+                : `${articles.length.toLocaleString()} articles in ${currentCategory}`;
+            filterStats.textContent = label;
         }
     }
 
@@ -321,7 +322,7 @@ async function loadCategories() {
         // Sum all category counts to get the real DB total
         totalIndexed = categories.reduce((sum, cat) => sum + cat.count, 0);
         categoryCounts["All"] = totalIndexed;
-        if (articleCount) articleCount.textContent = `${totalIndexed.toLocaleString()} articles`;
+        if (articleCount) articleCount.textContent = `${totalIndexed.toLocaleString()} articles indexed`;
         categories.forEach((cat) => {
             categoryCounts[cat.category] = cat.count;
         });
