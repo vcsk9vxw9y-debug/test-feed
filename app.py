@@ -55,6 +55,19 @@ def init_db():
             )
         """)
 
+        # Cumulative article counter — never decrements, survives pruning/cleanup
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS stats (
+                key   TEXT PRIMARY KEY,
+                value INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+        # Seed from current article count if not already set
+        conn.execute("""
+            INSERT OR IGNORE INTO stats (key, value)
+            SELECT 'total_processed', COUNT(*) FROM articles
+        """)
+
         # One-time: purge uncategorized articles accumulated before feed-level
         # filtering was introduced. Safe to remove this block in the next release.
         already_ran = conn.execute(
@@ -148,6 +161,19 @@ def get_articles():
         conn.close()
 
     return jsonify([dict(row) for row in rows])
+
+
+@app.route("/api/stats")
+@limiter.limit("60 per minute")
+def get_stats():
+    conn = get_db()
+    try:
+        row = conn.execute(
+            "SELECT value FROM stats WHERE key = 'total_processed'"
+        ).fetchone()
+    finally:
+        conn.close()
+    return jsonify({"total_processed": row["value"] if row else 0})
 
 
 @app.route("/api/categories")

@@ -99,12 +99,16 @@ def fetch_all_feeds(db_path):
                     if feed.get("filter_uncategorized") and category == "Uncategorized":
                         continue
 
-                    conn.execute(
+                    result = conn.execute(
                         """INSERT OR IGNORE INTO articles
                            (title, summary, url, published_date, source_name, category)
                            VALUES (?, ?, ?, ?, ?, ?)""",
                         (title, summary, url, published, feed["name"], category)
                     )
+                    if result.rowcount > 0:
+                        conn.execute(
+                            "UPDATE stats SET value = value + 1 WHERE key = 'total_processed'"
+                        )
                     new_count += 1
 
                 conn.commit()

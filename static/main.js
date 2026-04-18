@@ -355,27 +355,37 @@ async function loadCategories() {
     }
 
     try {
-        const res = await fetch("/api/categories", {
-            headers: {
-                "Accept": "application/json",
-            },
-        });
+        // Fetch categories and cumulative stats in parallel
+        const [catRes, statsRes] = await Promise.all([
+            fetch("/api/categories", { headers: { "Accept": "application/json" } }),
+            fetch("/api/stats",      { headers: { "Accept": "application/json" } }),
+        ]);
 
-        if (!res.ok) {
-            throw new Error(`Failed to load categories: HTTP ${res.status}`);
+        if (!catRes.ok) {
+            throw new Error(`Failed to load categories: HTTP ${catRes.status}`);
         }
 
-        const categories = await res.json();
+        const categories = await catRes.json();
         const dynamicButtons = filterContainer.querySelectorAll(".filter-btn[data-dynamic='true']");
         dynamicButtons.forEach((button) => button.remove());
 
-        // Sum all category counts to get the real DB total
+        // Sum category counts for per-category display (current DB total)
         totalIndexed = categories.reduce((sum, cat) => sum + cat.count, 0);
         categoryCounts["All"] = totalIndexed;
-        if (articleCount) articleCount.textContent = `${totalIndexed.toLocaleString()} articles indexed`;
         categories.forEach((cat) => {
             categoryCounts[cat.category] = cat.count;
         });
+
+        // Use cumulative total from /api/stats for the header pill if valid
+        if (statsRes.ok) {
+            const stats = await statsRes.json();
+            const cumulative = stats?.total_processed;
+            if (Number.isFinite(cumulative) && cumulative >= totalIndexed) {
+                totalIndexed = cumulative;
+            }
+        }
+
+        if (articleCount) articleCount.textContent = `${totalIndexed.toLocaleString()} articles indexed`;
 
         categories.forEach((cat) => {
             const btn = document.createElement("button");
