@@ -2,6 +2,10 @@
 // Test-Feed - Frontend Logic
 // ===========================
 
+// SVG icon constants — defined once to avoid duplication
+const SVG_COPY  = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+const SVG_CHECK = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
 const articleList = document.getElementById("article-list");
 const filterContainer = document.querySelector(".filters");
 const articleCount = document.getElementById("article-count"); // header pill — shows totalIndexed
@@ -21,6 +25,7 @@ let categoriesLoaded = false;
 let latestRequestId = 0;
 let totalIndexed = 0;    // Running DB total — updated from /api/categories
 let categoryCounts = {}; // Per-category article counts — keyed by category name
+let focusedIndex  = -1;  // Keyboard-navigated article index (-1 = none)
 
 // Badge CSS class map
 const badgeClass = {
@@ -38,6 +43,15 @@ const badgeClass = {
     "Mobile Security":               "badge-mobile",
     "Uncategorized":                 "badge-uncat",
 };
+
+// Escape HTML special characters — prevents XSS when inserting untrusted text into innerHTML
+function escapeHtml(str) {
+    return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
 
 function setStatus(message, className = "loading") {
     articleList.className = `article-list ${className}`;
@@ -143,10 +157,12 @@ function filterBySearch(articles) {
 }
 
 // Highlight matched search term in text
+// Input text is HTML-escaped first to prevent XSS from untrusted RSS content
 function highlight(text, term) {
-    if (!term || !text) return text || "";
+    const safe = escapeHtml(text);
+    if (!term) return safe;
     const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return text.replace(new RegExp(`(${escaped})`, "gi"), "<mark>$1</mark>");
+    return safe.replace(new RegExp(`(${escaped})`, "gi"), "<mark>$1</mark>");
 }
 
 // Rebuild source dropdown from current articles
@@ -192,6 +208,7 @@ function safeHref(rawUrl) {
 function renderArticles(articles) {
     articleList.className = "article-list";
     articleList.replaceChildren();
+    focusedIndex = -1;
 
     // Header pill — real DB total, "indexed" lives here only
     if (articleCount) {
@@ -207,7 +224,7 @@ function renderArticles(articles) {
     // Filter stats — count of articles currently loaded (API-capped, max 500)
     if (filterStats) {
         if (currentSearch) {
-            filterStats.innerHTML = `${articles.length.toLocaleString()} result${articles.length !== 1 ? "s" : ""} &mdash; matching <mark>${currentSearch}</mark>`;
+            filterStats.innerHTML = `${articles.length.toLocaleString()} result${articles.length !== 1 ? "s" : ""} &mdash; matching <mark>${escapeHtml(currentSearch)}</mark>`;
         } else {
             const label = currentCategory === "All"
                 ? `${articles.length.toLocaleString()} articles`
@@ -251,14 +268,16 @@ function renderArticles(articles) {
         copyBtn.className = "copy-btn";
         copyBtn.dataset.tip = "Copy link";
         copyBtn.setAttribute("aria-label", "Copy article link");
-        copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+        copyBtn.innerHTML = SVG_COPY;
         copyBtn.addEventListener("click", () => {
-            navigator.clipboard.writeText(safeHref(article.url)).catch(() => {});
-            copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+            const href = safeHref(article.url);
+            if (href === "#") return;
+            navigator.clipboard.writeText(href).catch(() => {});
+            copyBtn.innerHTML = SVG_CHECK;
             copyBtn.dataset.tip = "Copied!";
             copyBtn.classList.add("copied");
             setTimeout(() => {
-                copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+                copyBtn.innerHTML = SVG_COPY;
                 copyBtn.dataset.tip = "Copy link";
                 copyBtn.classList.remove("copied");
             }, 1500);
@@ -443,6 +462,81 @@ if (searchClear) {
         searchInput.focus();
     });
 }
+
+// ---- Keyboard Shortcuts ----
+// j/k or ↓/↑ — navigate articles
+// Enter       — open focused article in new tab
+// /           — focus search bar
+// Escape      — clear focus / exit search
+
+function getCards() {
+    return Array.from(articleList.querySelectorAll(".article-card"));
+}
+
+function setFocusedCard(index) {
+    const cards = getCards();
+    if (!cards.length) return;
+
+    index = Math.max(0, Math.min(index, cards.length - 1));
+    cards.forEach((c) => c.classList.remove("kb-focused"));
+    cards[index].classList.add("kb-focused");
+    cards[index].scrollIntoView({ block: "nearest", behavior: "smooth" });
+    focusedIndex = index;
+}
+
+document.addEventListener("keydown", (e) => {
+    const inInput = e.target.tagName === "INPUT"
+        || e.target.tagName === "SELECT"
+        || e.target.tagName === "TEXTAREA";
+
+    // While in search: only handle Escape to exit
+    if (e.target === searchInput) {
+        if (e.key === "Escape") {
+            searchInput.blur();
+            e.preventDefault();
+        }
+        return;
+    }
+
+    // While in any other input: do nothing
+    if (inInput) return;
+
+    switch (e.key) {
+        case "/":
+            e.preventDefault();
+            searchInput?.focus();
+            break;
+
+        case "j":
+        case "ArrowDown":
+            e.preventDefault();
+            setFocusedCard(focusedIndex < 0 ? 0 : focusedIndex + 1);
+            break;
+
+        case "k":
+        case "ArrowUp":
+            e.preventDefault();
+            setFocusedCard(focusedIndex <= 0 ? 0 : focusedIndex - 1);
+            break;
+
+        case "Enter": {
+            const cards = getCards();
+            if (focusedIndex >= 0 && cards[focusedIndex]) {
+                const link = cards[focusedIndex].querySelector("a");
+                if (link && link.href !== "#") {
+                    window.open(link.href, "_blank", "noopener,noreferrer");
+                }
+            }
+            break;
+        }
+
+        case "Escape":
+            getCards().forEach((c) => c.classList.remove("kb-focused"));
+            focusedIndex = -1;
+            break;
+    }
+});
+
 
 // Init
 (async () => {

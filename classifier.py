@@ -37,12 +37,14 @@ def classify_article(title, summary):
         "Cloud Breach",
         "SaaS Breach",
         "Ransomware",
+        "Identity & Access",
         "Vulnerability/CVE",
         "Nation State/APT",
         "Malware/Infostealer",
         "AI Security",
         "Phishing & Social Engineering",
         "Supply Chain",
+        "Mobile Security",
     ]
     remaining = [c for c in rules if c not in priority]
 

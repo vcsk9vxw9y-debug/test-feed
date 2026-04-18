@@ -1,7 +1,8 @@
 flask
+flask-limiter
 feedparser
 apscheduler
 pyyaml
 gunicorn
-Requests
+requests
 
