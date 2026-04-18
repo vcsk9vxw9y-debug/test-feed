@@ -391,6 +391,7 @@ mark {
     border-bottom: 1px solid var(--border);
     transition: background var(--ease);
     animation: slideIn 0.18s ease both;
+    position: relative;
 }
 
 .article-card:last-child { border-bottom: none; }
@@ -429,7 +430,75 @@ mark {
     line-height: 1.45;
     display: block;
     margin-bottom: 8px;
+    padding-right: 36px; /* room for copy button */
     transition: color var(--ease);
+}
+
+/* ---- Copy Link Button ---- */
+.copy-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ease), background var(--ease), color var(--ease), border-color var(--ease);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.article-card:hover .copy-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.copy-btn:hover {
+    background: var(--surface-2);
+    border-color: #444c56;
+    color: var(--text-secondary);
+}
+
+.copy-btn.copied {
+    background: rgba(86, 211, 100, 0.10);
+    border-color: rgba(86, 211, 100, 0.30);
+    color: #56d364;
+    opacity: 1;
+    pointer-events: none;
+}
+
+.copy-btn::after {
+    content: attr(data-tip);
+    position: absolute;
+    right: 32px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ease);
+}
+
+.copy-btn:hover::after,
+.copy-btn.copied::after {
+    opacity: 1;
+}
+
+.copy-btn.copied::after {
+    color: #56d364;
 }
 
 .article-card a:hover  { color: var(--cloud); }

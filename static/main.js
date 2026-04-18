@@ -246,8 +246,26 @@ function renderArticles(articles) {
         date.textContent = relativeTime(article.published_date, article.created_at);
         date.title = formatDate(article.published_date, article.created_at);
 
+        // Copy link button
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "copy-btn";
+        copyBtn.dataset.tip = "Copy link";
+        copyBtn.setAttribute("aria-label", "Copy article link");
+        copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+        copyBtn.addEventListener("click", () => {
+            navigator.clipboard.writeText(safeHref(article.url)).catch(() => {});
+            copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+            copyBtn.dataset.tip = "Copied!";
+            copyBtn.classList.add("copied");
+            setTimeout(() => {
+                copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+                copyBtn.dataset.tip = "Copy link";
+                copyBtn.classList.remove("copied");
+            }, 1500);
+        });
+
         meta.append(badge, source, date);
-        card.append(link, meta);
+        card.append(link, meta, copyBtn);
         articleList.appendChild(card);
     }
 }
