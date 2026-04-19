@@ -46,6 +46,11 @@ def classify_article(title, summary):
         "Supply Chain",
         "Mobile Security",
         "Industry/Policy",
+        # Consumer Awareness is intentionally last in priority: sharper
+        # categories (Phishing, Malware, AI Security, etc.) still win when
+        # they apply. Only consumer-hygiene content without a sharper hook
+        # lands here, keeping ESET WeLiveSecurity out of Uncategorized.
+        "Consumer Awareness",
     ]
     remaining = [c for c in rules if c not in priority]
 

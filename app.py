@@ -124,6 +124,34 @@ def init_db():
                 ("reclassify_uncategorized_v2", datetime.now(timezone.utc).isoformat()),
             )
 
+        # One-time: re-run classifier against Uncategorized after this PR's
+        # Consumer Awareness category + broadened keywords (phishing scams,
+        # supply-chain plurals, mobile banking trojan, industry bodies, APT
+        # plurals, etc.). Same one-way promotion guarantee as v1/v2 — never
+        # demotes a real category. Safe to remove in the release after this
+        # one ships.
+        already_ran_v3 = conn.execute(
+            "SELECT 1 FROM migrations WHERE name = 'reclassify_uncategorized_v3'"
+        ).fetchone()
+        if not already_ran_v3:
+            rows = conn.execute(
+                "SELECT id, title, summary FROM articles WHERE category = 'Uncategorized'"
+            ).fetchall()
+            reclassified = 0
+            for row in rows:
+                new_category = classify_article(row["title"], row["summary"])
+                if new_category != "Uncategorized":
+                    conn.execute(
+                        "UPDATE articles SET category = ? WHERE id = ?",
+                        (new_category, row["id"]),
+                    )
+                    reclassified += 1
+            print(f"[reclassify_uncategorized_v3] promoted {reclassified} articles")
+            conn.execute(
+                "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
+                ("reclassify_uncategorized_v3", datetime.now(timezone.utc).isoformat()),
+            )
+
         # Startup prune: DELETE historical rows that would be excluded by
         # the current config/exclusions.yml. Idempotent — re-runs on every
         # deploy so a newly-added phrase also cleans pre-existing rows,

@@ -4,7 +4,12 @@
 # OT/ICS > Cloud Breach > SaaS Breach > Ransomware > Identity & Access
 # > Vulnerability/CVE > Nation State/APT > Malware/Infostealer > AI Security
 # > Phishing & Social Engineering > Supply Chain > Mobile Security
-# > Industry/Policy > Uncategorized
+# > Industry/Policy > Consumer Awareness > Uncategorized
+#
+# Consumer Awareness sits second-to-last on purpose: sharper categories
+# (Phishing, Malware, AI Security, etc.) should still win when they apply.
+# A phishing scam lands in Phishing; a consumer-hygiene tips piece without
+# a sharper hook lands here.
 
 OT/ICS:
   - scada
@@ -224,15 +229,23 @@ Nation State/APT:
   - kimsuky
   - sandworm
   - threat cluster
+  - threat clusters
   - hack-for-hire
   - state-backed
   - state backed
   - threat group
+  - threat groups
   - iranian threat actor
   - russian-aligned
   - chinese-aligned
   - hacktivist
   - hacktivists
+  - state-sponsored actors
+  - state sponsored actors
+  - apt group
+  - apt groups
+  - advanced persistent threat
+  - advanced persistent threats
 
 Malware/Infostealer:
   - infostealer
@@ -272,6 +285,18 @@ Malware/Infostealer:
   - malicious extension
   - malicious extensions
   - malicious chrome extension
+  - malicious chrome extensions
+  - loader malware
+  - stealer campaign
+  - stealer log
+  - stealer logs
+  - crypter
+  - packer malware
+  - c2 infrastructure
+  - command and control
+  - payload delivery
+  - malicious installer
+  - malicious binary
 
 AI Security:
   - ai guardrail
@@ -342,6 +367,20 @@ Phishing & Social Engineering:
   - phishing campaigns
   - phishing kits
   - phishing attacks
+  # Note: generic "scam"/"scams" intentionally NOT here — they live under
+  # Consumer Awareness (type-specific phrases like "poshmark", "tax-season
+  # scam", "romance scam"). Enterprise phishing still matches on phishing/
+  # spearphishing/BEC/credential-theft keywords below.
+  - fraud scheme
+  - fraud campaign
+  - impersonation
+  - fake website
+  - fake login
+  - fake site
+  - credential theft
+  - spearphishing
+  - malicious email
+  - bec scam
 
 Supply Chain:
   - supply chain attack
@@ -360,6 +399,14 @@ Supply Chain:
   - third-party compromise
   - backdoored
   - malicious dependency
+  - supply-chain
+  - compromised package
+  - malicious npm
+  - malicious pypi
+  - poisoned package
+  - rogue package
+  - build system compromise
+  - vendor breach
 
 Mobile Security:
   # Android
@@ -385,6 +432,14 @@ Mobile Security:
   - zero-click attack
   # Named threats
   - pegasus spyware
+  # Broadened coverage
+  - android spyware
+  - ios spyware
+  - mobile banking trojan
+  - banking trojan
+  - smishing kit
+  - fake app
+  - rogue app
 
 Industry/Policy:
   # Regulators & government bodies
@@ -418,3 +473,79 @@ Industry/Policy:
   - cybersecurity merger
   - cybersecurity ipo
   - cybersecurity layoffs
+  # Broadened coverage: global bodies, conferences, strategic themes
+  - ncsc
+  - europol
+  - interpol
+  - rsac
+  - rsa conference
+  - black hat
+  - def con
+  - quantum computing threat
+  - post-quantum
+  - surveillance law
+  - wiretap
+  - national security
+  - cybersecurity strategy
+
+Consumer Awareness:
+  # Personal / family safety framings
+  - personal safety online
+  - online safety
+  - parental guidance
+  - parental control
+  - parental controls
+  - kids online
+  - child online safety
+  - family safety
+  - digital literacy
+  - digital hygiene
+  - digital footprint
+  - digital estate
+  # Consumer scams (type-specific; generic "scam"/"scams" live under Phishing)
+  - marketplace scam
+  - marketplace fraud
+  - shopping scam
+  - online shopping scam
+  - poshmark
+  - offerup
+  - apple pay scam
+  - venmo scam
+  - zelle scam
+  - refund scam
+  - tax scam
+  - tax-season scam
+  - tax season scam
+  - recovery scam
+  - romance scam
+  - dating scam
+  - tech support scam
+  - gift card scam
+  - investment scam
+  - crypto scam
+  - cryptocurrency scam
+  - job scam
+  # Personal identity / data
+  - identity theft
+  - identity protection
+  - personal data exposed
+  - data broker
+  - data brokers
+  - opt out
+  - opt-out request
+  - credit freeze
+  - sim swap
+  - sim-swap
+  # How-to / advice framings
+  - how to protect yourself
+  - how to stay safe
+  - how to spot
+  - tips to avoid
+  - avoid scams
+  - protect your
+  - stay safe online
+  - secure your accounts
+  - password manager tips
+  - password tips
+  - safer internet
+  - cyber safety tips
