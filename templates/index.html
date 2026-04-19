@@ -40,6 +40,11 @@
     <main>
         <section class="filters" id="filters" aria-label="Filter by category">
             <button class="filter-btn active" data-category="All">All</button>
+            <button
+                class="filter-btn filter-ghost"
+                data-category="Industry/Policy"
+                aria-label="Filter: Industry and Policy"
+            >Industry&#8203;/&#8203;Policy</button>
         </section>
 
         <div class="search-bar">
@@ -81,7 +86,12 @@
     </main>
 
     <footer>
-        <p>Threat-Feed &mdash; Open Source &middot; RSS only &middot; Updates every 4 hours</p>
+        <p>
+            Threat-Feed &mdash; Open Source &middot; RSS only &middot; Updates every 4 hours
+            <span class="footer-badge">
+                <span class="footer-badge__name">Aegis</span><span class="footer-badge__role">Contributor</span>
+            </span>
+        </p>
     </footer>
 
     <script type="text/javascript" src="/static/main.js" defer></script>

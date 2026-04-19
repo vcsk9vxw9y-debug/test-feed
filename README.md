@@ -4,12 +4,14 @@ An open source cybersecurity threat feed aggregator. Pulls from free public RSS 
 
 ## Features
 
-- Aggregates 10 top security RSS feeds automatically
-- Classifies articles into: Cloud Breach, SaaS Breach, OT/ICS, Ransomware, Vulnerability/CVE
+- Aggregates 30+ security RSS feeds automatically
+- Classifies articles into 14 categories: Cloud Breach, SaaS Breach, OT/ICS, Ransomware, Identity & Access, Vulnerability/CVE, Nation State/APT, Malware/Infostealer, AI Security, Phishing & Social Engineering, Supply Chain, Mobile Security, Industry/Policy, Uncategorized
+- Word-boundary regex classification with priority ordering — zero API costs
 - Fetches new articles every 4 hours in the background
-- Filterable web interface
-- Zero API costs — regex based classification
-- Railway ready with persistent SQLite storage
+- Rate-limited JSON API (`/api/articles`, `/api/categories`, `/api/stats`)
+- Strict CSP + HSTS + security headers on every response
+- Keyboard-navigable, accessible frontend (prefers-reduced-motion, prefers-contrast)
+- Railway-ready with persistent SQLite storage and one-time data migrations
 
 ## Local Setup
 
@@ -48,6 +50,14 @@ Cloud Breach:
   - your new keyword here
 ```
 
+## Category Priority
+
+Classification is first-match-wins in priority order. Threat categories rank ahead of context categories — a "CISA advisory on new ransomware gang" matches **Ransomware** first, not **Industry/Policy**. To change priority, edit the `priority` list in `classifier.py`.
+
+## Data Migrations
+
+One-time reclassification runs on startup and is gated by the `migrations` table so it never re-runs. See `reclassify_uncategorized_v1` / `_v2` in `app.py` for the pattern — add a new gated block after future keyword expansions, then remove the old block one release later.
+
 ## Railway Deployment
 
 1. Push this repo to GitHub
@@ -77,7 +87,7 @@ test-feed/
 
 ## Contributing
 
-Pull requests welcome. The easiest contribution is adding keywords to `categories.yml` to improve classification accuracy.
+Pull requests welcome. The easiest contribution is adding keywords to `categories.yml` to improve classification accuracy. Aegis — an agent currently in development — helps maintain the keyword lists and suggest category refinements.
 
 ## License
 

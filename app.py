@@ -95,6 +95,30 @@ def init_db():
                 ("reclassify_uncategorized_v1", datetime.now(timezone.utc).isoformat()),
             )
 
+        # One-time: re-run classifier against Uncategorized after PR 2's
+        # Industry/Policy addition. Same one-way promotion guarantee as v1.
+        already_ran_v2 = conn.execute(
+            "SELECT 1 FROM migrations WHERE name = 'reclassify_uncategorized_v2'"
+        ).fetchone()
+        if not already_ran_v2:
+            rows = conn.execute(
+                "SELECT id, title, summary FROM articles WHERE category = 'Uncategorized'"
+            ).fetchall()
+            reclassified = 0
+            for row in rows:
+                new_category = classify_article(row["title"], row["summary"])
+                if new_category != "Uncategorized":
+                    conn.execute(
+                        "UPDATE articles SET category = ? WHERE id = ?",
+                        (new_category, row["id"]),
+                    )
+                    reclassified += 1
+            print(f"[reclassify_uncategorized_v2] promoted {reclassified} articles")
+            conn.execute(
+                "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
+                ("reclassify_uncategorized_v2", datetime.now(timezone.utc).isoformat()),
+            )
+
         conn.commit()
     finally:
         conn.close()

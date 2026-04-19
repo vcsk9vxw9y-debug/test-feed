@@ -45,6 +45,7 @@ def classify_article(title, summary):
         "Phishing & Social Engineering",
         "Supply Chain",
         "Mobile Security",
+        "Industry/Policy",
     ]
     remaining = [c for c in rules if c not in priority]
 

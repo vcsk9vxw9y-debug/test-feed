@@ -3,7 +3,8 @@
 # Each article is checked against these lists in priority order:
 # OT/ICS > Cloud Breach > SaaS Breach > Ransomware > Identity & Access
 # > Vulnerability/CVE > Nation State/APT > Malware/Infostealer > AI Security
-# > Phishing & Social Engineering > Supply Chain > Mobile Security > Uncategorized
+# > Phishing & Social Engineering > Supply Chain > Mobile Security
+# > Industry/Policy > Uncategorized
 
 OT/ICS:
   - scada
@@ -384,3 +385,36 @@ Mobile Security:
   - zero-click attack
   # Named threats
   - pegasus spyware
+
+Industry/Policy:
+  # Regulators & government bodies
+  - cisa advisory
+  - cisa directive
+  - cisa alert
+  - nist framework
+  - sec cyber disclosure
+  - sec cybersecurity rule
+  - ftc enforcement
+  - fcc ruling
+  # Legislation & policy
+  - executive order
+  - cybersecurity legislation
+  - cybersecurity bill
+  - cyber resilience act
+  - nis2 directive
+  - dora regulation
+  - cmmc compliance
+  - privacy law
+  - data protection authority
+  # Enforcement actions
+  - gdpr fine
+  - regulatory fine
+  - sanctions imposed
+  - doj indictment
+  - class action lawsuit
+  # Industry / market
+  - cybersecurity funding
+  - cybersecurity acquisition
+  - cybersecurity merger
+  - cybersecurity ipo
+  - cybersecurity layoffs

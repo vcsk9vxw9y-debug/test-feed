@@ -41,6 +41,7 @@ const badgeClass = {
     "Phishing & Social Engineering": "badge-phishing",
     "Supply Chain":                  "badge-supply",
     "Mobile Security":               "badge-mobile",
+    "Industry/Policy":               "badge-policy",
     "Uncategorized":                 "badge-uncat",
 };
 
@@ -388,6 +389,10 @@ async function loadCategories() {
         if (articleCount) articleCount.textContent = `${totalIndexed.toLocaleString()} articles indexed`;
 
         categories.forEach((cat) => {
+            // Skip if a static pill for this category is already in the DOM
+            // (e.g. Industry/Policy ghost pill in index.html)
+            if (filterContainer.querySelector(`[data-category="${CSS.escape(cat.category)}"]`)) return;
+
             const btn = document.createElement("button");
             btn.className = "filter-btn";
             btn.dataset.category = cat.category;

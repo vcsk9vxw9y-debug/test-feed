@@ -35,6 +35,10 @@
     --mobile:     #79c0ff;
     --uncat:      #484f58;
 
+    --policy:      #22d3a7;
+    --policy-dim:  rgba(34, 211, 167, 0.12);
+    --policy-edge: rgba(34, 211, 167, 0.45);
+
     --radius: 6px;
     --ease:   150ms ease;
 }
@@ -194,6 +198,32 @@ main {
 .filter-btn:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
+}
+
+/* Ghost pill — context category (Industry/Policy), visually distinct from threat pills */
+.filter-ghost {
+    background: transparent;
+    border: 1px dashed var(--policy-edge);
+    color: var(--policy);
+}
+.filter-ghost:hover {
+    background: var(--policy-dim);
+    border-color: var(--policy);
+    color: var(--text-primary);
+}
+.filter-ghost.active {
+    background: var(--policy-dim);
+    border-style: solid;
+    border-color: var(--policy);
+    color: var(--policy);
+}
+.filter-ghost:focus-visible {
+    outline: 2px solid var(--policy);
+    outline-offset: 2px;
+}
+@media (prefers-contrast: more) {
+    .filter-ghost { border-width: 2px; color: var(--text-primary); }
+    .filter-ghost.active { background: var(--policy); color: var(--bg); }
 }
 
 
@@ -419,6 +449,7 @@ mark {
 .article-card:has(.badge-phishing)   { border-left-color: var(--phishing); }
 .article-card:has(.badge-supply)     { border-left-color: var(--supply); }
 .article-card:has(.badge-mobile)     { border-left-color: var(--mobile); }
+.article-card:has(.badge-policy)     { border-left-color: var(--policy); }
 .article-card:has(.badge-uncat)      { border-left-color: var(--uncat); }
 
 @keyframes slideIn {
@@ -583,6 +614,7 @@ mark {
 .badge-phishing   { background: rgba(227, 179,  65, 0.12); color: var(--phishing); }
 .badge-supply     { background: rgba(61,  201, 176, 0.12); color: var(--supply); }
 .badge-mobile     { background: rgba(121, 192, 255, 0.12); color: var(--mobile); }
+.badge-policy     { background: var(--policy-dim); color: var(--policy); }
 .badge-uncat      { background: rgba(72,   79,  88, 0.15); color: var(--text-muted); }
 
 
@@ -607,6 +639,34 @@ footer {
     color: var(--text-muted);
     font-family: 'IBM Plex Mono', monospace;
     letter-spacing: 0.02em;
+}
+
+.footer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    margin-left: 8px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface);
+    vertical-align: baseline;
+}
+.footer-badge__name {
+    color: var(--text-secondary);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+.footer-badge__role {
+    color: var(--text-muted);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.footer-badge__role::before {
+    content: "·";
+    margin-right: 4px;
+    color: var(--text-muted);
 }
 
 
