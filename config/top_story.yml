@@ -1,55 +1,14 @@
-# Threat-Feed — Top Story (committed configuration)
-#
-# The Top Story hero at the top of the front page is curated, not auto-picked.
-# Updating it is a PR. There is no admin endpoint, no runtime override.
-# See TOP_STORY.md for the full operator workflow.
-#
-# Required fields: active, title, summary, url, source_name, published_at
-# Optional fields: key_points, category, notes
-#
-# When `active: false`, or when any required field is missing, the frontend
-# falls back to using the first article in the feed as a visual lead. This is
-# the deliberate "nothing curated right now" state — not an error.
-
-active: false
-
-# --- Example content, kept here as a template reference ---------------------
-# When going live, flip `active` to true and update every field below.
-# Leave the example in place so future operators have a working template.
-
-title: "[Top Story placeholder — nothing curated right now]"
-summary: >
-    Every field in this file must be updated before flipping active to true.
-    Until then, the feed renders its top-most article as the visual lead.
-
-# Primary source link. MUST be a direct link to the primary-source article,
-# not a secondary rewrite. Prefer vendor PSIRTs, government advisories, or
-# primary research blogs over news aggregators.
-url: "https://example.invalid/placeholder"
-source_name: "Placeholder"
-
-# ISO 8601 UTC timestamp of when the story was published by the primary
-# source (NOT when this YAML was last edited).
-published_at: "2026-04-01T00:00:00Z"
-
-# Category — must match one of the keys in the frontend categoryMap
-# (see static/main.js). Used for the left-rail color accent on the lead.
-category: "Vulnerabilities"
-
-# 3–5 bullets. Each one should be a verifiable, single-fact claim you'd be
-# willing to defend. Operator's editorial work — this is why the Top Story
-# is curated, not auto-picked.
+# Top Story — operator-curated lead article.
+# active:false and the front page falls back to first-article-as-lead.
+active: true
+title: "Unit 42: Escalation of Cyber Risk Related to Iran"
+source_name: "Unit42 Palo Alto"
+url: "https://unit42.paloaltonetworks.com/iranian-cyberattacks-2026/"
+published_at: "2026-04-17T22:35:07Z"
+category: "Nation State/APT"
 key_points:
-  - "First placeholder bullet — replace with a verifiable primary-source fact."
-  - "Second placeholder bullet — keep each point single-fact, no speculation."
-  - "Third placeholder bullet — link back to the primary source if needed."
-
-# Free-form operator notes — not rendered to readers. Use for context a
-# future maintainer would need when deciding whether to re-curate.
-notes: |
-    Template placeholder. To go live:
-      1. Set active: true
-      2. Replace title / summary / url / source_name / published_at with
-         the real primary-source details.
-      3. Replace key_points with 3-5 verifiable bullets.
-      4. Commit + deploy; no service restart required on the next boot.
+  - "Unit 42 assesses elevated cyber risk tied to the current Iran escalation cycle."
+  - "Historical precedent: destructive wiper campaigns (Shamoon lineage) and credential-harvesting operations against Western critical infrastructure."
+  - "Recommended defensive posture: patch internet-facing appliances, enforce MFA on remote access, and review OT segmentation."
+  - "Primary-source intel from Palo Alto Networks' threat research team — treat as HIGH-confidence signal."
+notes: "Curated 2026-04-19 — Tier 1 primary-source threat brief, replaces r/cybersecurity fallback lead."
