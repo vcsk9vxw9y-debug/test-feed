@@ -33,7 +33,9 @@ let focusedIndex = -1;
 // missing / malformed / not set active. See TOP_STORY.md for the contract.
 let topStory = null;
 
-// Category → meta-top class (meta-top pill color) & left rail class (article)
+// Category → meta-top class (pip color + category text color). The `rail`
+// property is retained for now but unused after the left-border → dot-pip
+// refactor; slated for cleanup in a follow-up commit.
 const categoryMap = {
     "Cloud Breach":                  { cat: "cloud",    rail: "c-cloud" },
     "SaaS Breach":                   { cat: "saas",     rail: "c-saas" },
@@ -338,9 +340,16 @@ function buildArticleCard(article, { lead }) {
     const card = document.createElement("article");
     card.className = `article ${catMeta.rail}${lead ? " lead" : ""}`;
 
-    // --- meta-top row: category · filed · confidence ---
+    // --- meta-top row: pip · category · filed · confidence ---
     const metaTop = document.createElement("div");
     metaTop.className = "meta-top";
+
+    // Category dot pip — decorative, aria-hidden since the category label
+    // (next sibling) carries the accessible name.
+    const pip = document.createElement("span");
+    pip.className = `dot-pip dot-${catMeta.cat}`;
+    pip.setAttribute("aria-hidden", "true");
+    metaTop.appendChild(pip);
 
     const cat = document.createElement("span");
     cat.className = `cat ${catMeta.cat}`;
