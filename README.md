@@ -8,7 +8,7 @@ An open source cybersecurity threat feed aggregator. Pulls from free public RSS 
 - Classifies articles into 14 categories: Cloud Breach, SaaS Breach, OT/ICS, Ransomware, Identity & Access, Vulnerability/CVE, Nation State/APT, Malware/Infostealer, AI Security, Phishing & Social Engineering, Supply Chain, Mobile Security, Industry/Policy, Uncategorized
 - Word-boundary regex classification with priority ordering — zero API costs
 - Fetches new articles every 4 hours in the background
-- Rate-limited JSON API (`/api/articles`, `/api/categories`, `/api/stats`)
+- Rate-limited JSON API (`/api/articles`, `/api/categories`, `/api/top-story`)
 - Strict CSP + HSTS + security headers on every response
 - Keyboard-navigable, accessible frontend (prefers-reduced-motion, prefers-contrast)
 - Railway-ready with persistent SQLite storage and one-time data migrations

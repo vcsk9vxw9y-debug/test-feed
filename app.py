@@ -288,17 +288,10 @@ def get_top_story():
     return jsonify(_load_top_story())
 
 
-@app.route("/api/stats")
-@limiter.limit("60 per minute")
-def get_stats():
-    conn = get_db()
-    try:
-        row = conn.execute(
-            "SELECT value FROM stats WHERE key = 'total_processed'"
-        ).fetchone()
-    finally:
-        conn.close()
-    return jsonify({"total_processed": row["value"] if row else 0})
+# NOTE: /api/stats (exposing cumulative total_processed) was removed in PR 3.
+# See SECURITY.md — "Count disclosure policy". The `stats` table is kept
+# for operator-side inspection via the SQLite CLI, but no public endpoint
+# surfaces it.
 
 
 @app.route("/api/categories")
