@@ -3,97 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Threat-Feed | Security Threat Feed</title>
+    <title>Threat-Feed — Intelligence Desk</title>
 
-    <!-- Favicon — // monogram in accent red -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23080c10'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23e63946'>//</text></svg>">
+    <!-- Favicon — // monogram in lime on charcoal -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23090c11'/><text x='50%25' y='57%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23c4ff3a'>//</text></svg>">
 
     <!-- Open Graph -->
     <meta property="og:title"       content="Threat-Feed — Open Source Threat Intelligence">
-    <meta property="og:description" content="Real-time cybersecurity threat intelligence aggregated from 30+ RSS sources. Ransomware, CVEs, APTs, AI security and more.">
+    <meta property="og:description" content="Threat intelligence for technical readers. Headlines and primary-source links from public RSS, classified by keyword, filed without commentary.">
     <meta property="og:type"        content="website">
     <meta property="og:url"         content="https://threat-feed.up.railway.app">
 
     <!-- Twitter / X -->
     <meta name="twitter:card"        content="summary">
     <meta name="twitter:title"       content="Threat-Feed — Open Source Threat Intelligence">
-    <meta name="twitter:description" content="Real-time cybersecurity threat intelligence aggregated from 30+ RSS sources.">
+    <meta name="twitter:description" content="Threat intelligence for technical readers. Public RSS only. No accounts.">
 
     <link rel="stylesheet" type="text/css" href="/static/style.css">
 </head>
 <body>
 
-    <header>
-        <div class="header-brand">
-            <h1><span class="slash">//</span> Threat-Feed</h1>
-            <p class="subtitle">Open Source Cybersecurity Threat Feed</p>
-        </div>
-        <div class="header-right">
-            <span class="article-count-pill" id="article-count"></span>
-            <div class="header-status">
-                <span class="status-dot" aria-hidden="true"></span>
-                <span>Live</span>
+<div class="wrap">
+
+    <!-- ========== MASTHEAD ========== -->
+    <header class="masthead">
+        <div class="dateline">
+            <div class="l">
+                <span>Threat Intelligence</span>
+                <span class="sep">·</span>
+                <span id="dateline-date">—</span>
+            </div>
+            <div class="live">
+                <span class="dot" aria-hidden="true"></span>
+                <span>Operational</span>
             </div>
         </div>
+        <div class="brand">
+            <h1><span class="slash">//</span>threat-feed</h1>
+            <div class="strap">open source · rss only · no accounts</div>
+        </div>
+        <p class="mission"><b>Threat intelligence for technical readers.</b> Headlines and primary-source links aggregated from public RSS, classified by keyword, and filed without commentary. Updates on the tick.</p>
     </header>
 
-    <main>
-        <section class="filters" id="filters" aria-label="Filter by category">
-            <button class="filter-btn active" data-category="All">All</button>
-            <button
-                class="filter-btn filter-ghost"
-                data-category="Industry/Policy"
-                aria-label="Filter: Industry and Policy"
-            >Industry&#8203;/&#8203;Policy</button>
-        </section>
-
-        <div class="search-bar">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <!-- ========== CONTROLS ========== -->
+    <section class="controls" aria-label="Search and date controls">
+        <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             <input
                 type="search"
                 id="search-input"
-                class="search-input"
-                placeholder="Search titles and summaries…"
+                placeholder="search…"
                 autocomplete="off"
                 spellcheck="false"
                 aria-label="Search articles"
             >
             <button class="search-clear" id="search-clear" aria-label="Clear search">✕</button>
+            <kbd>/</kbd>
         </div>
-
-        <div class="filter-stats" id="filter-stats" aria-live="polite"></div>
-
-        <div class="toolbar">
-            <div class="date-filters" aria-label="Filter by date range">
-                <button class="tool-btn active" data-range="all">All time</button>
-                <button class="tool-btn" data-range="today">Today</button>
-                <button class="tool-btn" data-range="7days">7 days</button>
-                <button class="tool-btn" data-range="30days">30 days</button>
-            </div>
-            <div class="toolbar-right">
-                <select id="source-filter" class="source-select" aria-label="Filter by source">
-                    <option value="All">All sources</option>
-                </select>
-                <button class="sort-btn" id="sort-toggle" data-sort="newest" aria-label="Toggle sort order">↓ Newest</button>
-            </div>
+        <div class="spacer"></div>
+        <div class="segmented" id="date-range" role="group" aria-label="Filter by date range">
+            <button class="on" data-range="all">All</button>
+            <button data-range="today">Today</button>
+            <button data-range="7days">7D</button>
+            <button data-range="30days">30D</button>
         </div>
+        <div class="segmented" role="group" aria-label="Sort order">
+            <button id="sort-toggle" class="on" data-sort="newest">↓ New</button>
+        </div>
+        <select id="source-filter" class="source-select" aria-label="Filter by source">
+            <option value="All">All sources</option>
+        </select>
+    </section>
 
-        <section class="article-list" id="article-list" aria-label="Threat intelligence articles">
-            <div class="loading">Fetching latest threat intelligence...</div>
-        </section>
+    <!-- ========== FILTER RAIL ========== -->
+    <nav class="filters" id="filters" aria-label="Filter by category">
+        <span class="l">filter //</span>
+        <button class="tag on" data-category="All">all</button>
+        <button class="tag ghost" data-category="Industry/Policy" aria-label="Filter: Industry and Policy">industry&#8203;/&#8203;policy</button>
+    </nav>
+
+    <div class="filter-stats" id="filter-stats" aria-live="polite"></div>
+
+    <!-- ========== FEED ========== -->
+    <main class="feed" id="feed">
+        <div class="feed-status" id="feed-status">Fetching latest threat intelligence…</div>
+        <section id="lead-container" aria-label="Top Story" hidden></section>
+        <section id="article-list" aria-label="Threat intelligence articles"></section>
     </main>
 
-    <footer>
-        <p>
-            Threat-Feed &mdash; Open Source &middot; RSS only &middot; Updates every 4 hours
-            <span class="footer-badge">
-                <span class="footer-badge__name">Aegis</span><span class="footer-badge__role">Contributor</span>
+    <!-- ========== FOOTER ========== -->
+    <footer class="site-footer">
+        <div class="row">
+            <div class="r-left">
+                <span>open source</span>
+                <span class="sep">·</span>
+                <span>rss only</span>
+                <span class="sep">·</span>
+                <span>no accounts · no cookies · no ads</span>
+                <span class="sep">·</span>
+                <span>updates every 4h</span>
+            </div>
+            <span class="aegis">
+                <span class="n">//</span>
+                <span class="t">aegis</span>
+                <span class="r">contributor</span>
             </span>
-        </p>
+        </div>
     </footer>
 
-    <script type="text/javascript" src="/static/main.js" defer></script>
+</div>
+
+<script type="text/javascript" src="/static/main.js" defer></script>
 </body>
 </html>

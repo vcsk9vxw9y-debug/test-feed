@@ -149,8 +149,8 @@ def set_security_headers(response):
     response.headers["Content-Security-Policy"] = (
         "default-src 'none'; "
         "script-src 'self'; "
-        "style-src 'self' https://fonts.googleapis.com; "
-        "font-src https://fonts.gstatic.com; "
+        "style-src 'self'; "
+        "font-src 'self'; "
         "connect-src 'self'; "
         "img-src 'self' data:; "
         "frame-ancestors 'none'; "

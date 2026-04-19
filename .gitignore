@@ -23,6 +23,12 @@ env/
 .DS_Store
 Thumbs.db
 
+# Font download artifacts — only the canonical variable-font files
+# (static/fonts/inter.woff2, static/fonts/jetbrains.woff2) are tracked
+static/fonts/inter-*.woff2
+static/fonts/jetbrains-*.woff2
+static/fonts/gfonts.css
+
 # IDE
 .vscode/
 .idea/
