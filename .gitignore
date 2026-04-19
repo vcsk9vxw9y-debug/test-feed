@@ -32,3 +32,6 @@ static/fonts/gfonts.css
 # IDE
 .vscode/
 .idea/
+
+# Smoke-test SQLite journal artifact
+*.db-journal
