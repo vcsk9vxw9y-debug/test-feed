@@ -28,6 +28,10 @@ let articlesRequestController = null;
 let categoriesLoaded = false;
 let latestRequestId  = 0;
 let focusedIndex = -1;
+// Top Story payload from /api/top-story. Loaded once on init; the backend
+// reads config/top_story.yml and returns {active:false} if the file is
+// missing / malformed / not set active. See TOP_STORY.md for the contract.
+let topStory = null;
 
 // Category → meta-top class (meta-top pill color) & left rail class (article)
 const categoryMap = {
@@ -228,32 +232,51 @@ function renderFeed(articles) {
         }
     }
 
-    // Lead story — placeholder strategy (a): first article as visual stand-in,
-    // with a static "SOURCE CONFIDENCE · —" dash until Tasks 5/6/7 wire real data.
-    // Real lead curation + Key Points block arrives with Task 9 (top_story.yml).
-    // Suppress the lead treatment when filters are active — the hero belongs at
-    // the top of the unfiltered front page only.
+    // Lead story. Precedence:
+    //   1. If filters are active, no lead — hero belongs on the unfiltered front page.
+    //   2. Else if a curated Top Story is active (config/top_story.yml), use it.
+    //   3. Else fall back to the first article as a visual stand-in.
     const filtersActive =
         currentCategory !== "All" ||
         currentSource   !== "All" ||
         currentDateRange !== "all" ||
         !!currentSearch;
 
-    let leadArticle = null;
+    let leadData = null;
+    let keyPoints = null;
     let rest = articles;
-    if (!filtersActive && articles.length > 0) {
-        leadArticle = articles[0];
-        rest = articles.slice(1);
+
+    if (!filtersActive) {
+        if (topStory && topStory.active) {
+            // Normalize top story payload to the article-shape buildArticleCard expects
+            leadData = {
+                title: topStory.title,
+                summary: topStory.summary,
+                url: topStory.url,
+                source_name: topStory.source_name,
+                category: topStory.category || "Uncategorized",
+                published_date: topStory.published_at,
+                created_at: topStory.published_at,
+                confidence: topStory.confidence,
+                confidence_reason: topStory.confidence_reason,
+            };
+            keyPoints = Array.isArray(topStory.key_points) ? topStory.key_points : null;
+            // The curated Top Story stays on top — no feed article is consumed.
+            rest = articles;
+        } else if (articles.length > 0) {
+            leadData = articles[0];
+            rest = articles.slice(1);
+        }
     }
 
-    renderLead(leadArticle);
+    renderLead(leadData, keyPoints);
     renderStandardList(rest);
 }
 
-function renderLead(article) {
+function renderLead(leadData, keyPoints) {
     if (!leadContainer) return;
     leadContainer.replaceChildren();
-    if (!article) {
+    if (!leadData) {
         leadContainer.hidden = true;
         return;
     }
@@ -265,17 +288,34 @@ function renderLead(article) {
     const markerB = document.createElement("b");
     markerB.textContent = "Top Story";
     const markerDate = document.createElement("span");
-    const d = new Date(article.published_date || article.created_at || Date.now());
+    const d = new Date(leadData.published_date || leadData.created_at || Date.now());
     markerDate.textContent = Number.isNaN(d.getTime())
         ? ""
         : ` · ${d.toLocaleDateString("en-US", { day: "numeric", month: "short" })}`;
     marker.append(markerB, markerDate);
 
-    const card = buildArticleCard(article, { lead: true });
+    const card = buildArticleCard(leadData, { lead: true });
     leadContainer.append(marker, card);
 
-    // NOTE: Key Points block is intentionally absent until Task 9 provides
-    // curated bullets via top_story.yml.
+    // Key Points block — only rendered when a curated Top Story supplied them.
+    // The fallback (first article) never has key_points, so this block is skipped.
+    if (Array.isArray(keyPoints) && keyPoints.length > 0) {
+        const kp = document.createElement("section");
+        kp.className = "key-points";
+        kp.setAttribute("aria-label", "Key points");
+        const kpLabel = document.createElement("div");
+        kpLabel.className = "kp-label";
+        kpLabel.textContent = "Key points";
+        kp.appendChild(kpLabel);
+        const ul = document.createElement("ul");
+        for (const point of keyPoints) {
+            const li = document.createElement("li");
+            li.textContent = String(point);
+            ul.appendChild(li);
+        }
+        kp.appendChild(ul);
+        leadContainer.appendChild(kp);
+    }
 
     // Divider before "Latest" list
     const head = document.createElement("div");
@@ -573,6 +613,21 @@ async function loadArticles(category = "All") {
     }
 }
 
+async function loadTopStory() {
+    // Pulled once on init. A 404 / network error / malformed payload all land
+    // in the same bucket: topStory = {active:false}, frontend falls back to
+    // first-article-as-lead per the renderFeed precedence.
+    try {
+        const res = await fetch("/api/top-story", { headers: { "Accept": "application/json" } });
+        if (!res.ok) { topStory = { active: false }; return; }
+        const data = await res.json();
+        topStory = (data && typeof data === "object") ? data : { active: false };
+    } catch (err) {
+        console.warn("Top story fetch failed, falling back to first article:", err);
+        topStory = { active: false };
+    }
+}
+
 async function loadCategories() {
     if (categoriesLoaded) return;
     try {
@@ -749,6 +804,7 @@ function setDateline() {
     }
     setDateline();
     setupConfidenceExplainer();
-    await loadCategories();
+    // Fire top-story and categories in parallel — neither blocks the other.
+    await Promise.all([loadTopStory(), loadCategories()]);
     await loadArticles(currentCategory);
 })();

@@ -3,6 +3,7 @@ import os
 import sqlite3
 from datetime import datetime, timezone
 
+import yaml
 from flask import Flask, jsonify, render_template, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -10,6 +11,9 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from classifier import classify_article
 from confidence import build_source_info_index, resolve_confidence, UNSET
 from scheduler import FEEDS, fetch_all_feeds
+
+TOP_STORY_PATH = os.path.join(os.path.dirname(__file__), "config", "top_story.yml")
+TOP_STORY_REQUIRED = ("title", "summary", "url", "source_name", "published_at")
 
 app = Flask(__name__)
 
@@ -231,6 +235,57 @@ def get_articles():
         conn.close()
 
     return jsonify([_enrich_with_confidence(dict(row)) for row in rows])
+
+
+def _load_top_story():
+    """Read config/top_story.yml, validate, and return the payload.
+
+    Fail-closed: any failure mode — missing file, bad YAML, missing required
+    field, active != True — returns {"active": False}. The frontend treats
+    that as "fall back to first-article-as-lead" and never renders partial
+    Top Story state.
+
+    Returns a dict suitable for jsonify()ing.
+    """
+    try:
+        with open(TOP_STORY_PATH, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+    except (OSError, yaml.YAMLError):
+        return {"active": False}
+
+    if not isinstance(data, dict) or not data.get("active"):
+        return {"active": False}
+
+    missing = [k for k in TOP_STORY_REQUIRED if not data.get(k)]
+    if missing:
+        return {"active": False}
+
+    # Layer the Confidence for the lead card: same tier -> label derivation
+    # as the regular article feed. Unknown source_name -> LOW (fail-secure).
+    source_name = data.get("source_name")
+    info = SOURCE_INFO.get(source_name)
+    tier = info["tier"] if info else None
+    confidence = resolve_confidence(tier)
+    confidence_reason = info["reason"] if (info and confidence != UNSET) else None
+
+    return {
+        "active": True,
+        "title": str(data["title"]),
+        "summary": str(data["summary"]).strip(),
+        "url": str(data["url"]),
+        "source_name": str(source_name),
+        "published_at": str(data["published_at"]),
+        "category": str(data.get("category") or "Uncategorized"),
+        "key_points": [str(p) for p in (data.get("key_points") or [])][:5],
+        "confidence": confidence,
+        "confidence_reason": confidence_reason,
+    }
+
+
+@app.route("/api/top-story")
+@limiter.limit("60 per minute")
+def get_top_story():
+    return jsonify(_load_top_story())
 
 
 @app.route("/api/stats")
