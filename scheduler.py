@@ -78,7 +78,7 @@ FEEDS = [
         "reason": "Established security journalism, enterprise-focused analysis.",
     },
     {
-        "url": "https://feeds.feedburner.com/securityweek",
+        "url": "https://www.securityweek.com/feed/",
         "name": "SecurityWeek",
         "source_tier": 2,
         "reason": "Established security journalism with consistent editorial quality.",
@@ -147,7 +147,7 @@ FEEDS = [
         "reason": "Vendor threat intelligence research. Caveat: already filtered for noise via filter_uncategorized.",
     },
     {
-        "url": "https://www.welivesecurity.com/feed/",
+        "url": "https://www.welivesecurity.com/en/rss/feed/",
         "name": "ESET WeLiveSecurity",
         "source_tier": 2,
         "reason": "Vendor threat intelligence research, consistent technical malware reports.",
@@ -160,7 +160,7 @@ FEEDS = [
         "reason": "First-party vendor PSIRT for Microsoft products. When they say something is exploited, it is.",
     },
     {
-        "url": "https://www.malwarebytes.com/blog/feed/",
+        "url": "https://www.malwarebytes.com/blog/feed/index.xml",
         "name": "Malwarebytes Labs",
         "filter_uncategorized": True,
         "source_tier": 2,
@@ -175,7 +175,7 @@ FEEDS = [
     },
     # --- Security Research ---
     {
-        "url": "https://googleprojectzero.blogspot.com/feeds/posts/default",
+        "url": "https://projectzero.google/feed.xml",
         "name": "Google Project Zero",
         "source_tier": 1,
         "reason": "Gold-standard primary vulnerability research. Detailed, reproducible, responsibly disclosed.",
@@ -236,7 +236,7 @@ FEEDS = [
         "reason": "Authoritative primary research in ICS/OT threat intelligence. The authority in that niche.",
     },
     {
-        "url": "https://www.schneier.com/feed/atom",
+        "url": "https://www.schneier.com/feed/atom/",
         "name": "Schneier on Security",
         "filter_uncategorized": True,
         "source_tier": 2,
