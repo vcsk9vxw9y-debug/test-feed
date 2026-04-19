@@ -10,14 +10,18 @@
 
     <!-- Open Graph -->
     <meta property="og:title"       content="Threat-Feed — Open Source Threat Intelligence">
-    <meta property="og:description" content="Threat intelligence for technical readers. Headlines and primary-source links from public RSS, classified by keyword, filed without commentary.">
+    <meta property="og:description" content="Threat intelligence for agents and technical readers. Headlines and primary-source links from public RSS, classified by keyword, filed without commentary.">
     <meta property="og:type"        content="website">
     <meta property="og:url"         content="https://threat-feed.up.railway.app">
 
     <!-- Twitter / X -->
     <meta name="twitter:card"        content="summary">
     <meta name="twitter:title"       content="Threat-Feed — Open Source Threat Intelligence">
-    <meta name="twitter:description" content="Threat intelligence for technical readers. Public RSS only. No accounts.">
+    <meta name="twitter:description" content="Threat intelligence for agents and technical readers. Public RSS only. No accounts.">
+
+    <!-- Machine-readable feeds for bots, agents, and feed readers -->
+    <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="Threat-Feed Atom">
+    <link rel="alternate" type="application/json" href="/api/articles" title="Threat-Feed JSON API">
 
     <link rel="stylesheet" type="text/css" href="/static/style.css">
 </head>
@@ -42,7 +46,7 @@
             <h1><span class="slash">//</span>threat-feed</h1>
             <div class="strap">open source · rss only · no accounts</div>
         </div>
-        <p class="mission"><b>Threat intelligence for technical readers.</b> Headlines and primary-source links aggregated from public RSS, classified by keyword, and filed without commentary. Updates on the tick.</p>
+        <p class="mission"><b>Threat intelligence for agents and technical readers.</b> Headlines and primary-source links aggregated from public RSS, classified by keyword, and filed without commentary. Updates on the tick.</p>
     </header>
 
     <!-- ========== CONTROLS ========== -->

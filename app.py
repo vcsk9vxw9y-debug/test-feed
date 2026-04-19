@@ -340,6 +340,143 @@ def get_categories():
     return jsonify([dict(row) for row in rows])
 
 
+# ---- Canonical site URL ----
+# Used for absolute links in /feed.xml. NEVER derived from the Host header
+# (attacker-controlled). Override in Railway via SITE_URL env — staging and
+# production must each set their own canonical URL.
+SITE_URL = os.environ.get(
+    "SITE_URL", "https://threat-feed.up.railway.app"
+).rstrip("/")
+
+
+# ---- Bot / agent / AI discoverability ----
+# Three cheap static-ish responses that make the site readable to non-JS
+# clients (traditional crawlers, LLM indexers, feed readers). Public by
+# design — disclose no more than /, /api/articles, /api/top-story, and
+# /api/categories already expose.
+
+_ROBOTS_TXT = """\
+User-agent: *
+Allow: /
+
+# Machine-readable site description:
+#   /llms.txt    — site overview for LLMs
+#   /feed.xml    — Atom 1.0 feed of aggregated headlines
+#   /api/articles, /api/top-story, /api/categories — JSON
+"""
+
+_LLMS_TXT = """\
+# Threat-Feed
+
+> Open-source aggregation of publicly available cybersecurity RSS feeds.
+> Headlines and primary-source links only — no editorial commentary,
+> no accounts, no cookies, no ads.
+
+## What this site is
+
+Threat-Feed ingests public RSS sources every 4 hours, classifies each
+article by keyword (single-category, first-match-wins), and assigns a
+confidence badge (HIGH / MEDIUM / LOW) from a committed source-tier map.
+The front-end is a single-page client that reads three JSON endpoints.
+
+## Machine-readable endpoints
+
+- `/feed.xml` — Atom 1.0 feed of the 50 most-recent articles.
+- `/api/articles` — JSON array of recent articles (up to 500). Supports
+  `?category=<name>` and `?since=<ISO 8601 date>`.
+- `/api/top-story` — JSON object for the operator-curated lead article.
+  Returns `{"active": false}` when no lead is pinned.
+- `/api/categories` — JSON array of category names with counts.
+
+## Usage
+
+Indexing and summarization are permitted. Republication of full article
+bodies is prohibited — the site aggregates primary-source links; please
+follow through to the original publisher.
+"""
+
+
+@app.route("/robots.txt")
+@limiter.limit("60 per minute")
+def robots_txt():
+    response = app.response_class(_ROBOTS_TXT, mimetype="text/plain")
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    return response
+
+
+@app.route("/llms.txt")
+@limiter.limit("60 per minute")
+def llms_txt():
+    response = app.response_class(_LLMS_TXT, mimetype="text/plain")
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    return response
+
+
+def _cdata_safe(text):
+    """CDATA sections cannot contain ']]>'. Split any such sequence so the
+    resulting XML is well-formed regardless of article content."""
+    if text is None:
+        return ""
+    return str(text).replace("]]>", "]]]]><![CDATA[>")
+
+
+def _build_atom_feed(rows):
+    """Hand-rolled Atom 1.0 — no new dependency. Every article field goes
+    through CDATA wrap + ]]> split so a hostile source feed cannot break
+    the XML or smuggle markup into a consuming client."""
+    from xml.sax.saxutils import escape as xml_escape
+
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    parts = [
+        '<?xml version="1.0" encoding="utf-8"?>',
+        '<feed xmlns="http://www.w3.org/2005/Atom">',
+        '<title>Threat-Feed — Open Source Threat Intelligence</title>',
+        '<subtitle>Aggregated public-RSS cybersecurity headlines, updated every 4 hours.</subtitle>',
+        f'<id>{xml_escape(SITE_URL)}/</id>',
+        f'<link href="{xml_escape(SITE_URL)}/" rel="alternate"/>',
+        f'<link href="{xml_escape(SITE_URL)}/feed.xml" rel="self"/>',
+        f'<updated>{now_iso}</updated>',
+    ]
+    for row in rows:
+        updated = row.get("published_date") or row.get("created_at") or now_iso
+        url = str(row.get("url") or "")
+        source_name = row.get("source_name") or "unknown"
+        category = row.get("category") or "Uncategorized"
+        summary = row.get("summary") or ""
+        parts.extend([
+            '<entry>',
+            f'<title><![CDATA[{_cdata_safe(row.get("title"))}]]></title>',
+            f'<id>{xml_escape(url)}</id>',
+            f'<link href="{xml_escape(url)}" rel="alternate"/>',
+            f'<updated>{xml_escape(str(updated))}</updated>',
+            f'<author><name><![CDATA[{_cdata_safe(source_name)}]]></name></author>',
+            f'<category term="{xml_escape(str(category))}"/>',
+            f'<summary type="html"><![CDATA[{_cdata_safe(summary)}]]></summary>',
+            '</entry>',
+        ])
+    parts.append('</feed>')
+    return "\n".join(parts)
+
+
+@app.route("/feed.xml")
+@limiter.limit("30 per minute")
+def feed_xml():
+    conn = get_db()
+    try:
+        rows = conn.execute(
+            "SELECT title, summary, url, published_date, created_at, "
+            "source_name, category FROM articles "
+            "ORDER BY COALESCE(published_date, created_at) DESC LIMIT 50"
+        ).fetchall()
+    finally:
+        conn.close()
+
+    body = _build_atom_feed([dict(r) for r in rows])
+    response = app.response_class(body, mimetype="application/atom+xml; charset=utf-8")
+    response.headers["Cache-Control"] = "public, max-age=1200"
+    return response
+
+
 # Runs on every startup — gunicorn workers and direct python invocation alike
 init_db()
 fetch_all_feeds(DB_PATH)
