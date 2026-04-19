@@ -2,6 +2,7 @@
 # active:false and the front page falls back to first-article-as-lead.
 active: true
 title: "Unit 42: Escalation of Cyber Risk Related to Iran"
+summary: "Unit 42 flags elevated cyber risk from Iran-linked actors during the current escalation cycle, citing historical wiper and credential-harvesting campaigns against Western critical infrastructure. Recommended posture: patch internet-facing appliances, enforce MFA on remote access, and review OT segmentation."
 source_name: "Unit42 Palo Alto"
 url: "https://unit42.paloaltonetworks.com/iranian-cyberattacks-2026/"
 published_at: "2026-04-17T22:35:07Z"
