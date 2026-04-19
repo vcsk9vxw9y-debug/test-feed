@@ -15,6 +15,7 @@
 # runtime mutation, no admin endpoint.
 
 "CrowdStrike Blog":
-  - Falcon      # product-marketing noise; CS threat intel never leads with the product name
-  - Charlotte   # Charlotte AI feature announcements
-  - Flex        # Falcon Flex licensing / commercial posts
+  - Falcon              # product-marketing noise; CS threat intel never leads with the product name
+  - Charlotte           # Charlotte AI feature announcements
+  - Flex                # Falcon Flex licensing / commercial posts
+  - How CrowdStrike is  # self-congratulatory marketing framing ("How CrowdStrike is stopping X…")
