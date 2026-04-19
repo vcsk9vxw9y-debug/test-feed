@@ -37,6 +37,49 @@ def get_db():
     return conn
 
 
+def _run_reclassify_migration(conn, name):
+    """One-way re-classification of Uncategorized rows, guarded by the
+    ``migrations`` table.
+
+    If the migration has already run, returns immediately. Otherwise,
+    re-classifies every row currently labeled Uncategorized. Only promotes
+    — a row whose new classification is still Uncategorized is left alone.
+    Never demotes a row that has already been assigned a real category.
+
+    The guarantee that matters: running any of these migrations repeatedly
+    is a no-op (the `migrations` table tracks completion), and they can be
+    safely chained — v1 -> v2 -> v3 on a fresh DB produces the same end
+    state as running just v3 after v1 and v2 have already completed.
+
+    Args:
+        conn: Open sqlite3 connection (will be committed by the caller).
+        name: Migration name, used as the primary key in `migrations`.
+    """
+    already_ran = conn.execute(
+        "SELECT 1 FROM migrations WHERE name = ?", (name,)
+    ).fetchone()
+    if already_ran:
+        return
+
+    rows = conn.execute(
+        "SELECT id, title, summary FROM articles WHERE category = 'Uncategorized'"
+    ).fetchall()
+    promoted = 0
+    for row in rows:
+        new_category = classify_article(row["title"], row["summary"])
+        if new_category != "Uncategorized":
+            conn.execute(
+                "UPDATE articles SET category = ? WHERE id = ?",
+                (new_category, row["id"]),
+            )
+            promoted += 1
+    print(f"[{name}] promoted {promoted} articles")
+    conn.execute(
+        "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
+        (name, datetime.now(timezone.utc).isoformat()),
+    )
+
+
 def init_db():
     conn = get_db()
     try:
@@ -74,83 +117,23 @@ def init_db():
             SELECT 'total_processed', COUNT(*) FROM articles
         """)
 
-        # One-time: re-run the classifier against every Uncategorized article
-        # after PR 1.5's keyword expansion. Only promotes rows out of
-        # Uncategorized — never demotes a real category. Safe to remove in the
-        # release after this one ships.
-        already_ran = conn.execute(
-            "SELECT 1 FROM migrations WHERE name = 'reclassify_uncategorized_v1'"
-        ).fetchone()
-        if not already_ran:
-            rows = conn.execute(
-                "SELECT id, title, summary FROM articles WHERE category = 'Uncategorized'"
-            ).fetchall()
-            reclassified = 0
-            for row in rows:
-                new_category = classify_article(row["title"], row["summary"])
-                if new_category != "Uncategorized":
-                    conn.execute(
-                        "UPDATE articles SET category = ? WHERE id = ?",
-                        (new_category, row["id"]),
-                    )
-                    reclassified += 1
-            print(f"[reclassify_uncategorized_v1] promoted {reclassified} articles")
-            conn.execute(
-                "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
-                ("reclassify_uncategorized_v1", datetime.now(timezone.utc).isoformat()),
-            )
-
-        # One-time: re-run classifier against Uncategorized after PR 2's
-        # Industry/Policy addition. Same one-way promotion guarantee as v1.
-        already_ran_v2 = conn.execute(
-            "SELECT 1 FROM migrations WHERE name = 'reclassify_uncategorized_v2'"
-        ).fetchone()
-        if not already_ran_v2:
-            rows = conn.execute(
-                "SELECT id, title, summary FROM articles WHERE category = 'Uncategorized'"
-            ).fetchall()
-            reclassified = 0
-            for row in rows:
-                new_category = classify_article(row["title"], row["summary"])
-                if new_category != "Uncategorized":
-                    conn.execute(
-                        "UPDATE articles SET category = ? WHERE id = ?",
-                        (new_category, row["id"]),
-                    )
-                    reclassified += 1
-            print(f"[reclassify_uncategorized_v2] promoted {reclassified} articles")
-            conn.execute(
-                "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
-                ("reclassify_uncategorized_v2", datetime.now(timezone.utc).isoformat()),
-            )
-
-        # One-time: re-run classifier against Uncategorized after this PR's
-        # Consumer Awareness category + broadened keywords (phishing scams,
-        # supply-chain plurals, mobile banking trojan, industry bodies, APT
-        # plurals, etc.). Same one-way promotion guarantee as v1/v2 — never
-        # demotes a real category. Safe to remove in the release after this
-        # one ships.
-        already_ran_v3 = conn.execute(
-            "SELECT 1 FROM migrations WHERE name = 'reclassify_uncategorized_v3'"
-        ).fetchone()
-        if not already_ran_v3:
-            rows = conn.execute(
-                "SELECT id, title, summary FROM articles WHERE category = 'Uncategorized'"
-            ).fetchall()
-            reclassified = 0
-            for row in rows:
-                new_category = classify_article(row["title"], row["summary"])
-                if new_category != "Uncategorized":
-                    conn.execute(
-                        "UPDATE articles SET category = ? WHERE id = ?",
-                        (new_category, row["id"]),
-                    )
-                    reclassified += 1
-            print(f"[reclassify_uncategorized_v3] promoted {reclassified} articles")
-            conn.execute(
-                "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
-                ("reclassify_uncategorized_v3", datetime.now(timezone.utc).isoformat()),
-            )
+        # One-way re-classification of Uncategorized rows after keyword/
+        # category changes. Each migration runs once (guarded by the
+        # `migrations` table) and NEVER demotes a real category — if the
+        # new classifier still returns Uncategorized, the row is left alone.
+        # Safe to remove the oldest entries in the release after this ships.
+        #
+        #   v1: original keyword expansion
+        #   v2: Industry/Policy addition
+        #   v3: Consumer Awareness + broadened keywords (phishing scams,
+        #       supply-chain plurals, mobile banking trojan, industry bodies,
+        #       APT plurals)
+        for migration_name in (
+            "reclassify_uncategorized_v1",
+            "reclassify_uncategorized_v2",
+            "reclassify_uncategorized_v3",
+        ):
+            _run_reclassify_migration(conn, migration_name)
 
         # Startup prune: DELETE historical rows that would be excluded by
         # the current config/exclusions.yml. Idempotent — re-runs on every

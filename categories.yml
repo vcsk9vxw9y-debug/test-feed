@@ -1,10 +1,15 @@
 # Threat-Feed Category Keywords
-# Add or edit keywords to improve classification accuracy
-# Each article is checked against these lists in priority order:
-# OT/ICS > Cloud Breach > SaaS Breach > Ransomware > Identity & Access
-# > Vulnerability/CVE > Nation State/APT > Malware/Infostealer > AI Security
-# > Phishing & Social Engineering > Supply Chain > Mobile Security
-# > Industry/Policy > Consumer Awareness > Uncategorized
+#
+# THE DECLARATION ORDER OF CATEGORIES IN THIS FILE IS THE PRIORITY ORDER.
+# Python 3.7+ dicts preserve insertion order, and the classifier iterates
+# rules in that order — first match wins. To re-prioritize a category,
+# move its block up or down in this file. Single source of truth.
+#
+# Current priority (top = highest):
+#   OT/ICS > Cloud Breach > SaaS Breach > Ransomware > Identity & Access
+#   > Vulnerability/CVE > Nation State/APT > Malware/Infostealer > AI Security
+#   > Phishing & Social Engineering > Supply Chain > Mobile Security
+#   > Industry/Policy > Consumer Awareness > Uncategorized (fallback)
 #
 # Consumer Awareness sits second-to-last on purpose: sharper categories
 # (Phishing, Malware, AI Security, etc.) should still win when they apply.
@@ -100,6 +105,11 @@ SaaS Breach:
   - data breaches
   - data leaks
   - breach notifications
+  - personal data
+  - personal data exposed
+  - data exposed
+  - retailer breach
+  - customer records
 
 Ransomware:
   - ransomware
@@ -163,6 +173,9 @@ Identity & Access:
   - two-factor authentication
   - 2fa
   - iam attack surface
+  - stolen credentials
+  - stolen credential
+  - compromised credentials
 
 Vulnerability/CVE:
   - cve
@@ -463,9 +476,19 @@ Industry/Policy:
   - data protection authority
   # Enforcement actions
   - gdpr fine
+  - gdpr guidance
+  - gdpr enforcement
+  - gdpr rule
+  - ccpa enforcement
+  - ccpa guidance
   - regulatory fine
+  - regulatory guidance
   - sanctions imposed
   - doj indictment
+  - doj indicted
+  - indicted by doj
+  - indictment unsealed
+  - federal indictment
   - class action lawsuit
   # Industry / market
   - cybersecurity funding
@@ -526,14 +549,13 @@ Consumer Awareness:
   - cryptocurrency scam
   - job scam
   # Personal identity / data
-  - identity theft
+  # Note: `identity theft`, `credit freeze`, `personal data exposed` intentionally
+  # NOT here — they live in Industry/Policy (DOJ indictments) and SaaS Breach
+  # (retail/data-broker breach coverage). Generic `opt out`/`opt-out request`
+  # also removed: GDPR/CCPA opt-out is Industry/Policy territory.
   - identity protection
-  - personal data exposed
   - data broker
   - data brokers
-  - opt out
-  - opt-out request
-  - credit freeze
   - sim swap
   - sim-swap
   # How-to / advice framings
