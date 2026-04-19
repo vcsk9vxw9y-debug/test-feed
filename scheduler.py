@@ -116,7 +116,7 @@ FEEDS = [
         "reason": "Top-tier threat intelligence research team with consistent primary analysis.",
     },
     {
-        "url": "https://www.crowdstrike.com/blog/feed/",
+        "url": "https://www.crowdstrike.com/en-us/blog/feed",
         "name": "CrowdStrike Blog",
         "source_tier": 1,
         "reason": "Top-tier threat intelligence research. Caveat: mixed with commercial marketing, but the threat intel output itself is authoritative.",
