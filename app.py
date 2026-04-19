@@ -10,7 +10,7 @@ from flask_limiter.util import get_remote_address
 from apscheduler.schedulers.background import BackgroundScheduler
 from classifier import classify_article
 from confidence import build_source_info_index, resolve_confidence, UNSET
-from scheduler import FEEDS, fetch_all_feeds
+from scheduler import EXCLUSIONS, FEEDS, fetch_all_feeds
 
 TOP_STORY_PATH = os.path.join(os.path.dirname(__file__), "config", "top_story.yml")
 TOP_STORY_REQUIRED = ("title", "summary", "url", "source_name", "published_at")
@@ -123,6 +123,26 @@ def init_db():
                 "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
                 ("reclassify_uncategorized_v2", datetime.now(timezone.utc).isoformat()),
             )
+
+        # Startup prune: DELETE historical rows that would be excluded by
+        # the current config/exclusions.yml. Idempotent — re-runs on every
+        # deploy so a newly-added phrase also cleans pre-existing rows,
+        # not just future ingests. Case-insensitive LIKE; parameterized
+        # (EXCLUSIONS is a committed trust anchor, but defense-in-depth).
+        pruned = 0
+        for source_name, phrases in EXCLUSIONS.items():
+            for phrase in phrases:
+                pattern = f"%{phrase}%"
+                result = conn.execute(
+                    "DELETE FROM articles "
+                    "WHERE source_name = ? AND ("
+                    "LOWER(title) LIKE ? OR LOWER(COALESCE(summary, '')) LIKE ?"
+                    ")",
+                    (source_name, pattern, pattern),
+                )
+                pruned += result.rowcount
+        if pruned:
+            print(f"[exclusions] pruned {pruned} historical articles matching exclusions.yml")
 
         conn.commit()
     finally:

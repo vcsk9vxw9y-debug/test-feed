@@ -275,7 +275,13 @@ class ArticlesApiTests(unittest.TestCase):
 
 
 class TopStoryApiTests(unittest.TestCase):
-    """The shipped YAML is active:false — the "nothing curated" state."""
+    """Shipped YAML is an active curated Top Story (Unit 42 Iran brief,
+    curated 2026-04-19). Previously the shipped file was active:false and
+    these tests asserted the "nothing curated" state; they've been flipped
+    to match the new curated reality, and the fail-closed no-leakage
+    invariant was rehomed to ``test_inactive_payload_has_no_leaked_fields``
+    below which mocks an inactive file so it's independent of whatever
+    the shipped YAML happens to say today."""
 
     @classmethod
     def setUpClass(cls):
@@ -288,13 +294,45 @@ class TopStoryApiTests(unittest.TestCase):
     def test_top_story_payload_is_dict(self):
         self.assertIsInstance(self.payload, dict)
 
-    def test_shipped_top_story_is_inactive(self):
-        self.assertIs(self.payload.get("active"), False)
+    def test_shipped_top_story_is_active(self):
+        self.assertIs(self.payload.get("active"), True)
+
+    def test_active_payload_has_required_fields(self):
+        # Every field the TOP_STORY_REQUIRED tuple in app.py enforces —
+        # absence of any one would have fail-closed the YAML to
+        # {active: false}, which we already guard above.
+        for field in ("title", "summary", "url", "source_name", "published_at"):
+            with self.subTest(field=field):
+                self.assertIn(field, self.payload)
+                self.assertTrue(
+                    self.payload[field],
+                    f"{field} must not be empty on an active payload",
+                )
 
     def test_inactive_payload_has_no_leaked_fields(self):
-        # Fail-closed: an inactive payload must surface ONLY {active: False}
-        # — no title/summary/url leakage from a half-validated YAML.
-        self.assertEqual(set(self.payload.keys()), {"active"})
+        # Fail-closed invariant: when the loader returns inactive (either
+        # because YAML says active:false or because required fields were
+        # missing), the endpoint must surface ONLY {"active": False} — no
+        # title/summary/url leakage from a half-validated file. We mock an
+        # inactive YAML so this test stays useful even when the shipped
+        # file is active.
+        import tempfile
+        tmp = tempfile.NamedTemporaryFile(
+            suffix=".yml", mode="w", delete=False, encoding="utf-8"
+        )
+        tmp.write("active: false\ntitle: must-not-leak\nurl: http://x\n")
+        tmp.close()
+        self.addCleanup(os.unlink, tmp.name)
+
+        saved = app_module.TOP_STORY_PATH
+        app_module.TOP_STORY_PATH = tmp.name
+        try:
+            r = _client.get("/api/top-story")
+            payload = r.get_json()
+            self.assertEqual(set(payload.keys()), {"active"})
+            self.assertIs(payload["active"], False)
+        finally:
+            app_module.TOP_STORY_PATH = saved
 
 
 class KillSwitchTests(unittest.TestCase):

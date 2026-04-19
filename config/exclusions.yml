@@ -1,0 +1,20 @@
+# Per-source phrase blocklist — dropped at ingest, pruned from DB on startup.
+#
+# Schema:
+#   <source_name (exact match to scheduler.FEEDS[*].name)>:
+#     - <phrase>
+#     - <phrase>
+#
+# Matching is case-insensitive substring against title and summary combined.
+# Phrases are NOT regex — plain substrings, no ReDoS risk.
+#
+# Fail-closed: malformed YAML, missing file, or shape violations resolve
+# to no exclusions (articles pass through). See scheduler.load_exclusions.
+#
+# This is a COMMITTED TRUST ANCHOR. To change exclusions, open a PR — no
+# runtime mutation, no admin endpoint.
+
+"CrowdStrike Blog":
+  - Falcon      # product-marketing noise; CS threat intel never leads with the product name
+  - Charlotte   # Charlotte AI feature announcements
+  - Flex        # Falcon Flex licensing / commercial posts

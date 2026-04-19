@@ -1,5 +1,6 @@
 import calendar
 import html
+import os
 import re
 import sqlite3
 from datetime import datetime, timezone
@@ -7,6 +8,7 @@ from datetime import datetime, timezone
 import bleach
 import feedparser
 import requests
+import yaml
 
 from classifier import classify_article
 
@@ -287,6 +289,81 @@ HEADERS = {
 }
 
 
+# --- Phrase exclusion filter -----------------------------------------------
+# Operator-maintained phrase blocklist in config/exclusions.yml. Dropped at
+# ingest (scheduler.fetch_all_feeds) and pruned from the DB at startup
+# (app.init_db). Committed trust anchor — no runtime mutation.
+
+EXCLUSIONS_PATH = os.path.join(os.path.dirname(__file__), "config", "exclusions.yml")
+
+
+def load_exclusions(path=EXCLUSIONS_PATH):
+    """Load per-source phrase blocklist from committed YAML.
+
+    Schema: ``{<source_name>: [<phrase>, ...], ...}``
+      - Keys must be ``str`` (match scheduler.FEEDS[*].name exactly).
+      - Values must be ``list`` of non-empty ``str``.
+      - Anything else is silently dropped during shape validation — we
+        never raise from here; the caller must be able to trust the
+        return value without a try/except.
+
+    Fail-closed semantics: a missing file, malformed YAML, non-dict root,
+    or any I/O error resolves to ``{}``. No exclusions means every article
+    passes through. This is intentionally permissive: an attacker with
+    repo write access could already delete the file entirely, so "empty
+    dict on parse failure" doesn't create new attack surface. Operators
+    who want tighter semantics can run the integrity test below.
+
+    Phrases are lowercased once at load time so ``_is_excluded`` doesn't
+    re-normalize per article.
+    """
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            raw = yaml.safe_load(f)
+    except (FileNotFoundError, PermissionError, OSError, yaml.YAMLError):
+        return {}
+
+    if not isinstance(raw, dict):
+        return {}
+
+    clean = {}
+    for source_name, phrases in raw.items():
+        if not isinstance(source_name, str) or not source_name.strip():
+            continue
+        if not isinstance(phrases, list):
+            continue
+        valid = [
+            p.lower()
+            for p in phrases
+            if isinstance(p, str) and p.strip()
+        ]
+        if valid:
+            clean[source_name] = valid
+    return clean
+
+
+# Loaded once at import. Re-loads require a deploy — same pattern as FEEDS.
+EXCLUSIONS = load_exclusions()
+
+
+def _is_excluded(source_name, title, summary):
+    """Return True if the article should be dropped per exclusions.yml.
+
+    Case-insensitive substring match: phrases are lowercased at load
+    time; title+summary are lowercased per call. Plain substring (not
+    regex) to avoid ReDoS and keep the operator mental model simple —
+    if the phrase appears anywhere in the text, the article is dropped.
+
+    An unknown source or an empty phrase list returns False (pass
+    through). ``None`` title/summary are coerced to empty strings.
+    """
+    phrases = EXCLUSIONS.get(source_name)
+    if not phrases:
+        return False
+    haystack = f"{title or ''} {summary or ''}".lower()
+    return any(p in haystack for p in phrases)
+
+
 def fetch_all_feeds(db_path):
     now = datetime.now(timezone.utc)
     print(f"[{now}] Starting feed fetch...")
@@ -327,6 +404,16 @@ def fetch_all_feeds(db_path):
                     title = entry.get("title", "No Title")
                     summary = clean_summary(entry.get("summary", ""))
                     published = normalize_published_date(entry)
+
+                    # Phrase exclusion (post-sanitize, pre-classify): drop
+                    # articles whose source has a committed phrase blocklist
+                    # and whose title/summary matches. Runs BEFORE the
+                    # classifier so we don't burn cycles on content we're
+                    # going to discard anyway. See config/exclusions.yml.
+                    if _is_excluded(feed["name"], title, summary):
+                        print(f"    Skipping (excluded phrase): {title[:80]}")
+                        continue
+
                     # Classify against sanitized text so keyword patterns
                     # aren't distracted by HTML residue or entities.
                     category = classify_article(title, summary)
