@@ -316,18 +316,11 @@ function buildArticleCard(article, { lead }) {
 
     metaTop.appendChild(sep());
 
-    // Source Confidence — B2-compliant label. Placeholder (a): em-dash
-    // until source_tier lands in Task 5 and confidence_for() in Task 6.
-    const conf = document.createElement("span");
-    conf.className = "conf unset";
-    conf.setAttribute("aria-label", "Source confidence: not yet set");
-    const confLabel = document.createElement("span");
-    confLabel.className = "conf-label";
-    confLabel.textContent = "Source Confidence";
-    const confValue = document.createElement("b");
-    confValue.textContent = "—";
-    conf.append(confLabel, document.createTextNode(" "), confValue);
-    metaTop.appendChild(conf);
+    // Source Confidence — B2-compliant label. Label copy intentionally says
+    // "Source Confidence" (not "Severity") to disambiguate source-trust from
+    // threat-severity. Values come from /api/articles; UNSET (rendered "—")
+    // is what the API emits when CONFIDENCE_ENABLED is off (S1 kill-switch).
+    metaTop.appendChild(buildConfidenceBadge(article));
 
     card.appendChild(metaTop);
 
@@ -435,6 +428,120 @@ function sep() {
     s.className = "sep";
     s.textContent = "·";
     return s;
+}
+
+// ---------- Source Confidence badge ----------
+// Renders the per-card badge from article.confidence (HIGH|MEDIUM|LOW|UNSET).
+// Copy is B2-compliant: the label always says "Source Confidence" to keep the
+// source-trust axis distinct from threat-severity. Tooltip carries the tier's
+// committed reason (from scheduler.py) plus a general explainer line.
+const CONF_META = {
+    HIGH: {
+        cls: "high",
+        text: "HIGH",
+        label: "Source confidence: HIGH",
+        headline:
+            "HIGH — Tier 1 source. Government CERTs, first-party vendor PSIRTs, " +
+            "gold-standard threat-intel research. Claims are actionable as reported.",
+    },
+    MEDIUM: {
+        cls: "med",
+        text: "MEDIUM",
+        label: "Source confidence: MEDIUM",
+        headline:
+            "MEDIUM — Tier 2 source. Established security journalism, vendor TI " +
+            "research with commercial context, niche-authoritative research. " +
+            "Credible single source — verify before acting on.",
+    },
+    LOW: {
+        cls: "low",
+        text: "LOW",
+        label: "Source confidence: LOW",
+        headline:
+            "LOW — Tier 3 source. User-submitted aggregators, single-author " +
+            "niche blogs, community posts. Signal worth tracking — do not " +
+            "escalate without corroboration.",
+    },
+    UNSET: {
+        cls: "unset",
+        text: "—",
+        label: "Source confidence: not set",
+        headline:
+            "Source confidence is not currently available for this article.",
+    },
+};
+
+function buildConfidenceBadge(article) {
+    const value = (article && article.confidence) || "UNSET";
+    const meta  = CONF_META[value] || CONF_META.UNSET;
+
+    const conf = document.createElement("span");
+    conf.className = `conf ${meta.cls}`;
+    conf.setAttribute("aria-label", meta.label);
+    conf.setAttribute("tabindex", "0");
+    // Native browser tooltip — source-committed reason + general explainer.
+    // We concatenate reason onto the headline; both strings come from
+    // committed data only, never user input.
+    const reason = article && article.confidence_reason;
+    const tip = reason ? `${meta.headline}\n\nWhy this tier: ${reason}` : meta.headline;
+    conf.setAttribute("title", tip);
+
+    const confLabel = document.createElement("span");
+    confLabel.className = "conf-label";
+    confLabel.textContent = "Source Confidence";
+    const confValue = document.createElement("b");
+    confValue.textContent = meta.text;
+    conf.append(confLabel, document.createTextNode(" "), confValue);
+    return conf;
+}
+
+// ---------- Source Confidence explainer panel ----------
+// A single toggle in the filter rail that expands/collapses a compact
+// reference panel. Keeps the per-card tooltips as the primary affordance;
+// the panel is the "what is this signal?" one-pager for first-time readers.
+function setupConfidenceExplainer() {
+    const filters = document.getElementById("filters");
+    if (!filters) return;
+
+    // Chip button in the filter rail
+    const chip = document.createElement("button");
+    chip.className = "tag conf-help";
+    chip.type = "button";
+    chip.setAttribute("aria-expanded", "false");
+    chip.setAttribute("aria-controls", "conf-explainer");
+    chip.textContent = "about confidence";
+    filters.appendChild(chip);
+
+    // Collapsible panel injected after the filter rail
+    const panel = document.createElement("aside");
+    panel.id = "conf-explainer";
+    panel.className = "conf-explainer";
+    panel.hidden = true;
+    panel.setAttribute("aria-label", "About the Source Confidence badge");
+    panel.innerHTML = `
+        <p class="ce-lede">
+            <b>Source Confidence</b> reflects how much trust to place in the
+            <i>source</i>, not how severe the threat is. Every feed is tiered
+            in the committed config — no runtime override.
+        </p>
+        <ul class="ce-tiers">
+            <li><b class="ce-h">HIGH</b> — Tier 1. Government CERTs (CISA, NCSC), first-party vendor PSIRTs (MSRC, Project Zero, ZDI), top threat-intel research (Mandiant, Unit 42, Talos). Actionable as reported.</li>
+            <li><b class="ce-m">MEDIUM</b> — Tier 2. Established journalism (Krebs, Bleeping, SecurityWeek), vendor TI with commercial framing, niche-authoritative research (PortSwigger, SANS ISC). Credible — verify before acting.</li>
+            <li><b class="ce-l">LOW</b> — Tier 3. User-submitted (Reddit), single-author niche blogs. Signal worth tracking — do not escalate without corroboration.</li>
+        </ul>
+        <p class="ce-note">
+            Unknown or missing tier falls back to LOW by design. Hover or tab
+            to any badge for the specific reason behind its tier.
+        </p>
+    `;
+    filters.insertAdjacentElement("afterend", panel);
+
+    chip.addEventListener("click", () => {
+        const open = panel.hidden;
+        panel.hidden = !open;
+        chip.setAttribute("aria-expanded", open ? "true" : "false");
+        chip.classList.toggle("on", open);
+    });
 }
 
 // ---------- API wiring ----------
@@ -641,6 +748,7 @@ function setDateline() {
         return;
     }
     setDateline();
+    setupConfidenceExplainer();
     await loadCategories();
     await loadArticles(currentCategory);
 })();

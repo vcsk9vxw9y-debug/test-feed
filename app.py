@@ -8,7 +8,8 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from apscheduler.schedulers.background import BackgroundScheduler
 from classifier import classify_article
-from scheduler import fetch_all_feeds
+from confidence import build_source_info_index, resolve_confidence, UNSET
+from scheduler import FEEDS, fetch_all_feeds
 
 app = Flask(__name__)
 
@@ -172,6 +173,32 @@ def index():
     return render_template("index.html")
 
 
+# Source -> {tier, reason} lookup, built once at startup from the committed
+# FEEDS trust anchor. The /api/articles enrichment below is a dict get per
+# article (O(1)), not a FEEDS linear scan.
+SOURCE_INFO = build_source_info_index(FEEDS)
+
+
+def _enrich_with_confidence(row_dict):
+    """Attach confidence + confidence_reason to an article row.
+
+    Confidence is derived from scheduler.py FEEDS source_tier via the
+    resolve_confidence() helper, which also handles the CONFIDENCE_ENABLED
+    kill-switch (env flag off -> UNSET, frontend renders "—" placeholder).
+    """
+    info = SOURCE_INFO.get(row_dict.get("source_name"))
+    tier = info["tier"] if info else None
+    confidence = resolve_confidence(tier)
+    row_dict["confidence"] = confidence
+    # Only surface the reason when the badge has a real value, and only from
+    # the committed anchor — never a runtime-computed string.
+    if confidence != UNSET and info is not None:
+        row_dict["confidence_reason"] = info["reason"]
+    else:
+        row_dict["confidence_reason"] = None
+    return row_dict
+
+
 @app.route("/api/articles")
 @limiter.limit("30 per minute")
 def get_articles():
@@ -203,7 +230,7 @@ def get_articles():
     finally:
         conn.close()
 
-    return jsonify([dict(row) for row in rows])
+    return jsonify([_enrich_with_confidence(dict(row)) for row in rows])
 
 
 @app.route("/api/stats")

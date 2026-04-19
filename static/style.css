@@ -317,6 +317,88 @@ html { scroll-behavior: smooth; }
     border-color: var(--mint);
 }
 
+/* "about confidence" help chip in the filter rail */
+.tag.conf-help {
+    margin-left: auto;
+    color: var(--type-3);
+    border-color: var(--line);
+    font-family: var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+}
+.tag.conf-help::before {
+    content: "?";
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    text-align: center;
+    line-height: 12px;
+    font-size: 10px;
+}
+.tag.conf-help:hover { color: var(--type); border-color: var(--type-3); }
+.tag.conf-help.on {
+    color: var(--bg);
+    background: var(--type);
+    border-color: var(--type);
+}
+
+/* Source Confidence explainer panel */
+.conf-explainer {
+    margin: 14px 0 0;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--lime);
+    background: var(--surface);
+    font-family: var(--sans);
+    color: var(--type-2);
+    font-size: var(--type-3-size, 13px);
+    line-height: 1.55;
+}
+.conf-explainer .ce-lede { margin: 0 0 10px; color: var(--type); }
+.conf-explainer .ce-lede b { color: var(--lime); font-weight: 600; }
+.conf-explainer .ce-lede i { font-style: italic; color: var(--type); }
+.conf-explainer .ce-tiers {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+.conf-explainer .ce-tiers li {
+    padding-left: 0;
+    font-size: 12.5px;
+}
+.conf-explainer .ce-tiers b {
+    display: inline-block;
+    min-width: 64px;
+    font-family: var(--mono);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    font-size: 11px;
+    margin-right: 8px;
+}
+.conf-explainer .ce-h { color: var(--mint); }
+.conf-explainer .ce-m { color: var(--amber); }
+.conf-explainer .ce-l { color: var(--type-3); }
+.conf-explainer .ce-note {
+    margin: 12px 0 0;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+    font-size: 11.5px;
+    color: var(--type-3);
+    font-style: italic;
+}
+
+/* Confidence badge is focusable via tabindex; give it a visible focus ring */
+.meta-top .conf:focus-visible {
+    outline: 2px solid var(--lime);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
 /* ========================= FEED ========================= */
 .feed {
     padding: 8px 0 48px;

@@ -126,3 +126,28 @@ def build_source_tier_index(feeds):
         if name and tier in (1, 2, 3) and name not in index:
             index[name] = tier
     return index
+
+
+def build_source_info_index(feeds):
+    """Build a {source_name: {"tier": int, "reason": str}} lookup.
+
+    Richer variant of build_source_tier_index — includes the committed
+    reason string so the API layer can surface it to the frontend tooltip
+    without re-scanning FEEDS per request.
+
+    Args:
+        feeds: The FEEDS list from scheduler.py.
+
+    Returns:
+        Dict mapping source_name -> dict with "tier" (1/2/3) and "reason"
+        (committed text from scheduler.py). Sources missing either field
+        are omitted.
+    """
+    index = {}
+    for entry in feeds:
+        name = entry.get("name")
+        tier = entry.get("source_tier")
+        reason = entry.get("reason")
+        if name and tier in (1, 2, 3) and reason and name not in index:
+            index[name] = {"tier": tier, "reason": reason}
+    return index
