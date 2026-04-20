@@ -1,16 +1,16 @@
 # Top Story — operator-curated lead article.
 # active:false and the front page falls back to first-article-as-lead.
 active: true
-title: "Vercel Confirms Breach — ShinyHunters Claim Theft of Source Code, API Keys, and Deployment Data"
-summary: "Cloud dev platform Vercel has confirmed a security incident after ShinyHunters-linked threat actors posted employee data online and demanded a $2M ransom. CEO Guillermo Rauch attributes initial access to a compromised third-party AI tool (Context.ai) that held an employee's credentials. Recommended defender posture: rotate Vercel-issued secrets now (deploy tokens, environment variables, integration keys), audit any third-party AI tools with repo or deploy access, and review Vercel audit logs for anomalous deploy / token-creation activity since early April."
-source_name: "Bleeping Computer"
-url: "https://www.bleepingcomputer.com/news/security/vercel-confirms-breach-as-hackers-claim-to-be-selling-stolen-data/"
-published_at: "2026-04-19T15:21:27Z"
+title: "Vercel Supply-Chain Breach Widens — Hundreds of Customers Affected via Context.ai OAuth Compromise"
+summary: "Vercel's breach is broader than initially disclosed: hundreds of users across many organizations had unencrypted environment variables and API keys exposed after attackers pivoted from a compromised Context.ai OAuth token. Root cause traced to a Context.ai employee infected with Lumma Stealer malware (via Roblox exploit scripts) in February 2026, enabling Google Workspace credential theft that cascaded into Vercel's infrastructure. ShinyHunters publicly denied involvement — the listing actor may be an impersonator. Defender actions remain urgent: rotate all non-sensitive env vars and API keys stored in Vercel, revoke OAuth grants to AI developer tools, and treat any secret deployed via Vercel since early March as potentially exposed."
+source_name: "The Hacker News"
+url: "https://thehackernews.com/2026/04/vercel-breach-tied-to-context-ai-hack.html"
+published_at: "2026-04-20T09:15:00Z"
 category: "SaaS Breach"
 key_points:
-  - "Vercel confirmed the breach on 2026-04-19; initial access came via a compromised Context.ai account belonging to a Vercel employee — third-party AI-tool supply chain risk."
-  - "Attribution: ShinyHunters group (same crew behind the Rockstar Games leak). Claimed stolen: source code, database extracts, access keys, API keys, and internal deployment access. $2M ransom posted."
-  - "CEO Guillermo Rauch says customer impact is 'quite limited' — no numbers yet. Assume any secret or env-var ever stored in Vercel deployments should be treated as exposed until scoped."
-  - "Immediate defender actions: rotate all Vercel-issued tokens and deploy keys, rotate env-var secrets referenced by Vercel projects, audit OAuth grants to AI developer tools (Context.ai, Cursor, Copilot integrations, etc.), and scan Vercel audit logs for out-of-hours deploy activity since 2026-04-01."
-  - "Pre-IPO timing — material corporate event. Expect SEC Form 8-K disclosure and follow-on regulatory scrutiny."
-notes: "Curated 2026-04-19 — replaces Unit 42 Iran-posture lead. Rationale: discrete, happening-now breach at a Tier-1 cloud dev platform with concrete defender actions > general threat-landscape guidance."
+  - "Root cause: Context.ai employee infected with Lumma Stealer (February 2026) via Roblox exploit scripts — credentials for Google Workspace, Supabase, Datadog, and Authkit harvested. Attacker escalated via support@context.ai into Vercel infrastructure."
+  - "Expanded scope: Vercel now says 'hundreds of users across many organizations' affected. Unencrypted (non-sensitive) environment variables compromised; encrypted secrets reportedly not accessed."
+  - "Attribution disputed: ShinyHunters publicly denied involvement. The threat actor using the name is likely an impersonator leveraging established brand for credibility. $2M ransom claim unconfirmed by Vercel."
+  - "Immediate defender actions: rotate all non-sensitive env vars and API keys in Vercel projects, revoke and re-issue OAuth grants to AI developer tools (Context.ai, Cursor, Copilot integrations), review Vercel audit logs for anomalous activity since 2026-03-01, and monitor for downstream compromise indicators."
+  - "Vercel engaged Mandiant and law enforcement. CEO confirmed Next.js, Turbopack, and open-source projects unaffected. Context.ai acknowledged broader compromise beyond initial single-customer disclosure."
+notes: "Updated 2026-04-20 — same incident, refreshed with April 20 reporting (TechCrunch, THN, Hudson Rock). Scope expanded, root cause clarified (Lumma Stealer → Context.ai → Vercel OAuth chain). Retains hero slot — still actively developing, concrete defender actions, directly relevant to developer/security audience."

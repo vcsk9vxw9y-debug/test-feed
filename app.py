@@ -162,9 +162,6 @@ def init_db():
         #       (Nation State/APT), supply chain attacks plural,
         #       surveillance program + cybersecurity rules (Industry/Policy),
         #       crypto-stealing (Mobile), recovery scammers plural (Consumer)
-        #   v7: backdoor/backdoors (Malware), session theft (Identity),
-        #       irs scam, dark web, brushing scam, hacked account,
-        #       whatsapp scam (Consumer Awareness)
         for migration_name in (
             "reclassify_uncategorized_v1",
             "reclassify_uncategorized_v2",
@@ -172,7 +169,6 @@ def init_db():
             "reclassify_uncategorized_v4",
             "reclassify_uncategorized_v5",
             "reclassify_uncategorized_v6",
-            "reclassify_uncategorized_v7",
         ):
             _run_reclassify_migration(conn, migration_name)
 
