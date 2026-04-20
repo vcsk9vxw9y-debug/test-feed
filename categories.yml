@@ -34,6 +34,7 @@ OT/ICS:
   - manufacturing plant
   - industrial cybersecurity
   - safety instrumented system
+  - industrial automation
 
 Cloud Breach:
   - aws
@@ -128,6 +129,9 @@ SaaS Breach:
   - cryptocurrency exchange
   - crypto exchange
   - exchange hack
+  # DeFi protocol breaches
+  - defi hack
+  - defi exploit
 
 Ransomware:
   - ransomware
@@ -301,6 +305,7 @@ Nation State/APT:
   - turla
   - silk typhoon
   - scattered spider
+  - silver fox
 
 Malware/Infostealer:
   - infostealer
@@ -361,6 +366,12 @@ Malware/Infostealer:
   - lolbin
   - lolbins
   - living off the land
+  # Catch "novel malware" / "new malware" framings missing from compound keywords
+  - novel malware
+  - new malware
+  # Named campaigns / families added from uncategorized review
+  - horabot
+  - janelarat
 
 AI Security:
   - ai guardrail
@@ -410,6 +421,10 @@ AI Security:
   - ai bug
   - ai in malware
   - ai soc
+  - ai use in malware
+  - ai hallucination
+  - ai hallucinations
+  - ai-mediated
 
 Phishing & Social Engineering:
   - phishing campaign
@@ -481,6 +496,8 @@ Supply Chain:
   - third-party blind spot
   - third-party blind spots
   - vendor risk
+  # Plural fix: "supply chain attacks" wasn't matching "supply chain attack"
+  - supply chain attacks
 
 Mobile Security:
   # Android
@@ -514,6 +531,7 @@ Mobile Security:
   - smishing kit
   - fake app
   - rogue app
+  - crypto-stealing
 
 Industry/Policy:
   # Regulators & government bodies
@@ -585,6 +603,8 @@ Industry/Policy:
   - fbi operation
   - bug bounty
   - responsible disclosure
+  - surveillance program
+  - cybersecurity rules
 
 Consumer Awareness:
   # Personal / family safety framings
@@ -646,3 +666,5 @@ Consumer Awareness:
   - password tips
   - safer internet
   - cyber safety tips
+  # Plural fix: "recovery scammers" wasn't matching "recovery scam"
+  - recovery scammers

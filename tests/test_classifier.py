@@ -318,6 +318,163 @@ class V4KeywordRegressionTests(unittest.TestCase):
         )
 
 
+class V6KeywordRegressionTests(unittest.TestCase):
+    """Lock in the 2026-04-20 keyword expansion (v6 reclassify migration).
+
+    Each case traces to a specific Uncategorized item observed in prod during
+    the automated Aegis/Argus maintenance review. Fix at the source if any
+    of these fail — don't weaken the test.
+    """
+
+    # --- OT/ICS: industrial automation ---
+
+    def test_industrial_automation_is_ot_ics(self):
+        self.assertEqual(
+            classify_article(
+                "Threat landscape for industrial automation systems in Q4 2025",
+                "The report contains industrial threat statistics for Q4 2025.",
+            ),
+            "OT/ICS",
+        )
+
+    # --- Malware/Infostealer: novel malware, named campaigns ---
+
+    def test_novel_malware_is_malware(self):
+        self.assertEqual(
+            classify_article(
+                "New Campaign Targets Mac Users With Novel Malware",
+                "The campaign targets high-value individuals in the cryptocurrency sector.",
+            ),
+            "Malware/Infostealer",
+        )
+
+    def test_horabot_is_malware(self):
+        self.assertEqual(
+            classify_article(
+                "The SOC Files: Unpacking a new Horabot campaign in Mexico",
+                "Kaspersky SOC analyzed a complex Horabot campaign.",
+            ),
+            "Malware/Infostealer",
+        )
+
+    def test_janelarat_is_malware(self):
+        self.assertEqual(
+            classify_article(
+                "JanelaRAT: a financial threat targeting users in Latin America",
+                "Kaspersky describes the latest JanelaRAT campaign.",
+            ),
+            "Malware/Infostealer",
+        )
+
+    # --- AI Security: hallucination + ai-mediated framings ---
+
+    def test_ai_hallucination_is_ai_security(self):
+        self.assertEqual(
+            classify_article(
+                "Ghost breaches: How AI-mediated narratives have become a new threat vector",
+                "AI hallucinations are creating a new threat vector.",
+            ),
+            "AI Security",
+        )
+
+    def test_ai_use_in_malware_is_ai_security(self):
+        self.assertEqual(
+            classify_article(
+                "Analyzing the Current State of AI Use in Malware",
+                "Unit 42 research explores how AI is currently used in malware.",
+            ),
+            "AI Security",
+        )
+
+    # --- Nation State/APT: silver fox ---
+
+    def test_silver_fox_is_nation_state(self):
+        self.assertEqual(
+            classify_article(
+                "A cunning predator: How Silver Fox preys on Japanese firms",
+                "Silver Fox is back in Japan, spoofing tax and HR emails.",
+            ),
+            "Nation State/APT",
+        )
+
+    # --- Supply Chain: plural fix ---
+
+    def test_supply_chain_attacks_plural_is_supply_chain(self):
+        self.assertEqual(
+            classify_article(
+                "We have observed a dizzying array of major supply chain attacks",
+                "If we are all building on such shaky foundation, what can we do?",
+            ),
+            "Supply Chain",
+        )
+
+    # --- Industry/Policy: surveillance program, cybersecurity rules ---
+
+    def test_surveillance_program_is_industry_policy(self):
+        self.assertEqual(
+            classify_article(
+                "Senate Extends Surveillance Powers Until April 30",
+                "The Senate approved a short-term renewal of a controversial surveillance program.",
+            ),
+            "Industry/Policy",
+        )
+
+    def test_cybersecurity_rules_is_industry_policy(self):
+        self.assertEqual(
+            classify_article(
+                "Coast Guard's New Cybersecurity Rules Offer Lessons for CISOs",
+                "The MTSA requires plans to protect OT systems and audits.",
+            ),
+            "Industry/Policy",
+        )
+
+    # --- Mobile Security: crypto-stealing ---
+
+    def test_crypto_stealing_is_mobile_security(self):
+        self.assertEqual(
+            classify_article(
+                "Apple App Store infiltrated by crypto-stealing wallet apps",
+                "26 malicious apps impersonate popular wallets.",
+            ),
+            "Mobile Security",
+        )
+
+    # --- Consumer Awareness: recovery scammers plural ---
+
+    def test_recovery_scammers_plural_is_consumer_awareness(self):
+        self.assertEqual(
+            classify_article(
+                "Recovery scammers hit you when you're down",
+                "If you've been a victim of fraud, you're likely already a lead on a sucker list.",
+            ),
+            "Consumer Awareness",
+        )
+
+    # --- SaaS Breach: DeFi hacks ---
+
+    def test_defi_hack_is_saas_breach(self):
+        self.assertEqual(
+            classify_article(
+                "The $285M Drift Protocol Heist Was '6 Months in the Making'",
+                "During the largest DeFi hack of 2026, attackers drained millions.",
+            ),
+            "SaaS Breach",
+        )
+
+    # --- Priority: OT/ICS still beats Industry/Policy for Coast Guard ---
+
+    def test_coast_guard_ot_cybersecurity_rules_priority(self):
+        # "cybersecurity rules" (Industry/Policy) should NOT steal from OT/ICS
+        # when OT-specific keywords are also present.
+        self.assertEqual(
+            classify_article(
+                "Coast Guard's Cybersecurity Rules for OT on operational technology ships",
+                "New rules mandate SCADA protections.",
+            ),
+            "OT/ICS",
+        )
+
+
 class SanityTests(unittest.TestCase):
     """Basic invariants — the function doesn't crash on edge inputs."""
 

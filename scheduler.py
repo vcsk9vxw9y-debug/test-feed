@@ -138,6 +138,7 @@ FEEDS = [
     {
         "url": "http://feeds.feedburner.com/feedburner/Talos",
         "name": "Cisco Talos",
+        "filter_uncategorized": True,
         "source_tier": 1,
         "reason": "Top-tier threat intelligence research with strong malware analysis track record.",
     },

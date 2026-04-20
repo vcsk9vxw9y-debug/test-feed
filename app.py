@@ -155,11 +155,20 @@ def init_db():
         #       nginx-ui/secure-boot/maximum-severity framings,
         #       supply-chain editorial phrasing, q-day/quantum risk,
         #       ca privacy law
+        #   v5: keyword expansion for new feed coverage (2026-04-19)
+        #   v6: industrial automation (OT/ICS), DeFi hacks (SaaS Breach),
+        #       novel/new malware + horabot/janelarat (Malware), AI
+        #       hallucination + ai-mediated (AI Security), silver fox
+        #       (Nation State/APT), supply chain attacks plural,
+        #       surveillance program + cybersecurity rules (Industry/Policy),
+        #       crypto-stealing (Mobile), recovery scammers plural (Consumer)
         for migration_name in (
             "reclassify_uncategorized_v1",
             "reclassify_uncategorized_v2",
             "reclassify_uncategorized_v3",
             "reclassify_uncategorized_v4",
+            "reclassify_uncategorized_v5",
+            "reclassify_uncategorized_v6",
         ):
             _run_reclassify_migration(conn, migration_name)
 
