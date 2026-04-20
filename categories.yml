@@ -185,6 +185,8 @@ Identity & Access:
   - entra id
   - saml injection
   - ldap injection
+  # Session-level attacks
+  - session theft
   # MFA attacks
   - mfa
   - mfa bypass
@@ -372,6 +374,11 @@ Malware/Infostealer:
   # Named campaigns / families added from uncategorized review
   - horabot
   - janelarat
+  # Standalone "backdoor" — safe at Malware priority (8); higher-prio
+  # categories (Supply Chain, Cloud Breach, Vuln/CVE, Nation State)
+  # already claim articles that also mention backdoors.
+  - backdoor
+  - backdoors
 
 AI Security:
   - ai guardrail
@@ -668,3 +675,15 @@ Consumer Awareness:
   - cyber safety tips
   # Plural fix: "recovery scammers" wasn't matching "recovery scam"
   - recovery scammers
+  # IRS-specific scam variants (tax scam covers generic; IRS is specific enough)
+  - irs scam
+  - irs scams
+  # Dark web exposure articles — consumer-facing data breach aftermath
+  - dark web
+  # Brushing fraud (unsolicited packages / data compromise indicator)
+  - brushing scam
+  - brushing scams
+  # Account recovery guides — consumer self-help content
+  - hacked account
+  # WhatsApp-specific scams (messenger-borne fraud)
+  - whatsapp scam
