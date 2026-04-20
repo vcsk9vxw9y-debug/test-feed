@@ -179,6 +179,145 @@ class EnterpriseIntelIsolationTests(unittest.TestCase):
         )
 
 
+class V4KeywordRegressionTests(unittest.TestCase):
+    """Lock in the 2026-04-19 keyword expansion (v4 reclassify migration).
+
+    Each case traces to a specific Uncategorized item observed in prod the
+    day we added the keyword. If one of these starts failing, someone moved
+    a keyword into a higher-priority category that shouldn't claim it — or
+    a category's keyword list drifted. Fix at the source, don't weaken the
+    test.
+    """
+
+    # --- Cloud dev / hosting platforms land in SaaS Breach ---
+
+    def test_vercel_breach_is_saas(self):
+        self.assertEqual(
+            classify_article(
+                "Vercel confirms breach as hackers claim to be selling stolen data",
+                "Cloud development platform Vercel has disclosed a security incident.",
+            ),
+            "SaaS Breach",
+        )
+
+    def test_netlify_breach_is_saas(self):
+        self.assertEqual(
+            classify_article("Netlify acknowledges account-takeover campaign", ""),
+            "SaaS Breach",
+        )
+
+    def test_supabase_is_saas(self):
+        self.assertEqual(
+            classify_article("Supabase discloses auth service breach", ""),
+            "SaaS Breach",
+        )
+
+    def test_fly_io_is_saas(self):
+        # Dotted vendor name — regex must escape the `.` correctly.
+        self.assertEqual(
+            classify_article("Fly.io rotates customer API keys after access incident", ""),
+            "SaaS Breach",
+        )
+
+    # --- Crypto-exchange hacks land in SaaS Breach ---
+
+    def test_crypto_exchange_hack(self):
+        self.assertEqual(
+            classify_article(
+                "$13.74M Hack Shuts Down Sanctioned Grinex Exchange After Intelligence Claims",
+                "Grinex, a Kyrgyzstan-incorporated cryptocurrency exchange, said it's suspending operations after a $13.74 million hack.",
+            ),
+            "SaaS Breach",
+        )
+
+    # --- Supply Chain broadening (editorial / analysis framings) ---
+
+    def test_supply_chain_dependencies_editorial(self):
+        # ESET WeLiveSecurity title that previously landed in Uncategorized.
+        self.assertEqual(
+            classify_article(
+                "Supply chain dependencies: Have you checked your blind spot?",
+                "Your biggest risk may be a vendor you trust. How can SMBs map their third-party blind spots?",
+            ),
+            "Supply Chain",
+        )
+
+    def test_digital_supply_chain_editorial(self):
+        self.assertEqual(
+            classify_article(
+                "Navigating the Unique Security Risks of Asia's Digital Supply Chain",
+                "Regulatory differences and interconnected digital ecosystems have created complex supply-chain risk.",
+            ),
+            "Supply Chain",
+        )
+
+    # --- Vulnerability/CVE framings we were missing ---
+
+    def test_nginx_ui_critical_flaw(self):
+        self.assertEqual(
+            classify_article(
+                "Critical MCP Integration Flaw Puts NGINX at Risk",
+                "Attackers can abuse the near-maximum severity flaw in nginx-ui to restart, create, modify, and delete configuration files.",
+            ),
+            "Vulnerability/CVE",
+        )
+
+    def test_secure_boot_certificate_expiry(self):
+        self.assertEqual(
+            classify_article(
+                "Microsoft's Original Windows Secure Boot Certificate Is Expiring",
+                "The Secure Boot refresh is one of the largest coordinated security maintenance efforts across the Windows ecosystem.",
+            ),
+            "Vulnerability/CVE",
+        )
+
+    # --- Industry/Policy — quantum risk + CA privacy law ---
+
+    def test_q_day_quantum_risk(self):
+        self.assertEqual(
+            classify_article(
+                "Prepping for 'Q-Day': Why Quantum Risk Management Should Start Now",
+                "Quantum computers are coming and it will take years to be fully quantum-safe.",
+            ),
+            "Industry/Policy",
+        )
+
+    def test_ca_privacy_law_opt_out(self):
+        self.assertEqual(
+            classify_article(
+                "Audit: Big Tech Often Ignores CA Privacy Law Opt-Out Requests",
+                "A California privacy law mandate is being ignored about half the time by major platforms.",
+            ),
+            "Industry/Policy",
+        )
+
+    # --- Priority invariants — the traps we set up and must keep honoring ---
+
+    def test_vercel_plus_context_ai_stays_saas(self):
+        # Both `vercel` (SaaS, prio 3) and `context.ai` (AI Security, prio 9)
+        # match. SaaS Breach must win — the article's LEAD is the Vercel
+        # compromise, not an AI-safety story about Context.ai itself.
+        self.assertEqual(
+            classify_article(
+                "Vercel breach traced to compromised Context.ai AI developer tool",
+                "Threat actors gained access via an employee's Context.ai account.",
+            ),
+            "SaaS Breach",
+        )
+
+    def test_standalone_context_ai_is_ai_security(self):
+        # A standalone Context.ai-the-product story (no Vercel/SaaS vendor
+        # named) must land in AI Security — otherwise we'd miss genuine AI
+        # security coverage after putting context.ai only in SaaS.
+        self.assertEqual(
+            classify_article(
+                "Context.ai patches jailbreak allowing prompt injection against coding agents",
+                "Crafted repo files hijack the agent's tool calls.",
+            ),
+            "AI Security",
+        )
+
+
 class SanityTests(unittest.TestCase):
     """Basic invariants — the function doesn't crash on edge inputs."""
 

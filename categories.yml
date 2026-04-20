@@ -110,6 +110,24 @@ SaaS Breach:
   - data exposed
   - retailer breach
   - customer records
+  # Cloud dev / hosting platforms — breach targets (2026-04 Vercel/ShinyHunters)
+  - vercel
+  - netlify
+  - heroku
+  - cloudflare pages
+  - cloudflare workers
+  - supabase
+  - firebase
+  - fly.io
+  - render.com
+  - auth0
+  # Note: `context.ai` intentionally NOT here. Context.ai is an AI product;
+  # it lives in AI Security. The Vercel-via-Context.ai crossover still fires
+  # SaaS Breach through the `vercel` keyword — no need to double-book.
+  # Crypto-exchange breaches — sanctioned/hacked venue coverage
+  - cryptocurrency exchange
+  - crypto exchange
+  - exchange hack
 
 Ransomware:
   - ransomware
@@ -211,6 +229,13 @@ Vulnerability/CVE:
   - security flaws
   - security patches
   - security updates
+  # Specific high-profile targets / severity framings
+  - nginx-ui
+  - secure boot
+  - boot certificate
+  - maximum severity flaw
+  - maximum-severity flaw
+  - near-maximum severity
 
 Nation State/APT:
   - apt
@@ -332,6 +357,7 @@ AI Security:
   - openai
   - deepseek
   - hugging face
+  - context.ai
   # AI products — multi-word to avoid false positives on common words
   - claude ai
   - claude model
@@ -420,6 +446,15 @@ Supply Chain:
   - rogue package
   - build system compromise
   - vendor breach
+  # Editorial / analysis pieces about supply-chain posture
+  - supply chain risk
+  - supply chain risks
+  - supply chain dependencies
+  - digital supply chain
+  - third-party risk
+  - third-party blind spot
+  - third-party blind spots
+  - vendor risk
 
 Mobile Security:
   # Android
@@ -510,6 +545,14 @@ Industry/Policy:
   - wiretap
   - national security
   - cybersecurity strategy
+  # Post-quantum / cryptography transition
+  - q-day
+  - quantum risk
+  - quantum-safe
+  # State privacy laws — CCPA adjacent
+  - ca privacy law
+  - california privacy law
+  - privacy audit
 
 Consumer Awareness:
   # Personal / family safety framings

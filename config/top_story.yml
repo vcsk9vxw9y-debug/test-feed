@@ -1,15 +1,16 @@
 # Top Story — operator-curated lead article.
 # active:false and the front page falls back to first-article-as-lead.
 active: true
-title: "Unit 42: Escalation of Cyber Risk Related to Iran"
-summary: "Unit 42 flags elevated cyber risk from Iran-linked actors during the current escalation cycle, citing historical wiper and credential-harvesting campaigns against Western critical infrastructure. Recommended posture: patch internet-facing appliances, enforce MFA on remote access, and review OT segmentation."
-source_name: "Unit42 Palo Alto"
-url: "https://unit42.paloaltonetworks.com/iranian-cyberattacks-2026/"
-published_at: "2026-04-17T22:35:07Z"
-category: "Nation State/APT"
+title: "Vercel Confirms Breach — ShinyHunters Claim Theft of Source Code, API Keys, and Deployment Data"
+summary: "Cloud dev platform Vercel has confirmed a security incident after ShinyHunters-linked threat actors posted employee data online and demanded a $2M ransom. CEO Guillermo Rauch attributes initial access to a compromised third-party AI tool (Context.ai) that held an employee's credentials. Recommended defender posture: rotate Vercel-issued secrets now (deploy tokens, environment variables, integration keys), audit any third-party AI tools with repo or deploy access, and review Vercel audit logs for anomalous deploy / token-creation activity since early April."
+source_name: "Bleeping Computer"
+url: "https://www.bleepingcomputer.com/news/security/vercel-confirms-breach-as-hackers-claim-to-be-selling-stolen-data/"
+published_at: "2026-04-19T15:21:27Z"
+category: "SaaS Breach"
 key_points:
-  - "Unit 42 assesses elevated cyber risk tied to the current Iran escalation cycle."
-  - "Historical precedent: destructive wiper campaigns (Shamoon lineage) and credential-harvesting operations against Western critical infrastructure."
-  - "Recommended defensive posture: patch internet-facing appliances, enforce MFA on remote access, and review OT segmentation."
-  - "Primary-source intel from Palo Alto Networks' threat research team — treat as HIGH-confidence signal."
-notes: "Curated 2026-04-19 — Tier 1 primary-source threat brief, replaces r/cybersecurity fallback lead."
+  - "Vercel confirmed the breach on 2026-04-19; initial access came via a compromised Context.ai account belonging to a Vercel employee — third-party AI-tool supply chain risk."
+  - "Attribution: ShinyHunters group (same crew behind the Rockstar Games leak). Claimed stolen: source code, database extracts, access keys, API keys, and internal deployment access. $2M ransom posted."
+  - "CEO Guillermo Rauch says customer impact is 'quite limited' — no numbers yet. Assume any secret or env-var ever stored in Vercel deployments should be treated as exposed until scoped."
+  - "Immediate defender actions: rotate all Vercel-issued tokens and deploy keys, rotate env-var secrets referenced by Vercel projects, audit OAuth grants to AI developer tools (Context.ai, Cursor, Copilot integrations, etc.), and scan Vercel audit logs for out-of-hours deploy activity since 2026-04-01."
+  - "Pre-IPO timing — material corporate event. Expect SEC Form 8-K disclosure and follow-on regulatory scrutiny."
+notes: "Curated 2026-04-19 — replaces Unit 42 Iran-posture lead. Rationale: discrete, happening-now breach at a Tier-1 cloud dev platform with concrete defender actions > general threat-landscape guidance."
