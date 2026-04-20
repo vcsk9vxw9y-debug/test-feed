@@ -151,6 +151,16 @@ Ransomware:
   - leak site
   - ransomware gangs
   - leak sites
+  # Active groups — 2025/2026 roster (Huntress, DFIR Report coverage)
+  - blacksuit
+  - rhysida
+  - medusa ransomware
+  - bianlian
+  - hunters international
+  - inc ransom
+  - ransomware-as-a-service
+  - raas
+  - ransom payment
 
 Identity & Access:
   # Active Directory / Kerberos attacks
@@ -284,6 +294,13 @@ Nation State/APT:
   - apt groups
   - advanced persistent threat
   - advanced persistent threats
+  # Newer APT aliases (Kaspersky Securelist coverage)
+  - midnight blizzard
+  - charming kitten
+  - muddywater
+  - turla
+  - silk typhoon
+  - scattered spider
 
 Malware/Infostealer:
   - infostealer
@@ -335,6 +352,15 @@ Malware/Infostealer:
   - payload delivery
   - malicious installer
   - malicious binary
+  # C2 frameworks & DFIR vocabulary (Elastic, DFIR Report coverage)
+  - cobalt strike
+  - brute ratel
+  - sliver c2
+  - initial access broker
+  - access broker
+  - lolbin
+  - lolbins
+  - living off the land
 
 AI Security:
   - ai guardrail
@@ -553,6 +579,12 @@ Industry/Policy:
   - ca privacy law
   - california privacy law
   - privacy audit
+  # Law enforcement & industry ops (CyberScoop coverage)
+  - takedown operation
+  - law enforcement operation
+  - fbi operation
+  - bug bounty
+  - responsible disclosure
 
 Consumer Awareness:
   # Personal / family safety framings
