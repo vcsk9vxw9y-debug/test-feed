@@ -10,7 +10,7 @@ from flask_limiter.util import get_remote_address
 from apscheduler.schedulers.background import BackgroundScheduler
 from classifier import classify_article
 from confidence import build_source_info_index, resolve_confidence, UNSET
-from scheduler import EXCLUSIONS, FEEDS, fetch_all_feeds
+from scheduler import EXCLUSIONS, FEEDS, fetch_all_feeds, prune_deleted_reddit_posts
 
 TOP_STORY_PATH = os.path.join(os.path.dirname(__file__), "config", "top_story.yml")
 TOP_STORY_REQUIRED = ("title", "summary", "url", "source_name", "published_at")
@@ -104,6 +104,28 @@ def init_db():
             )
         """)
 
+        # Idempotent column migration: last_reddit_check_at tracks the last
+        # time prune_deleted_reddit_posts() looked at a given Reddit row, so
+        # each tick rotates through the DB (oldest-checked first). SQLite has
+        # no ADD COLUMN IF NOT EXISTS, so we check PRAGMA table_info and
+        # only add when missing — safe to run on every startup.
+        existing_cols = {
+            row[1] for row in conn.execute("PRAGMA table_info(articles)")
+        }
+        if "last_reddit_check_at" not in existing_cols:
+            conn.execute(
+                "ALTER TABLE articles ADD COLUMN last_reddit_check_at TEXT"
+            )
+            # Partial index narrows the rotation query to Reddit rows only —
+            # no overhead for the other 30+ sources. Case-insensitive LIKE in
+            # the query uses LOWER(source_name); the partial-index predicate
+            # must match that form to be useful to the planner.
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_reddit_check "
+                "ON articles(last_reddit_check_at) "
+                "WHERE LOWER(source_name) LIKE '%reddit%'"
+            )
+
         # Cumulative article counter — never decrements, survives pruning/cleanup
         conn.execute("""
             CREATE TABLE IF NOT EXISTS stats (
@@ -128,10 +150,16 @@ def init_db():
         #   v3: Consumer Awareness + broadened keywords (phishing scams,
         #       supply-chain plurals, mobile banking trojan, industry bodies,
         #       APT plurals)
+        #   v4: cloud-dev platforms (vercel/netlify/heroku/supabase/fly.io),
+        #       context.ai (AI Security), crypto exchange hacks,
+        #       nginx-ui/secure-boot/maximum-severity framings,
+        #       supply-chain editorial phrasing, q-day/quantum risk,
+        #       ca privacy law
         for migration_name in (
             "reclassify_uncategorized_v1",
             "reclassify_uncategorized_v2",
             "reclassify_uncategorized_v3",
+            "reclassify_uncategorized_v4",
         ):
             _run_reclassify_migration(conn, migration_name)
 
@@ -481,8 +509,30 @@ def feed_xml():
 init_db()
 fetch_all_feeds(DB_PATH)
 
+
+def _tick(db_path):
+    """One scheduler tick: ingest new articles, then prune deleted Reddit
+    posts. Prune runs AFTER ingest so a post deleted the moment it was
+    ingested gets caught on the next tick (not this one) — by design we
+    skip anything younger than 4 hours in the prune to give upstream one
+    cycle to settle. Each sub-step is already defensive against its own
+    errors; this wrapper only ensures one failure doesn't swallow the other.
+    """
+    try:
+        fetch_all_feeds(db_path)
+    except Exception as e:
+        print(f"[tick] fetch_all_feeds failed: {type(e).__name__}: {e}")
+    try:
+        prune_deleted_reddit_posts(db_path)
+    except Exception as e:
+        print(f"[tick] prune_deleted_reddit_posts failed: {type(e).__name__}: {e}")
+
+
 scheduler = BackgroundScheduler()
-scheduler.add_job(fetch_all_feeds, "interval", hours=4, args=[DB_PATH])
+# max_instances=1 prevents overlap if a tick runs long (e.g. slow Reddit
+# during the prune pass) — APScheduler will skip rather than start a second
+# concurrent run.
+scheduler.add_job(_tick, "interval", hours=4, args=[DB_PATH], max_instances=1)
 scheduler.start()
 atexit.register(lambda: scheduler.shutdown(wait=False))
 
