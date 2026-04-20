@@ -181,6 +181,40 @@ FEEDS = [
         "source_tier": 2,
         "reason": "Threat intelligence firm research. Caveat: commercial framing; quality of output is high.",
     },
+    {
+        "url": "https://blog.rapid7.com/rss/",
+        "name": "Rapid7",
+        "filter_uncategorized": True,
+        "source_tier": 1,
+        "reason": "Emergent threat response team. Primary exploit analysis on actively exploited vulns, peer-quality with ZDI.",
+    },
+    {
+        "url": "https://www.elastic.co/security-labs/rss/feed.xml",
+        "name": "Elastic Security Labs",
+        "filter_uncategorized": True,
+        "source_tier": 2,
+        "reason": "Deep malware analysis with detection rules (YARA, Sigma). Vendor context but strong primary research.",
+    },
+    {
+        "url": "https://securelist.com/feed/",
+        "name": "Kaspersky Securelist",
+        "source_tier": 1,
+        "reason": "Best-in-class APT campaign tracking and malware reverse engineering. Industry-leading primary research.",
+    },
+    {
+        "url": "https://feeds.fortinet.com/fortinet/blog/threat-research",
+        "name": "Fortinet FortiGuard",
+        "filter_uncategorized": True,
+        "source_tier": 2,
+        "reason": "Botnet, IoT, and OT threat visibility. Partially fills OT/ICS gap left by Dragos feed (404).",
+    },
+    {
+        "url": "https://www.huntress.com/blog/rss.xml",
+        "name": "Huntress",
+        "filter_uncategorized": True,
+        "source_tier": 2,
+        "reason": "Real-world incident breakdowns from the defender side. Strong on ransomware and SMB-targeting threats.",
+    },
     # --- Security Research ---
     {
         "url": "https://projectzero.google/feed.xml",
@@ -237,13 +271,6 @@ FEEDS = [
         "reason": "Individual researcher with exceptional track record (car-hacking series, university hacks). Single-author caveat applies but quality is high.",
     },
     {
-        "url": "https://www.dragos.com/blog/feed/",
-        "name": "Dragos",
-        "filter_uncategorized": True,
-        "source_tier": 1,
-        "reason": "Authoritative primary research in ICS/OT threat intelligence. The authority in that niche.",
-    },
-    {
         "url": "https://www.schneier.com/feed/atom/",
         "name": "Schneier on Security",
         "filter_uncategorized": True,
@@ -257,6 +284,20 @@ FEEDS = [
         "filter_uncategorized": True,
         "source_tier": 3,
         "reason": "Single-author blog on AI/LLM security. Quality is good, but single source in an emerging niche — corroboration matters.",
+    },
+    # --- Journalism & Policy ---
+    {
+        "url": "https://cyberscoop.com/feed/",
+        "name": "CyberScoop",
+        "source_tier": 2,
+        "reason": "Cybersecurity policy and industry journalism. Fills the Industry/Policy category gap.",
+    },
+    # --- Incident Response ---
+    {
+        "url": "https://thedfirreport.com/feed/",
+        "name": "The DFIR Report",
+        "source_tier": 1,
+        "reason": "Gold-standard intrusion analysis with full kill-chain TTPs. Peer-reviewed, reproducible, community-trusted.",
     },
     # --- Community ---
     {
