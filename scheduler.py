@@ -124,8 +124,9 @@ FEEDS = [
     {
         "url": "https://www.crowdstrike.com/en-us/blog/feed",
         "name": "CrowdStrike Blog",
+        "filter_uncategorized": True,
         "source_tier": 1,
-        "reason": "Top-tier threat intelligence research. Caveat: mixed with commercial marketing, but the threat intel output itself is authoritative.",
+        "reason": "Top-tier threat intelligence research. Caveat: mixed with commercial marketing — filter_uncategorized drops partnership promos and thought-leadership fluff.",
     },
     {
         "url": "https://cloud.google.com/blog/topics/threat-intelligence/rss.xml",
