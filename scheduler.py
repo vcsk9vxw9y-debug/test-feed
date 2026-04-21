@@ -159,11 +159,11 @@ FEEDS = [
         "reason": "Vendor threat intelligence research, consistent technical malware reports.",
     },
     {
-        "url": "https://api.msrc.microsoft.com/update-guide/rss",
-        "name": "Microsoft MSRC",
+        "url": "https://www.microsoft.com/en-us/security/blog/feed/",
+        "name": "Microsoft Security Blog",
         "filter_uncategorized": True,
         "source_tier": 1,
-        "reason": "MSRC Security Update Guide — CVE/advisory feed. Old blog feed (msrc.microsoft.com/blog/feed/) 301s to HTML since ~2026-04. This is the canonical machine-readable endpoint.",
+        "reason": "Curated Microsoft threat research, Patch Tuesday summaries, and incident analysis. Replaced the MSRC Update Guide CVE firehose (~3k advisories/quarter) with this high-signal blog feed.",
     },
     {
         "url": "https://www.malwarebytes.com/blog/feed/index.xml",
@@ -231,8 +231,9 @@ FEEDS = [
     {
         "url": "https://objective-see.org/rss.xml",
         "name": "Objective-See",
+        "filter_uncategorized": True,
         "source_tier": 1,
-        "reason": "Patrick Wardle — the macOS security researcher. Only dedicated macOS threat research source in the feed. Primary research.",
+        "reason": "Patrick Wardle — the macOS security researcher. Only dedicated macOS threat research source in the feed. Primary research. filter_uncategorized drops tutorials and tool announcements.",
     },
     {
         "url": "https://citizenlab.ca/feed/",

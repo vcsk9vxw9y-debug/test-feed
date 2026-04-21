@@ -217,6 +217,24 @@ def init_db():
                 (_prune_mig, datetime.now(timezone.utc).isoformat()),
             )
 
+        # One-time migration: remove all articles from the old MSRC Update
+        # Guide CVE firehose. That feed ingested ~3k raw CVE advisories per
+        # quarter — replaced by the curated Microsoft Security Blog feed.
+        _msrc_mig = "remove_msrc_update_guide_articles_v1"
+        already_msrc = conn.execute(
+            "SELECT 1 FROM migrations WHERE name = ?", (_msrc_mig,)
+        ).fetchone()
+        if not already_msrc:
+            result = conn.execute(
+                "DELETE FROM articles WHERE source_name = ?",
+                ("Microsoft MSRC",),
+            )
+            print(f"[migration] {_msrc_mig}: removed {result.rowcount} MSRC Update Guide articles")
+            conn.execute(
+                "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
+                (_msrc_mig, datetime.now(timezone.utc).isoformat()),
+            )
+
         conn.commit()
     finally:
         conn.close()
