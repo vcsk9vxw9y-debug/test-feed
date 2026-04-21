@@ -262,6 +262,11 @@ Identity & Access:
   - evilginx
   - aitm
   - adversary-in-the-middle
+  # Data / metadata exposure
+  - metadata leak
+  - data leak
+  - data exposure
+  - leaks user
 
 Vulnerability/CVE:
   - cve
@@ -317,6 +322,11 @@ Vulnerability/CVE:
   - use-after-free
   - type confusion
   - integer overflow
+  # Exposure / misconfiguration language
+  - lack encryption
+  - unencrypted
+  - internet-facing
+  - misconfigured server
 
 Nation State/APT:
   - apt
@@ -394,6 +404,11 @@ Nation State/APT:
   - cytrox
   - mercenary spyware
   - commercial surveillance
+  # Information operations / influence
+  - information operations
+  - social media manipulation
+  - influence operation
+  - disinformation campaign
 
 Malware/Infostealer:
   - infostealer
@@ -482,6 +497,11 @@ Malware/Infostealer:
   - fast flux
   - domain generation algorithm
   - dga
+  # Detection evasion
+  - evasion technique
+  - defense evasion
+  - escape detection
+  - evade detection
 
 AI Security:
   - ai guardrail
@@ -784,6 +804,11 @@ Industry/Policy:
   - export control
   - spyware regulation
   - pall mall process
+  # Financial regulation / intel sharing
+  - financial intelligence
+  - fusion center
+  - finra
+  - cybersecurity investment
 
 Consumer Awareness:
   # Personal / family safety framings

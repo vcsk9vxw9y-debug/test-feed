@@ -196,22 +196,22 @@ def init_db():
         if pruned:
             print(f"[exclusions] pruned {pruned} historical articles matching exclusions.yml")
 
-        # One-time migration: prune articles older than 90 days.
+        # One-time migration: prune articles older than 30 days.
         # Prevents historical backlog floods from feeds that expose their
         # full archive on first ingest (e.g. MSRC, Siemens ProductCERT).
-        # The ingestion-side guard in scheduler.py prevents future floods;
-        # this migration cleans up rows already in the DB.
-        _prune_mig = "prune_articles_older_than_90d_v1"
+        # The recurring _prune_old_articles job keeps the DB lean after
+        # this initial cleanup.
+        _prune_mig = "prune_articles_older_than_30d_v1"
         already_pruned = conn.execute(
             "SELECT 1 FROM migrations WHERE name = ?", (_prune_mig,)
         ).fetchone()
         if not already_pruned:
-            cutoff = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
             result = conn.execute(
                 "DELETE FROM articles WHERE COALESCE(published_date, created_at) < ?",
                 (cutoff,),
             )
-            print(f"[migration] {_prune_mig}: removed {result.rowcount} articles older than 90 days")
+            print(f"[migration] {_prune_mig}: removed {result.rowcount} articles older than 30 days")
             conn.execute(
                 "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
                 (_prune_mig, datetime.now(timezone.utc).isoformat()),
@@ -603,6 +603,25 @@ def _prune(db_path):
         print(f"[prune] failed: {type(e).__name__}: {e}")
 
 
+def _prune_old_articles(db_path):
+    """Daily rolling prune — delete articles older than 30 days.
+    Keeps the DB lean and category counts honest. The ingestion-side
+    90-day guard in scheduler.py is a separate safety net against
+    historical backlog floods on first ingest of a new feed.
+    """
+    try:
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        with sqlite3.connect(db_path) as conn:
+            result = conn.execute(
+                "DELETE FROM articles WHERE COALESCE(published_date, created_at) < ?",
+                (cutoff,),
+            )
+            if result.rowcount:
+                print(f"[prune-old] removed {result.rowcount} articles older than 30 days")
+    except Exception as e:
+        print(f"[prune-old] failed: {type(e).__name__}: {e}")
+
+
 scheduler = BackgroundScheduler()
 # Each job gets max_instances=1 to prevent self-overlap. Different jobs
 # CAN run concurrently — they share SQLite with short transactions, no
@@ -615,6 +634,8 @@ scheduler.add_job(_fetch_tier, "interval", hours=4, args=[DB_PATH, 3],
                   max_instances=1, id="fetch_t3")
 scheduler.add_job(_prune, "interval", hours=2, args=[DB_PATH],
                   max_instances=1, id="reddit_prune")
+scheduler.add_job(_prune_old_articles, "interval", hours=24, args=[DB_PATH],
+                  max_instances=1, id="prune_old_articles")
 scheduler.start()
 atexit.register(lambda: scheduler.shutdown(wait=False))
 

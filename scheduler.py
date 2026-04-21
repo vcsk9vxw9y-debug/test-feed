@@ -76,8 +76,9 @@ FEEDS = [
     {
         "url": "https://www.darkreading.com/rss.xml",
         "name": "Dark Reading",
+        "filter_uncategorized": True,
         "source_tier": 2,
-        "reason": "Established security journalism, enterprise-focused analysis.",
+        "reason": "Established security journalism, enterprise-focused analysis. filter_uncategorized drops vendor press releases and thought-leadership fluff.",
     },
     {
         "url": "https://www.securityweek.com/feed/",
@@ -155,8 +156,9 @@ FEEDS = [
     {
         "url": "https://www.welivesecurity.com/en/rss/feed/",
         "name": "ESET WeLiveSecurity",
+        "filter_uncategorized": True,
         "source_tier": 2,
-        "reason": "Vendor threat intelligence research, consistent technical malware reports.",
+        "reason": "Vendor threat intelligence research, consistent technical malware reports. filter_uncategorized drops consumer lifestyle and parenting content.",
     },
     {
         "url": "https://www.microsoft.com/en-us/security/blog/feed/",
@@ -238,8 +240,9 @@ FEEDS = [
     {
         "url": "https://citizenlab.ca/feed/",
         "name": "The Citizen Lab",
+        "filter_uncategorized": True,
         "source_tier": 1,
-        "reason": "University of Toronto — gold-standard surveillance/spyware research. NSO Group, Predator, Pegasus. Unique niche, primary research.",
+        "reason": "University of Toronto — gold-standard surveillance/spyware research. NSO Group, Predator, Pegasus. filter_uncategorized drops political commentary, keeps classified threat research.",
     },
     {
         "url": "https://projectzero.google/feed.xml",
