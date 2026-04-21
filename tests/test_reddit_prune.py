@@ -14,7 +14,7 @@ Guarantees:
   3. Rotation: oldest-unchecked row is picked first. Batch cap (200)
      bounds runtime.
 
-  4. Age floor: articles younger than 4 hours are NOT checked.
+  4. Age floor: articles younger than 2 hours are NOT checked.
 
   5. last_reddit_check_at is bumped when we saw the post alive, NOT when
      we deleted it (the row's gone at that point).

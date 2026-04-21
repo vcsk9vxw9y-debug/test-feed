@@ -35,6 +35,28 @@ OT/ICS:
   - industrial cybersecurity
   - safety instrumented system
   - industrial automation
+  # Vendor names (Siemens ProductCERT, Fortinet coverage)
+  - siemens
+  - schneider electric
+  - rockwell
+  - abb
+  - honeywell
+  - codesys
+  - opc ua
+  - opc-ua
+  - ot security
+  - ics-cert
+  # Industrial IoT / smart infrastructure
+  - industrial iot
+  - iiot
+  - building automation
+  - bms
+  - smart grid
+  - electric utility
+  - water utility
+  # Compliance
+  - purdue model
+  - cip compliance
 
 Cloud Breach:
   - aws
@@ -58,6 +80,17 @@ Cloud Breach:
   - exposed elasticsearch
   - buckets
   - exposed buckets
+  # Cloud infrastructure terms (Datadog Security Labs coverage)
+  - terraform
+  - cloud workload
+  - cspm
+  - cloud posture
+  - serverless
+  - ecs
+  - fargate
+  - cloud-native
+  - imds
+  - cloud credential
 
 SaaS Breach:
   - salesforce
@@ -165,6 +198,15 @@ Ransomware:
   - ransomware-as-a-service
   - raas
   - ransom payment
+  # 2025-2026 active groups (Huntress, DFIR Report coverage)
+  - fog ransomware
+  - cactus ransomware
+  - qilin
+  - embargo
+  - lynx ransomware
+  - interlock
+  - extortion group
+  - extortion gang
 
 Identity & Access:
   # Active Directory / Kerberos attacks
@@ -185,6 +227,8 @@ Identity & Access:
   - entra id
   - saml injection
   - ldap injection
+  # Session-level attacks
+  - session theft
   # MFA attacks
   - mfa
   - mfa bypass
@@ -208,6 +252,16 @@ Identity & Access:
   - stolen credentials
   - stolen credential
   - compromised credentials
+  # Passwordless / modern auth
+  - passkey
+  - passkeys
+  - fido2
+  - webauthn
+  # Adversary-in-the-middle / credential theft tooling
+  - inferno drainer
+  - evilginx
+  - aitm
+  - adversary-in-the-middle
 
 Vulnerability/CVE:
   - cve
@@ -250,6 +304,19 @@ Vulnerability/CVE:
   - maximum severity flaw
   - maximum-severity flaw
   - near-maximum severity
+  # Exploitation status language (CERT Vuln Notes, CISA KEV references)
+  - kev
+  - actively exploited
+  - under active exploitation
+  - in the wild
+  - cvss
+  - epss
+  - vulnerability note
+  # Bug class terms (Project Zero, watchTowr Labs coverage)
+  - out-of-bounds
+  - use-after-free
+  - type confusion
+  - integer overflow
 
 Nation State/APT:
   - apt
@@ -306,6 +373,27 @@ Nation State/APT:
   - silk typhoon
   - scattered spider
   - silver fox
+  # Additional APT aliases (2025-2026 landscape)
+  - flax typhoon
+  - brass typhoon
+  - liminal panda
+  - famous chollima
+  - andariel
+  - imperial kitten
+  - cotton sandstorm
+  - peach sandstorm
+  - mint sandstorm
+  # Espionage framing
+  - cyber espionage
+  - espionage campaign
+  # Commercial surveillance vendors (Citizen Lab coverage)
+  - nso group
+  - predator spyware
+  - intellexa
+  - candiru
+  - cytrox
+  - mercenary spyware
+  - commercial surveillance
 
 Malware/Infostealer:
   - infostealer
@@ -372,6 +460,28 @@ Malware/Infostealer:
   # Named campaigns / families added from uncategorized review
   - horabot
   - janelarat
+  # Standalone "backdoor" — safe at Malware priority (8); higher-prio
+  # categories (Supply Chain, Cloud Breach, Vuln/CVE, Nation State)
+  # already claim articles that also mention backdoors.
+  - backdoor
+  - backdoors
+  # Current families (2025-2026 DFIR Report, Elastic coverage)
+  - asyncrat
+  - xworm
+  - darkgate
+  - pikabot
+  - bumblebee
+  - qakbot
+  - latrodectus
+  - vidar
+  - raccoon stealer
+  - mystic stealer
+  - risepro
+  # Network-level evasion
+  - dns tunneling
+  - fast flux
+  - domain generation algorithm
+  - dga
 
 AI Security:
   - ai guardrail
@@ -425,6 +535,21 @@ AI Security:
   - ai hallucination
   - ai hallucinations
   - ai-mediated
+  # AI red teaming & attack techniques
+  - ai red team
+  - ai red teaming
+  - model extraction
+  - model inversion
+  - membership inference
+  - adversarial example
+  - adversarial ml
+  - rag poisoning
+  # MCP / agent infrastructure
+  - mcp server
+  - ai supply chain
+  - ai agent vulnerability
+  - slopsquatting
+  - vibe coding
 
 Phishing & Social Engineering:
   - phishing campaign
@@ -461,6 +586,13 @@ Phishing & Social Engineering:
   - spearphishing
   - malicious email
   - bec scam
+  # Shorthand / emerging terms
+  - quishing
+  - callback phishing
+  - voice phishing
+  - consent phishing
+  - browser-in-the-browser
+  - bitb
 
 Supply Chain:
   - supply chain attack
@@ -498,6 +630,23 @@ Supply Chain:
   - vendor risk
   # Plural fix: "supply chain attacks" wasn't matching "supply chain attack"
   - supply chain attacks
+  # Additional package ecosystems
+  - cargo package
+  - go module
+  - maven package
+  - nuget package
+  # CI/CD and build integrity
+  - github action
+  - github actions
+  - compromised action
+  - sbom
+  - software bill of materials
+  - sigstore
+  - in-toto
+  # Maintainer-level attacks
+  - protestware
+  - maintainer compromise
+  - maintainer takeover
 
 Mobile Security:
   # Android
@@ -532,6 +681,23 @@ Mobile Security:
   - fake app
   - rogue app
   - crypto-stealing
+  # macOS threats (Objective-See coverage)
+  - macos malware
+  - macos exploit
+  - macos vulnerability
+  - mac malware
+  - xprotect
+  - gatekeeper bypass
+  - notarization bypass
+  - tcc bypass
+  - endpoint security framework
+  # Commercial spyware product names (Citizen Lab coverage)
+  - nso
+  - quadream
+  - paragon
+  # Compound zero-day terms
+  - ios zero-day
+  - android zero-day
 
 Industry/Policy:
   # Regulators & government bodies
@@ -605,6 +771,19 @@ Industry/Policy:
   - responsible disclosure
   - surveillance program
   - cybersecurity rules
+  # Insurance / reporting
+  - cyber insurance
+  - incident reporting
+  - breach disclosure
+  # Workforce / market
+  - cybersecurity workforce
+  - skills gap
+  - threat landscape report
+  - cybersecurity market
+  # Spyware regulation (Citizen Lab policy coverage)
+  - export control
+  - spyware regulation
+  - pall mall process
 
 Consumer Awareness:
   # Personal / family safety framings
@@ -668,3 +847,15 @@ Consumer Awareness:
   - cyber safety tips
   # Plural fix: "recovery scammers" wasn't matching "recovery scam"
   - recovery scammers
+  # IRS-specific scam variants (tax scam covers generic; IRS is specific enough)
+  - irs scam
+  - irs scams
+  # Dark web exposure articles — consumer-facing data breach aftermath
+  - dark web
+  # Brushing fraud (unsolicited packages / data compromise indicator)
+  - brushing scam
+  - brushing scams
+  # Account recovery guides — consumer self-help content
+  - hacked account
+  # WhatsApp-specific scams (messenger-borne fraud)
+  - whatsapp scam

@@ -98,17 +98,14 @@ FEEDS = [
         "reason": "Duo Security / Cisco-owned security journalism (Dennis Fisher, Lindsey O'Donnell-Welch). Primary reporting, no marketing funnel. Peer-quality with Dark Reading / The Record.",
     },
     # --- Government & Advisories ---
+    # NOTE: CISA Alerts and US-CERT Alerts removed 2026-04-20 — both returning
+    # 403 on all URL variants. CISA locked down RSS behind Cloudflare bot
+    # protection. CERT Vulnerability Notes added below as partial replacement.
     {
-        "url": "https://www.cisa.gov/cybersecurity-advisories/advisories.xml",
-        "name": "CISA Alerts",
+        "url": "https://www.kb.cert.org/vulfeed/",
+        "name": "CERT Vulnerability Notes",
         "source_tier": 1,
-        "reason": "US government cyber defense authority. Advisories are official and operationally authoritative.",
-    },
-    {
-        "url": "https://www.cisa.gov/uscert/ncas/alerts.xml",
-        "name": "US-CERT Alerts",
-        "source_tier": 1,
-        "reason": "US government CERT, authoritative advisories, operational directives.",
+        "reason": "CERT/CC vulnerability coordination center. Authoritative vuln notes, partially replaces dead CISA feeds.",
     },
     {
         "url": "https://www.ncsc.gov.uk/api/1/services/v1/all-rss-feed.xml",
@@ -162,11 +159,11 @@ FEEDS = [
         "reason": "Vendor threat intelligence research, consistent technical malware reports.",
     },
     {
-        "url": "https://msrc.microsoft.com/blog/feed/",
+        "url": "https://api.msrc.microsoft.com/update-guide/rss",
         "name": "Microsoft MSRC",
         "filter_uncategorized": True,
         "source_tier": 1,
-        "reason": "First-party vendor PSIRT for Microsoft products. When they say something is exploited, it is.",
+        "reason": "MSRC Security Update Guide — CVE/advisory feed. Old blog feed (msrc.microsoft.com/blog/feed/) 301s to HTML since ~2026-04. This is the canonical machine-readable endpoint.",
     },
     {
         "url": "https://www.malwarebytes.com/blog/feed/index.xml",
@@ -183,7 +180,7 @@ FEEDS = [
         "reason": "Threat intelligence firm research. Caveat: commercial framing; quality of output is high.",
     },
     {
-        "url": "https://blog.rapid7.com/rss/",
+        "url": "https://www.rapid7.com/blog/rss/",
         "name": "Rapid7",
         "filter_uncategorized": True,
         "source_tier": 1,
@@ -210,6 +207,13 @@ FEEDS = [
         "reason": "Botnet, IoT, and OT threat visibility. Partially fills OT/ICS gap left by Dragos feed (404).",
     },
     {
+        "url": "https://cert-portal.siemens.com/productcert/rss/advisories.atom",
+        "name": "Siemens ProductCERT",
+        "filter_uncategorized": True,
+        "source_tier": 1,
+        "reason": "First-party OT/ICS vendor CERT. Authoritative advisories for Siemens industrial products. Fills OT/ICS category depth.",
+    },
+    {
         "url": "https://www.huntress.com/blog/rss.xml",
         "name": "Huntress",
         "filter_uncategorized": True,
@@ -218,13 +222,32 @@ FEEDS = [
     },
     # --- Security Research ---
     {
+        "url": "https://blog.trailofbits.com/feed/",
+        "name": "Trail of Bits",
+        "filter_uncategorized": True,
+        "source_tier": 1,
+        "reason": "Top-tier security research firm. Formal verification, crypto, smart contract, and systems security. Primary research.",
+    },
+    {
+        "url": "https://objective-see.org/rss.xml",
+        "name": "Objective-See",
+        "source_tier": 1,
+        "reason": "Patrick Wardle — the macOS security researcher. Only dedicated macOS threat research source in the feed. Primary research.",
+    },
+    {
+        "url": "https://citizenlab.ca/feed/",
+        "name": "The Citizen Lab",
+        "source_tier": 1,
+        "reason": "University of Toronto — gold-standard surveillance/spyware research. NSO Group, Predator, Pegasus. Unique niche, primary research.",
+    },
+    {
         "url": "https://projectzero.google/feed.xml",
         "name": "Google Project Zero",
         "source_tier": 1,
         "reason": "Gold-standard primary vulnerability research. Detailed, reproducible, responsibly disclosed.",
     },
     {
-        "url": "https://security.googleblog.com/feeds/posts/default",
+        "url": "https://feeds.feedburner.com/GoogleOnlineSecurityBlog",
         "name": "Google Security Blog",
         "filter_uncategorized": True,
         "source_tier": 2,
@@ -256,6 +279,20 @@ FEEDS = [
         "filter_uncategorized": True,
         "source_tier": 2,
         "reason": "Primary web application security research from the makers of Burp Suite. Niche-authoritative.",
+    },
+    {
+        "url": "https://bishopfox.com/feeds/blog.rss",
+        "name": "Bishop Fox",
+        "filter_uncategorized": True,
+        "source_tier": 2,
+        "reason": "Established offensive security research firm. Pentest tooling, vulnerability research, red team techniques.",
+    },
+    {
+        "url": "https://www.greynoise.io/blog/rss.xml",
+        "name": "GreyNoise",
+        "filter_uncategorized": True,
+        "source_tier": 2,
+        "reason": "Internet-wide scanning and exploitation intelligence. Early warning on mass exploitation campaigns.",
     },
     {
         "url": "https://rhinosecuritylabs.com/feed/",
@@ -412,13 +449,25 @@ def _is_excluded(source_name, title, summary):
     return any(p in haystack for p in phrases)
 
 
-def fetch_all_feeds(db_path):
+def fetch_all_feeds(db_path, tier=None):
+    """Fetch RSS feeds and ingest new articles.
+
+    Args:
+        db_path: SQLite database path.
+        tier:    Optional source_tier filter (1, 2, or 3). When set, only
+                 feeds with a matching ``source_tier`` are fetched. When
+                 ``None``, all feeds are fetched (backward-compatible for
+                 tests and manual runs).
+    """
     now = datetime.now(timezone.utc)
-    print(f"[{now}] Starting feed fetch...")
+    label = f"T{tier}" if tier else "all"
+    print(f"[{now}] Starting feed fetch ({label})...")
     total_new = 0
 
     with sqlite3.connect(db_path) as conn:
         for feed in FEEDS:
+            if tier is not None and feed.get("source_tier") != tier:
+                continue
             try:
                 print(f"  Fetching {feed['name']}...")
 
@@ -501,7 +550,7 @@ def fetch_all_feeds(db_path):
 # Design (per user approval 2026-04-19):
 #   * Runs every scheduler tick, after fetch_all_feeds.
 #   * Only checks articles with source_name LIKE '%reddit%' (case-insensitive).
-#   * Skips articles younger than 4 hours (give upstream one tick to settle).
+#   * Skips articles younger than 2 hours (give upstream one prune cycle to settle).
 #   * Orders by `last_reddit_check_at ASC NULLS FIRST` so fresh posts are
 #     checked first, then least-recently-checked. DB rotates through itself.
 #   * Hard-caps at 200 articles per tick -> bounded runtime even at scale.
@@ -517,9 +566,9 @@ def fetch_all_feeds(db_path):
 REDDIT_JSON_HOST = "https://www.reddit.com"
 REDDIT_POST_ID_RE = re.compile(r"/comments/([a-z0-9]{4,10})(?:/|$|\?)", re.IGNORECASE)
 REDDIT_BATCH_LIMIT = 200
-REDDIT_MIN_AGE_HOURS = 4
+REDDIT_MIN_AGE_HOURS = 2
 REDDIT_REQUEST_TIMEOUT = 5  # seconds per request
-REDDIT_REQUEST_SPACING = 1.0  # seconds between requests (stay under 60/min)
+REDDIT_REQUEST_SPACING = 6.0  # seconds between requests (stay under ~10/min unauthenticated limit)
 
 # Reddit's `removed_by_category` values that indicate the post is GONE from
 # the user's point of view. "reddit" and "anti_evil_ops" are admin / TOS
@@ -670,7 +719,7 @@ def prune_deleted_reddit_posts(db_path, now=None, sleep=None):
     checked = deleted = errors = 0
     conn = sqlite3.connect(db_path)
     try:
-        # Candidates: Reddit source, at least 4h old, ordered so never-checked
+        # Candidates: Reddit source, at least 2h old, ordered so never-checked
         # rows come first, then oldest-checked. Batch-capped at 200/tick.
         rows = conn.execute(
             """

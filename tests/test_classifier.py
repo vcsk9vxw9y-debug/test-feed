@@ -475,6 +475,99 @@ class V6KeywordRegressionTests(unittest.TestCase):
         )
 
 
+class V7KeywordRegressionTests(unittest.TestCase):
+    """Lock in the 2026-04-20 keyword expansion (v7 reclassify migration).
+
+    Focus: standalone backdoor (Malware), session theft (Identity & Access),
+    and consumer-facing scam/hygiene keywords (Consumer Awareness).
+    """
+
+    # --- Malware/Infostealer: backdoor/backdoors ---
+
+    def test_backdoor_is_malware(self):
+        self.assertEqual(
+            classify_article(
+                "GhostRedirector poisons Windows servers: Backdoors with a side of Potatoes",
+                "ESET researchers have identified a new threat actor targeting Windows servers with a passive C++ backdoor",
+            ),
+            "Malware/Infostealer",
+        )
+
+    def test_backdoor_does_not_steal_from_supply_chain(self):
+        # "backdoored" is a Supply Chain keyword. The word-boundary pattern
+        # for "backdoor" does NOT match "backdoored" (followed by 'e'),
+        # so Supply Chain wins when only "backdoored" appears.
+        self.assertEqual(
+            classify_article("Backdoored npm package compromises CI servers", ""),
+            "Supply Chain",
+        )
+
+    # --- Identity & Access: session theft ---
+
+    def test_session_theft_is_identity_access(self):
+        self.assertEqual(
+            classify_article(
+                "Google Rolls Out DBSC in Chrome 146 to Block Session Theft on Windows",
+                "Google has made Device Bound Session Credentials generally available",
+            ),
+            "Identity & Access",
+        )
+
+    # --- Consumer Awareness: new keywords ---
+
+    def test_irs_scams_is_consumer_awareness(self):
+        self.assertEqual(
+            classify_article("Taxing times: Top IRS scams to look out for in 2026", ""),
+            "Consumer Awareness",
+        )
+
+    def test_dark_web_is_consumer_awareness(self):
+        self.assertEqual(
+            classify_article(
+                "Your personal information is on the dark web. What happens next?",
+                "If your data is on the dark web, it's probably only a matter of time",
+            ),
+            "Consumer Awareness",
+        )
+
+    def test_dark_web_does_not_steal_from_phishing(self):
+        # Phishing (prio 10) is higher than Consumer Awareness (prio 14).
+        self.assertEqual(
+            classify_article(
+                "Phishing campaign uses dark web data to craft targeted emails",
+                "",
+            ),
+            "Phishing & Social Engineering",
+        )
+
+    def test_brushing_scam_is_consumer_awareness(self):
+        self.assertEqual(
+            classify_article(
+                "A brush with online fraud: What are brushing scams?",
+                "Have you ever received a package you never ordered?",
+            ),
+            "Consumer Awareness",
+        )
+
+    def test_hacked_account_is_consumer_awareness(self):
+        self.assertEqual(
+            classify_article(
+                "A quick guide to recovering a hacked account",
+                "What you do after an account is compromised",
+            ),
+            "Consumer Awareness",
+        )
+
+    def test_whatsapp_scam_is_consumer_awareness(self):
+        self.assertEqual(
+            classify_article(
+                "The WhatsApp scam you didn't see coming",
+                "How a fast-growing scam is tricking WhatsApp users",
+            ),
+            "Consumer Awareness",
+        )
+
+
 class SanityTests(unittest.TestCase):
     """Basic invariants — the function doesn't crash on edge inputs."""
 

@@ -162,6 +162,9 @@ def init_db():
         #       (Nation State/APT), supply chain attacks plural,
         #       surveillance program + cybersecurity rules (Industry/Policy),
         #       crypto-stealing (Mobile), recovery scammers plural (Consumer)
+        #   v7: backdoor/backdoors (Malware), session theft (Identity),
+        #       irs scam, dark web, brushing scam, hacked account,
+        #       whatsapp scam (Consumer Awareness)
         for migration_name in (
             "reclassify_uncategorized_v1",
             "reclassify_uncategorized_v2",
@@ -169,6 +172,7 @@ def init_db():
             "reclassify_uncategorized_v4",
             "reclassify_uncategorized_v5",
             "reclassify_uncategorized_v6",
+            "reclassify_uncategorized_v7",
         ):
             _run_reclassify_migration(conn, migration_name)
 
@@ -411,8 +415,10 @@ _LLMS_TXT = """\
 
 ## What this site is
 
-Threat-Feed ingests public RSS sources every 4 hours, classifies each
-article by keyword (single-category, first-match-wins), and assigns a
+Threat-Feed ingests public RSS sources on a tiered schedule — priority
+sources (government CERTs, top threat-intel teams) hourly, secondary
+sources every 2 hours, community feeds every 4 hours. Each article is
+classified by keyword (single-category, first-match-wins) and assigned a
 confidence badge (HIGH / MEDIUM / LOW) from a committed source-tier map.
 The front-end is a single-page client that reads three JSON endpoints.
 
@@ -457,6 +463,24 @@ def _cdata_safe(text):
     return str(text).replace("]]>", "]]]]><![CDATA[>")
 
 
+def _safe_entry_url(url):
+    """Constrain Atom entry URLs to http/https with a populated netloc.
+
+    Defense-in-depth for downstream feed readers: a poisoned upstream RSS
+    feed could inject javascript: or data: URLs into articles.url. The
+    frontend already does the equivalent in safeHref(); this closes the
+    same gap on the machine-readable Atom surface. Returns empty string
+    for anything that isn't a well-formed http(s) URL.
+    """
+    if not url or not isinstance(url, str):
+        return ""
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    if parsed.scheme in ("http", "https") and parsed.netloc:
+        return url
+    return ""
+
+
 def _build_atom_feed(rows):
     """Hand-rolled Atom 1.0 — no new dependency. Every article field goes
     through CDATA wrap + ]]> split so a hostile source feed cannot break
@@ -468,7 +492,7 @@ def _build_atom_feed(rows):
         '<?xml version="1.0" encoding="utf-8"?>',
         '<feed xmlns="http://www.w3.org/2005/Atom">',
         '<title>Threat-Feed — Open Source Threat Intelligence</title>',
-        '<subtitle>Aggregated public-RSS cybersecurity headlines, updated every 4 hours.</subtitle>',
+        '<subtitle>Aggregated public-RSS cybersecurity headlines, updated hourly.</subtitle>',
         f'<id>{xml_escape(SITE_URL)}/</id>',
         f'<link href="{xml_escape(SITE_URL)}/" rel="alternate"/>',
         f'<link href="{xml_escape(SITE_URL)}/feed.xml" rel="self"/>',
@@ -476,7 +500,7 @@ def _build_atom_feed(rows):
     ]
     for row in rows:
         updated = row.get("published_date") or row.get("created_at") or now_iso
-        url = str(row.get("url") or "")
+        url = _safe_entry_url(str(row.get("url") or ""))
         source_name = row.get("source_name") or "unknown"
         category = row.get("category") or "Uncategorized"
         summary = row.get("summary") or ""
@@ -519,29 +543,39 @@ init_db()
 fetch_all_feeds(DB_PATH)
 
 
-def _tick(db_path):
-    """One scheduler tick: ingest new articles, then prune deleted Reddit
-    posts. Prune runs AFTER ingest so a post deleted the moment it was
-    ingested gets caught on the next tick (not this one) — by design we
-    skip anything younger than 4 hours in the prune to give upstream one
-    cycle to settle. Each sub-step is already defensive against its own
-    errors; this wrapper only ensures one failure doesn't swallow the other.
+def _fetch_tier(db_path, tier):
+    """Fetch feeds for a single source tier. Each tier runs on its own
+    APScheduler interval: T1 hourly, T2 every 2h, T3 every 4h.
+    Defensive: a failure here never blocks other tiers or the prune job.
     """
     try:
-        fetch_all_feeds(db_path)
+        fetch_all_feeds(db_path, tier=tier)
     except Exception as e:
-        print(f"[tick] fetch_all_feeds failed: {type(e).__name__}: {e}")
+        print(f"[fetch-t{tier}] failed: {type(e).__name__}: {e}")
+
+
+def _prune(db_path):
+    """Independent Reddit prune job, runs every 2 hours.
+    Decoupled from fetch so a slow tier-1 fetch never delays pruning.
+    """
     try:
         prune_deleted_reddit_posts(db_path)
     except Exception as e:
-        print(f"[tick] prune_deleted_reddit_posts failed: {type(e).__name__}: {e}")
+        print(f"[prune] failed: {type(e).__name__}: {e}")
 
 
 scheduler = BackgroundScheduler()
-# max_instances=1 prevents overlap if a tick runs long (e.g. slow Reddit
-# during the prune pass) — APScheduler will skip rather than start a second
-# concurrent run.
-scheduler.add_job(_tick, "interval", hours=4, args=[DB_PATH], max_instances=1)
+# Each job gets max_instances=1 to prevent self-overlap. Different jobs
+# CAN run concurrently — they share SQLite with short transactions, no
+# conflict. IDs are explicit for log clarity and APScheduler job management.
+scheduler.add_job(_fetch_tier, "interval", hours=1, args=[DB_PATH, 1],
+                  max_instances=1, id="fetch_t1")
+scheduler.add_job(_fetch_tier, "interval", hours=2, args=[DB_PATH, 2],
+                  max_instances=1, id="fetch_t2")
+scheduler.add_job(_fetch_tier, "interval", hours=4, args=[DB_PATH, 3],
+                  max_instances=1, id="fetch_t3")
+scheduler.add_job(_prune, "interval", hours=2, args=[DB_PATH],
+                  max_instances=1, id="reddit_prune")
 scheduler.start()
 atexit.register(lambda: scheduler.shutdown(wait=False))
 
