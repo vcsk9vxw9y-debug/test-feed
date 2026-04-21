@@ -1,7 +1,7 @@
 import atexit
 import os
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import yaml
 from flask import Flask, jsonify, render_template, request
@@ -195,6 +195,27 @@ def init_db():
                 pruned += result.rowcount
         if pruned:
             print(f"[exclusions] pruned {pruned} historical articles matching exclusions.yml")
+
+        # One-time migration: prune articles older than 90 days.
+        # Prevents historical backlog floods from feeds that expose their
+        # full archive on first ingest (e.g. MSRC, Siemens ProductCERT).
+        # The ingestion-side guard in scheduler.py prevents future floods;
+        # this migration cleans up rows already in the DB.
+        _prune_mig = "prune_articles_older_than_90d_v1"
+        already_pruned = conn.execute(
+            "SELECT 1 FROM migrations WHERE name = ?", (_prune_mig,)
+        ).fetchone()
+        if not already_pruned:
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
+            result = conn.execute(
+                "DELETE FROM articles WHERE COALESCE(published_date, created_at) < ?",
+                (cutoff,),
+            )
+            print(f"[migration] {_prune_mig}: removed {result.rowcount} articles older than 90 days")
+            conn.execute(
+                "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
+                (_prune_mig, datetime.now(timezone.utc).isoformat()),
+            )
 
         conn.commit()
     finally:

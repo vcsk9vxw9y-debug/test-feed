@@ -3,7 +3,7 @@ import html
 import os
 import re
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import bleach
 import feedparser
@@ -501,6 +501,17 @@ def fetch_all_feeds(db_path, tier=None):
                     title = entry.get("title", "No Title")
                     summary = clean_summary(entry.get("summary", ""))
                     published = normalize_published_date(entry)
+
+                    # Age guard: skip articles older than 90 days to prevent
+                    # historical backlog floods when a new feed is added.
+                    # Runs BEFORE classification to avoid burning cycles on
+                    # content we'll discard.
+                    try:
+                        pub_dt = datetime.fromisoformat(published)
+                        if pub_dt < datetime.now(timezone.utc) - timedelta(days=90):
+                            continue
+                    except (ValueError, TypeError):
+                        pass  # unparseable date — let it through, fail open
 
                     # Phrase exclusion (post-sanitize, pre-classify): drop
                     # articles whose source has a committed phrase blocklist
