@@ -231,13 +231,6 @@ FEEDS = [
         "reason": "Top-tier security research firm. Formal verification, crypto, smart contract, and systems security. Primary research.",
     },
     {
-        "url": "https://objective-see.org/rss.xml",
-        "name": "Objective-See",
-        "filter_uncategorized": True,
-        "source_tier": 1,
-        "reason": "Patrick Wardle — the macOS security researcher. Only dedicated macOS threat research source in the feed. Primary research. filter_uncategorized drops tutorials and tool announcements.",
-    },
-    {
         "url": "https://citizenlab.ca/feed/",
         "name": "The Citizen Lab",
         "filter_uncategorized": True,
