@@ -568,6 +568,69 @@ class V7KeywordRegressionTests(unittest.TestCase):
         )
 
 
+class V8KeywordRegressionTests(unittest.TestCase):
+    """v8 keyword expansion — data wiper, propaganda, bot farm,
+    cyber resilience."""
+
+    # -- Malware/Infostealer: data wiper --
+    def test_data_wiper_malware(self):
+        self.assertEqual(
+            classify_article(
+                "New Lotus data wiper used against Venezuelan energy firms", ""
+            ),
+            "Malware/Infostealer",
+        )
+
+    # -- Nation State/APT: propaganda --
+    def test_propaganda_nation_state(self):
+        self.assertEqual(
+            classify_article(
+                "EU targets two Russian propaganda networks with new sanctions", ""
+            ),
+            "Nation State/APT",
+        )
+
+    # -- Nation State/APT: bot farm --
+    def test_bot_farm_nation_state(self):
+        self.assertEqual(
+            classify_article(
+                "Ukraine busts bot farm supplying fake Telegram accounts to Russian spies",
+                "",
+            ),
+            "Nation State/APT",
+        )
+
+    # -- Industry/Policy: cyber resilience --
+    def test_cyber_resilience_industry(self):
+        self.assertEqual(
+            classify_article(
+                "One small step for Cyber Resilience Test Facilities",
+                "helping organisations make informed risk-based decisions",
+            ),
+            "Industry/Policy",
+        )
+
+    # -- Priority conflict: data wiper in OT/ICS context stays OT/ICS --
+    def test_data_wiper_ot_stays_ot(self):
+        # OT/ICS (priority 1) beats Malware (priority 8)
+        self.assertEqual(
+            classify_article(
+                "Data wiper hits critical infrastructure SCADA systems", ""
+            ),
+            "OT/ICS",
+        )
+
+    # -- Priority conflict: propaganda in nation-state context with CVE --
+    def test_propaganda_with_exploit_stays_vuln(self):
+        # Vulnerability/CVE (priority 6) beats Nation State (priority 7)
+        self.assertEqual(
+            classify_article(
+                "Zero-day exploit used in propaganda campaign", ""
+            ),
+            "Vulnerability/CVE",
+        )
+
+
 class SanityTests(unittest.TestCase):
     """Basic invariants — the function doesn't crash on edge inputs."""
 

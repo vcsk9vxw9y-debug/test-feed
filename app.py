@@ -165,6 +165,8 @@ def init_db():
         #   v7: backdoor/backdoors (Malware), session theft (Identity),
         #       irs scam, dark web, brushing scam, hacked account,
         #       whatsapp scam (Consumer Awareness)
+        #   v8: data wiper (Malware), propaganda/bot farm (Nation State),
+        #       cyber resilience (Industry/Policy)
         for migration_name in (
             "reclassify_uncategorized_v1",
             "reclassify_uncategorized_v2",
@@ -173,6 +175,7 @@ def init_db():
             "reclassify_uncategorized_v5",
             "reclassify_uncategorized_v6",
             "reclassify_uncategorized_v7",
+            "reclassify_uncategorized_v8",
         ):
             _run_reclassify_migration(conn, migration_name)
 

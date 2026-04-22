@@ -409,6 +409,9 @@ Nation State/APT:
   - social media manipulation
   - influence operation
   - disinformation campaign
+  # Propaganda / bot infrastructure
+  - propaganda
+  - bot farm
 
 Malware/Infostealer:
   - infostealer
@@ -502,6 +505,10 @@ Malware/Infostealer:
   - defense evasion
   - escape detection
   - evade detection
+  # Standalone "data wiper" — catches wiper families named in titles
+  # (e.g. "Lotus data wiper"). Compound "wiper malware"/"wiper attack"
+  # already exist; this covers the "<name> data wiper" pattern.
+  - data wiper
 
 AI Security:
   - ai guardrail
@@ -809,6 +816,8 @@ Industry/Policy:
   - fusion center
   - finra
   - cybersecurity investment
+  # Resilience framing (NCSC UK, policy coverage)
+  - cyber resilience
 
 Consumer Awareness:
   # Personal / family safety framings
