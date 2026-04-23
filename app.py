@@ -283,6 +283,20 @@ def set_security_headers(response):
     # 1 year max-age + includeSubDomains; not submitting to preload list yet
     # (that's a one-way commitment — revisit once the domain is stable).
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+    # ---- CORS for API / feed endpoints ----
+    # Allow cross-origin reads so agents, browser extensions, and third-party
+    # dashboards can call the JSON API and Atom feed directly. Scoped to the
+    # public read-only surface — no credentials, no mutations, no side-effects.
+    # Explicit allowlist — if a future /api/ route requires auth or
+    # handles mutations, it must NOT inherit wildcard CORS. Update
+    # this tuple when adding new /api/* endpoints.
+    _cors_paths = ("/api/articles", "/api/top-story", "/api/categories", "/feed.xml")
+    if request.path in _cors_paths:
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response.headers["Access-Control-Max-Age"] = "3600"
+
     return response
 
 
@@ -348,7 +362,9 @@ def get_articles():
     finally:
         conn.close()
 
-    return jsonify([_enrich_with_confidence(dict(row)) for row in rows])
+    resp = jsonify([_enrich_with_confidence(dict(row)) for row in rows])
+    resp.headers["Cache-Control"] = "public, max-age=300"
+    return resp
 
 
 def _load_top_story():
@@ -399,7 +415,9 @@ def _load_top_story():
 @app.route("/api/top-story")
 @limiter.limit("60 per minute")
 def get_top_story():
-    return jsonify(_load_top_story())
+    resp = jsonify(_load_top_story())
+    resp.headers["Cache-Control"] = "public, max-age=600"
+    return resp
 
 
 # NOTE: /api/stats (exposing cumulative total_processed) was removed in PR 3.
@@ -420,7 +438,9 @@ def get_categories():
     finally:
         conn.close()
 
-    return jsonify([dict(row) for row in rows])
+    resp = jsonify([dict(row) for row in rows])
+    resp.headers["Cache-Control"] = "public, max-age=600"
+    return resp
 
 
 # ---- Canonical site URL ----
@@ -442,10 +462,14 @@ _ROBOTS_TXT = """\
 User-agent: *
 Allow: /
 
+Sitemap: https://threat-feed.up.railway.app/sitemap.xml
+
 # Machine-readable site description:
-#   /llms.txt    — site overview for LLMs
-#   /feed.xml    — Atom 1.0 feed of aggregated headlines
+#   /llms.txt         — site overview for LLMs
+#   /llms-full.txt    — full API reference for LLMs and agents
+#   /feed.xml         — Atom 1.0 feed of aggregated headlines
 #   /api/articles, /api/top-story, /api/categories — JSON
+#   /.well-known/security.txt — responsible disclosure
 """
 
 _LLMS_TXT = """\
@@ -473,11 +497,168 @@ The front-end is a single-page client that reads three JSON endpoints.
   Returns `{"active": false}` when no lead is pinned.
 - `/api/categories` — JSON array of category names with counts.
 
+## Polling
+
+Rate limits are per-IP. Well-behaved agents should stay well under these:
+
+- `/feed.xml` — 30 requests per minute
+- `/api/articles` — 30 requests per minute
+- `/api/top-story` — 60 requests per minute
+- `/api/categories` — 60 requests per minute
+- `/robots.txt`, `/llms.txt`, `/llms-full.txt` — 60 requests per minute
+
+Recommended polling interval: once every 15–30 minutes for `/feed.xml`
+or `/api/articles`. Category counts change slowly — once per hour is
+more than enough for `/api/categories`.
+
 ## Usage
 
 Indexing and summarization are permitted. Republication of full article
 bodies is prohibited — the site aggregates primary-source links; please
 follow through to the original publisher.
+
+## More detail
+
+See `/llms-full.txt` for API response shapes, category list, and
+query parameter documentation.
+"""
+
+_LLMS_FULL_TXT = """\
+# Threat-Feed — Full Reference for LLMs and Agents
+
+> Everything in /llms.txt plus API response shapes, the complete
+> category list, and query parameter documentation.
+
+## Site overview
+
+Threat-Feed is an open-source cybersecurity RSS aggregator. It ingests
+46 public RSS sources on a tiered schedule (hourly / 2h / 4h), classifies
+each article by keyword into a single category, and assigns a confidence
+badge (HIGH / MEDIUM / LOW) derived from the source tier. The front-end
+is a static single-page client; all data is served via JSON endpoints.
+
+No accounts, no cookies, no ads, no paywalls.
+
+## Endpoints
+
+### GET /api/articles
+
+Returns up to 500 articles, newest first.
+
+Query parameters:
+  ?category=<name>    — filter by category (exact match, case-sensitive)
+  ?since=<ISO 8601>   — only articles published on or after this date
+                        Accepted formats: YYYY-MM-DD, YYYY-MM-DDTHH:MM:SS,
+                        YYYY-MM-DDTHH:MM:SSZ
+
+Response shape (JSON array):
+  [
+    {
+      "id": 42,
+      "title": "...",
+      "summary": "...",
+      "url": "https://...",
+      "published_date": "2026-04-23T14:00:00+00:00",
+      "created_at": "2026-04-23 14:05:12",
+      "source_name": "BleepingComputer",
+      "category": "Ransomware",
+      "confidence": "HIGH",
+      "confidence_reason": "Tier-1 source: established security outlet"
+    },
+    ...
+  ]
+
+### GET /api/categories
+
+Response shape (JSON array):
+  [
+    {"category": "Vulnerability/CVE", "count": 146},
+    {"category": "Ransomware", "count": 32},
+    ...
+  ]
+
+### GET /api/top-story
+
+Response shape (JSON object):
+  When active:
+    {"active": true, "title": "...", "summary": "...", "url": "...",
+     "source_name": "...", "published_at": "...", "category": "...",
+     "key_points": ["...", "..."], "confidence": "HIGH",
+     "confidence_reason": "..."}
+  When inactive:
+    {"active": false}
+
+### GET /feed.xml
+
+Atom 1.0 feed of the 50 most-recent articles.
+
+## Categories
+
+Vulnerability/CVE, OT/ICS, Malware/Infostealer, SaaS Breach,
+AI Security, Nation State/APT, Ransomware, Cloud Breach, Supply Chain,
+Identity & Access, Phishing & Social Engineering, Industry/Policy,
+Consumer Awareness, Mobile Security, Uncategorized.
+
+## Confidence badges
+
+  HIGH   — Tier-1 sources: government CERTs, top threat-intel teams
+  MEDIUM — Tier-2 sources: established journalism, vendor blogs
+  LOW    — Tier-3 sources: community / Reddit
+
+## Polling guidelines
+
+Rate limits are per-IP:
+  /feed.xml        — 30 req/min
+  /api/articles    — 30 req/min
+  /api/top-story   — 60 req/min
+  /api/categories  — 60 req/min
+
+Recommended: poll /feed.xml or /api/articles every 15-30 minutes.
+
+## Usage policy
+
+Indexing and summarization are permitted. Republication of full article
+bodies is prohibited — follow through to the original publisher.
+
+## Source code
+
+https://github.com/vcsk9vxw9y-debug/test-feed
+"""
+
+_SECURITY_TXT = """\
+# Security policy for Threat-Feed
+# https://securitytxt.org/
+
+Contact: https://github.com/vcsk9vxw9y-debug/test-feed/issues
+Expires: 2027-04-23T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://threat-feed.up.railway.app/.well-known/security.txt
+"""
+
+_SITEMAP_XML = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://threat-feed.up.railway.app/</loc>
+    <changefreq>hourly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://threat-feed.up.railway.app/feed.xml</loc>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://threat-feed.up.railway.app/llms.txt</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://threat-feed.up.railway.app/llms-full.txt</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>
 """
 
 
@@ -493,6 +674,30 @@ def robots_txt():
 @limiter.limit("60 per minute")
 def llms_txt():
     response = app.response_class(_LLMS_TXT, mimetype="text/plain")
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    return response
+
+
+@app.route("/llms-full.txt")
+@limiter.limit("60 per minute")
+def llms_full_txt():
+    response = app.response_class(_LLMS_FULL_TXT, mimetype="text/plain")
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    return response
+
+
+@app.route("/.well-known/security.txt")
+@limiter.limit("60 per minute")
+def security_txt():
+    response = app.response_class(_SECURITY_TXT, mimetype="text/plain")
+    response.headers["Cache-Control"] = "public, max-age=86400"
+    return response
+
+
+@app.route("/sitemap.xml")
+@limiter.limit("60 per minute")
+def sitemap_xml():
+    response = app.response_class(_SITEMAP_XML, mimetype="application/xml; charset=utf-8")
     response.headers["Cache-Control"] = "public, max-age=3600"
     return response
 

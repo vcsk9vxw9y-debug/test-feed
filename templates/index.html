@@ -23,6 +23,40 @@
     <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="Threat-Feed Atom">
     <link rel="alternate" type="application/json" href="/api/articles" title="Threat-Feed JSON API">
 
+    <!-- Structured data — WebSite + DataFeed for search engines and agents -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "name": "Threat-Feed",
+          "url": "https://threat-feed.up.railway.app",
+          "description": "Open-source cybersecurity RSS aggregator. Headlines and primary-source links from 46 public feeds, classified by keyword, filed without commentary.",
+          "publisher": {
+            "@type": "Organization",
+            "name": "Threat-Feed"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://threat-feed.up.railway.app/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "DataFeed",
+          "name": "Threat-Feed Atom",
+          "description": "Atom 1.0 feed of the 50 most-recent cybersecurity articles.",
+          "url": "https://threat-feed.up.railway.app/feed.xml",
+          "encodingFormat": "application/atom+xml",
+          "dataFeedElement": {
+            "@type": "DataFeedItem"
+          }
+        }
+      ]
+    }
+    </script>
+
     <link rel="stylesheet" type="text/css" href="/static/style.css">
 </head>
 <body>
