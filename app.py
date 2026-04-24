@@ -417,6 +417,13 @@ def _load_top_story():
     if missing:
         return {"active": False}
 
+    # Defense-in-depth: the lead URL is operator-editable, but a stray
+    # javascript:/data: URL in config/top_story.yml would reach clients
+    # via the JSON API. Fail closed if the URL isn't a plain http(s) link.
+    safe_url = _safe_entry_url(str(data["url"]))
+    if not safe_url:
+        return {"active": False}
+
     # Layer the Confidence for the lead card: same tier -> label derivation
     # as the regular article feed. Unknown source_name -> LOW (fail-secure).
     source_name = data.get("source_name")
@@ -429,7 +436,7 @@ def _load_top_story():
         "active": True,
         "title": str(data["title"]),
         "summary": str(data["summary"]).strip(),
-        "url": str(data["url"]),
+        "url": safe_url,
         "source_name": str(source_name),
         "published_at": str(data["published_at"]),
         "category": str(data.get("category") or "Uncategorized"),
@@ -472,11 +479,16 @@ def get_categories():
 
 # ---- Canonical site URL ----
 # Used for absolute links in /feed.xml. NEVER derived from the Host header
-# (attacker-controlled). Override in Railway via SITE_URL env — staging and
-# production must each set their own canonical URL.
-SITE_URL = os.environ.get(
-    "SITE_URL", "https://threat-feed.up.railway.app"
-).rstrip("/")
+# (attacker-controlled). Staging and production must each set their own
+# canonical URL via the SITE_URL env var. Fail fast if unset rather than
+# silently emitting prod URLs from a staging/dev deploy.
+_SITE_URL_ENV = os.environ.get("SITE_URL", "").strip()
+if not _SITE_URL_ENV:
+    raise RuntimeError(
+        "SITE_URL env var is required (e.g. https://threat-feed.up.railway.app "
+        "for prod, http://localhost:5000 for local dev)."
+    )
+SITE_URL = _SITE_URL_ENV.rstrip("/")
 
 
 # ---- Bot / agent / AI discoverability ----
@@ -870,7 +882,7 @@ scheduler.add_job(_prune, "interval", hours=2, args=[DB_PATH],
 scheduler.add_job(_prune_old_articles, "interval", hours=24, args=[DB_PATH],
                   max_instances=1, id="prune_old_articles")
 scheduler.start()
-atexit.register(lambda: scheduler.shutdown(wait=False))
+atexit.register(lambda: scheduler.shutdown(wait=True))
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=5000)

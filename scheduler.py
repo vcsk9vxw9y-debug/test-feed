@@ -538,14 +538,17 @@ def fetch_all_feeds(db_path, tier=None):
                         conn.execute(
                             "UPDATE stats SET value = value + 1 WHERE key = 'total_processed'"
                         )
-                    new_count += 1
+                        new_count += 1
 
                 conn.commit()
                 total_new += new_count
                 print(f"    Saved {new_count} new articles from {feed['name']}")
 
             except Exception as e:
-                print(f"    ERROR fetching {feed['name']}: {type(e).__name__}: {e}")
+                print(
+                    f"    ERROR fetching {feed['name']} ({feed['url']}): "
+                    f"{type(e).__name__}: {e}"
+                )
                 continue
 
 
@@ -755,7 +758,9 @@ def prune_deleted_reddit_posts(db_path, now=None, sleep=None):
                 # a subreddit page, old.reddit.com variation with unusual
                 # format, or something we don't recognize). Skip without
                 # recording a check, so if the URL format is fixed later
-                # we still process it.
+                # we still process it. Log so upstream URL-shape drift is
+                # visible rather than silently no-op'ing forever.
+                print(f"    Reddit prune: unmatched URL shape id={article_id} url={url}")
                 errors += 1
                 continue
 
