@@ -335,6 +335,21 @@ FEEDS = [
         "source_tier": 1,
         "reason": "Gold-standard intrusion analysis with full kill-chain TTPs. Peer-reviewed, reproducible, community-trusted.",
     },
+    # --- Dark Web Intel & Breach Tracking ---
+    {
+        "url": "https://www.ransomware.live/rss.xml",
+        "name": "Ransomware.live",
+        "filter_uncategorized": True,
+        "source_tier": 3,
+        "reason": "Open-source ransomware leak-site monitor (~150 groups). Scrapes victim claims, not verified journalism — treat as unverified OSINT. High volume (100 entries/batch); filter_uncategorized drops noise. Canonical www. URL required (bare domain 301s and scheduler uses allow_redirects=False).",
+    },
+    {
+        "url": "https://databreaches.net/feed/",
+        "name": "DataBreaches.net",
+        "filter_uncategorized": True,
+        "source_tier": 3,
+        "reason": "Independent breach-focused journalism (Dissent Doe). Covers incidents mainstream outlets skip. Editorial voice but single-author, no masthead peer review — Tier 3 until track record is established in our pipeline.",
+    },
     # --- Community ---
     {
         "url": "https://isc.sans.edu/rssfeed.xml",

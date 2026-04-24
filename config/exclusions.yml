@@ -45,6 +45,11 @@
   - is cybersecurity worth it
   - how to get into cybersecurity
 
+"Ransomware.live":
+  - "[AI generated] N/A"   # empty auto-generated descriptions with zero intel value
+  - "$krb5pa$"             # raw Kerberos hash dumps pasted by threat actors
+  - zoominfo.com           # threat actors paste ZoomInfo enrichment blurbs as descriptions
+
 "Reddit r/malware":
   - path for entry-level
   - now hiring
