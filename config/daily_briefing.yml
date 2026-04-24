@@ -2,21 +2,24 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-04-24T06:00:00Z"
-body: "Supply chain attacks dominate today's feed after CrowdStrike confirmed STARDUST CHOLLIMA compromised the Axios npm package, while the Bitwarden CLI was separately hit in an ongoing Checkmarx campaign. China-nexus activity surged with three independent reports on APT groups targeting Mongolian government infrastructure and building covert botnet networks from consumer routers. A critical Windows IKEv2 double-free (CVE-2026-33824) allows unauthenticated RCE as SYSTEM — patch immediately if you expose UDP 500/4500. The Vercel breach continues to widen with downstream impact across third-party systems."
+generated_at: "2026-04-24T23:30:00Z"
+body: "The Bitwarden CLI supply chain attack remains the top story — the first npm trusted publishing bypass deployed a self-propagating credential worm affecting 78K weekly downloads. NIST effectively abandoned universal CVE enrichment, moving 29,000 backlogged vulnerabilities to 'Not Scheduled' and limiting future scoring to KEV, federal, and critical software only. ESET uncovered GopherWhisper, a new China-aligned APT using Discord, Slack, and Outlook for C2 against Mongolian government targets. SentinelLABS revealed fast16 at Black Hat Asia — a pre-Stuxnet cyber sabotage framework from 2005 that tampers with high-precision calculations in-memory. Patch CrowdStrike LogScale self-hosted (CVE-2026-40050, CVSS 9.8) and FortiClient EMS (CVE-2026-35616, actively exploited)."
 themes:
   - label: "supply chain"
     count: 3
     severity: "hot"
   - label: "china-nexus apt"
-    count: 3
+    count: 2
     severity: "hot"
   - label: "critical cve"
+    count: 6
+    severity: "hot"
+  - label: "nvd policy shift"
     count: 1
     severity: "warm"
   - label: "saas breach"
     count: 1
     severity: "neutral"
-  - label: "ai security"
-    count: 4
+  - label: "ot/ics research"
+    count: 1
     severity: "neutral"
