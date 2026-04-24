@@ -34,24 +34,22 @@ let focusedIndex = -1;
 let topStory = null;
 let dailyBriefing = null;
 
-// Category → meta-top class (pip color + category text color). The `rail`
-// property is retained for now but unused after the left-border → dot-pip
-// refactor; slated for cleanup in a follow-up commit.
+// Category → meta-top class (pip color + category text color).
 const categoryMap = {
-    "Cloud Breach":                  { cat: "cloud",    rail: "c-cloud" },
-    "SaaS Breach":                   { cat: "saas",     rail: "c-saas" },
-    "OT/ICS":                        { cat: "ot",       rail: "c-ot" },
-    "Ransomware":                    { cat: "ransom",   rail: "c-ransom" },
-    "Identity & Access":             { cat: "identity", rail: "c-identity" },
-    "Vulnerability/CVE":             { cat: "vuln",     rail: "c-vuln" },
-    "Nation State/APT":              { cat: "apt",      rail: "c-apt" },
-    "Malware/Infostealer":           { cat: "malware",  rail: "c-malware" },
-    "AI Security":                   { cat: "ai",       rail: "c-ai" },
-    "Phishing & Social Engineering": { cat: "phishing", rail: "c-phishing" },
-    "Supply Chain":                  { cat: "supply",   rail: "c-supply" },
-    "Mobile Security":               { cat: "mobile",   rail: "c-mobile" },
-    "Industry/Policy":               { cat: "policy",   rail: "c-policy" },
-    "Uncategorized":                 { cat: "uncat",    rail: "c-uncat" },
+    "Cloud Breach":                  { cat: "cloud" },
+    "SaaS Breach":                   { cat: "saas" },
+    "OT/ICS":                        { cat: "ot" },
+    "Ransomware":                    { cat: "ransom" },
+    "Identity & Access":             { cat: "identity" },
+    "Vulnerability/CVE":             { cat: "vuln" },
+    "Nation State/APT":              { cat: "apt" },
+    "Malware/Infostealer":           { cat: "malware" },
+    "AI Security":                   { cat: "ai" },
+    "Phishing & Social Engineering": { cat: "phishing" },
+    "Supply Chain":                  { cat: "supply" },
+    "Mobile Security":               { cat: "mobile" },
+    "Industry/Policy":               { cat: "policy" },
+    "Uncategorized":                 { cat: "uncat" },
 };
 
 // ---------- Utilities ----------
@@ -419,7 +417,7 @@ function buildArticleCard(article, { lead }) {
     const catMeta = categoryMap[article.category] || categoryMap["Uncategorized"];
 
     const card = document.createElement("article");
-    card.className = `article ${catMeta.rail}${lead ? " lead" : ""}`;
+    card.className = `article${lead ? " lead" : ""}`;
 
     // --- meta-top row: pip · category · filed · confidence ---
     const metaTop = document.createElement("div");

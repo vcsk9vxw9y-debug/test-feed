@@ -496,7 +496,7 @@ def fetch_all_feeds(db_path, tier=None):
                     if existing:
                         continue
 
-                    title = entry.get("title", "No Title")
+                    title = html.unescape(entry.get("title", "No Title"))
                     summary = clean_summary(entry.get("summary", ""))
                     published = normalize_published_date(entry)
 
