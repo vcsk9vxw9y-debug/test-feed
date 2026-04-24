@@ -81,6 +81,8 @@
             <div class="strap">open source · rss only · no accounts</div>
         </div>
         <p class="mission"><b>Threat intelligence for agents and technical readers.</b> Headlines and primary-source links aggregated from public RSS, classified by keyword, and filed without commentary. Updates on the tick.</p>
+        <div class="masthead-rule" aria-hidden="true"></div>
+        <div class="masthead-rule-sub" aria-hidden="true"></div>
     </header>
 
     <!-- ========== CONTROLS ========== -->
@@ -127,6 +129,7 @@
     <!-- ========== FEED ========== -->
     <main class="feed" id="feed">
         <div class="feed-status" id="feed-status">Fetching latest threat intelligence…</div>
+        <section id="briefing-container" aria-label="Daily briefing" hidden></section>
         <section id="lead-container" aria-label="Top Story" hidden></section>
         <section id="article-list" aria-label="Threat intelligence articles">
             {#- SSR: server-rendered articles for crawlers and agents that don't

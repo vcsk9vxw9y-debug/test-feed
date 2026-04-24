@@ -16,6 +16,8 @@ from scheduler import EXCLUSIONS, FEEDS, fetch_all_feeds, prune_deleted_reddit_p
 
 TOP_STORY_PATH = os.path.join(os.path.dirname(__file__), "config", "top_story.yml")
 TOP_STORY_REQUIRED = ("title", "summary", "url", "source_name", "published_at")
+DAILY_BRIEFING_PATH = os.path.join(os.path.dirname(__file__), "config", "daily_briefing.yml")
+DAILY_BRIEFING_REQUIRED = ("body", "generated_at")
 
 app = Flask(__name__)
 
@@ -269,7 +271,7 @@ def parse_since(value):
 
 
 # ---- CORS allowlist (O(1) lookup, allocated once) ----
-_CORS_PATHS = frozenset(("/api/articles", "/api/top-story", "/api/categories", "/feed.xml"))
+_CORS_PATHS = frozenset(("/api/articles", "/api/top-story", "/api/briefing", "/api/categories", "/feed.xml"))
 
 # ---- Security Headers ----
 @app.after_request
@@ -450,6 +452,57 @@ def _load_top_story():
 @limiter.limit("60 per minute")
 def get_top_story():
     resp = jsonify(_load_top_story())
+    resp.headers["Cache-Control"] = "public, max-age=600"
+    return resp
+
+
+def _load_daily_briefing():
+    """Read config/daily_briefing.yml, validate, and return the payload.
+
+    Fail-closed: any failure mode — missing file, bad YAML, missing required
+    field, active != True — returns {"active": False}. The frontend hides the
+    briefing block entirely when active is false.
+    """
+    try:
+        with open(DAILY_BRIEFING_PATH, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+    except (OSError, yaml.YAMLError):
+        return {"active": False}
+
+    if not isinstance(data, dict) or not data.get("active"):
+        return {"active": False}
+
+    missing = [k for k in DAILY_BRIEFING_REQUIRED if not data.get(k)]
+    if missing:
+        return {"active": False}
+
+    # Sanitize themes: each must be a dict with label, count, severity
+    raw_themes = data.get("themes") or []
+    themes = []
+    for t in raw_themes:
+        if not isinstance(t, dict):
+            continue
+        label = str(t.get("label", "")).strip()
+        if not label:
+            continue
+        themes.append({
+            "label": label[:50],
+            "count": int(t.get("count", 1)) if isinstance(t.get("count"), (int, float)) else 1,
+            "severity": str(t.get("severity", "neutral"))[:10],
+        })
+
+    return {
+        "active": True,
+        "body": str(data["body"]).strip()[:2000],
+        "generated_at": str(data["generated_at"]),
+        "themes": themes[:10],
+    }
+
+
+@app.route("/api/briefing")
+@limiter.limit("60 per minute")
+def get_daily_briefing():
+    resp = jsonify(_load_daily_briefing())
     resp.headers["Cache-Control"] = "public, max-age=600"
     return resp
 

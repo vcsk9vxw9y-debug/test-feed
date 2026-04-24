@@ -329,6 +329,10 @@ Vulnerability/CVE:
   - misconfigured server
 
 Nation State/APT:
+  - covert network
+  - covert networks
+  - compromised devices
+  - compromised routers
   - apt
   - nation state
   - state-sponsored
@@ -393,6 +397,11 @@ Nation State/APT:
   - cotton sandstorm
   - peach sandstorm
   - mint sandstorm
+  - stardust chollima
+  - gopher whisper
+  - gopherwhisper
+  - uat-4356
+  - unc6692
   # Espionage framing
   - cyber espionage
   - espionage campaign
@@ -509,6 +518,16 @@ Malware/Infostealer:
   # (e.g. "Lotus data wiper"). Compound "wiper malware"/"wiper attack"
   # already exist; this covers the "<name> data wiper" pattern.
   - data wiper
+  # Deployment/delivery verbs — "deploy malware/backdoor/payload"
+  - deploy malware
+  - deploy backdoor
+  - deploy payload
+  - deploy snow malware
+  - deploys malware
+  # Named malware families (2026 additions)
+  - firestarter
+  - snow malware
+  - caller-as-a-service
 
 AI Security:
   - ai guardrail
@@ -674,6 +693,15 @@ Supply Chain:
   - protestware
   - maintainer compromise
   - maintainer takeover
+  # Self-propagating / worm supply chain patterns
+  - supply chain worm
+  - self-propagating
+  - hijacks npm
+  - compromised in ongoing
+  - checkmarx
+  # Package-specific names that signal supply chain incidents
+  - bitwarden cli
+  - axios npm
 
 Mobile Security:
   # Android
@@ -818,6 +846,47 @@ Industry/Policy:
   - cybersecurity investment
   # Resilience framing (NCSC UK, policy coverage)
   - cyber resilience
+  - cyber defence
+  - cyber defense
+  # Government / political appointments & actions
+  - cisa director
+  - cisa nomination
+  - cisa nominee
+  - withdraws from consideration
+  - withdraws nomination
+  - sanctions imposed on
+  - treasury sanctions
+  - us sanctions
+  # Privacy & surveillance legislation
+  - privacy bill
+  - privacy legislation
+  - national privacy
+  - geofence warrant
+  - geofence warrants
+  - surveillance warrant
+  - supreme court
+  # Funding / M&A (cybersecurity industry)
+  - raises million
+  - series a funding
+  - series b funding
+  - series c funding
+  - series d funding
+  - cybersecurity startup
+  # Advisory / joint warning language
+  - joint advisory
+  - joint warning
+  - allied agencies
+  - dozen allied
+  # NCSC / government strategy
+  - perfect storm
+  - cross domain
+  - cross-domain
+  - leaders must act
+  # Scam compounds / cybercrime enforcement
+  - scam compound
+  - scam compounds
+  - scam center
+  - scam centres
 
 Consumer Awareness:
   # Personal / family safety framings

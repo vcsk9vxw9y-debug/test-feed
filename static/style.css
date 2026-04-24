@@ -5,11 +5,11 @@
 
 /* ---- Self-hosted variable fonts ---- */
 @font-face {
-    font-family: 'Inter';
+    font-family: 'Geist';
     font-style: normal;
     font-weight: 400 700;
     font-display: swap;
-    src: url('/static/fonts/inter.woff2') format('woff2');
+    src: url('/static/fonts/geist.woff2') format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
@@ -49,7 +49,7 @@
     --rose:      #f472b6;
 
     --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
     --ease: 120ms cubic-bezier(.2,.6,.2,1);
 }
@@ -86,7 +86,6 @@ html { scroll-behavior: smooth; }
 /* ========================= MASTHEAD ========================= */
 .masthead {
     padding: 36px 0 28px;
-    border-bottom: 1px solid var(--line-hot);
 }
 .dateline {
     display: flex;
@@ -156,6 +155,10 @@ html { scroll-behavior: smooth; }
     line-height: 1.55;
 }
 .mission b { color: var(--type); font-weight: 500; }
+
+/* Lime accent rule — visual anchor below masthead */
+.masthead-rule { height: 3px; background: var(--lime); margin-top: 20px; }
+.masthead-rule-sub { height: 1px; background: var(--line-hot); }
 
 /* ========================= CONTROLS ========================= */
 .controls {
@@ -404,6 +407,82 @@ html { scroll-behavior: smooth; }
     padding: 8px 0 48px;
 }
 
+/* ---- Daily Briefing block ---- */
+.briefing {
+    margin-top: 20px;
+    padding: 20px 22px;
+    background: rgba(196, 255, 58, 0.03);
+    border: 1px solid rgba(196, 255, 58, 0.10);
+    border-radius: 4px;
+}
+.briefing-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.briefing-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--lime);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.briefing-label::before {
+    content: "";
+    width: 16px;
+    height: 1px;
+    background: var(--lime);
+}
+.briefing-ts {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--type-4);
+    letter-spacing: 0.06em;
+}
+.briefing-body {
+    font-family: var(--sans);
+    font-size: 14.5px;
+    color: var(--type-2);
+    line-height: 1.65;
+}
+.briefing-body b {
+    color: var(--type);
+    font-weight: 500;
+}
+.briefing-themes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+}
+.briefing-theme {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    padding: 3px 9px;
+    border: 1px solid var(--line-hot);
+    border-radius: 2px;
+    color: var(--type-3);
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+}
+.briefing-theme.hot {
+    border-color: rgba(255, 78, 94, 0.30);
+    color: var(--coral);
+}
+.briefing-theme.warm {
+    border-color: rgba(251, 191, 36, 0.30);
+    color: var(--amber);
+}
+
 /* ---- Lead Story marker + container ---- */
 .lead-marker {
     display: flex;
@@ -495,6 +574,38 @@ html { scroll-behavior: smooth; }
     font-size: 10px;
 }
 .key-points li b { color: var(--type); font-weight: 500; }
+
+/* ---- Date separators (sticky) ---- */
+.date-sep {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0 8px;
+    background: rgba(9, 12, 17, 0.92);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--type-3);
+}
+.date-sep::before, .date-sep::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+}
+.date-sep.today { color: var(--lime); }
+.date-sep .ds-count {
+    color: var(--type-4);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+}
 
 /* ---- Standard articles ---- */
 .feed-head {

@@ -32,6 +32,7 @@ let focusedIndex = -1;
 // reads config/top_story.yml and returns {active:false} if the file is
 // missing / malformed / not set active. See TOP_STORY.md for the contract.
 let topStory = null;
+let dailyBriefing = null;
 
 // Category → meta-top class (pip color + category text color). The `rail`
 // property is retained for now but unused after the left-border → dot-pip
@@ -96,20 +97,66 @@ function relativeTime(dateStr, fallbackStr) {
     };
     const d = parse(dateStr) || parse(fallbackStr);
     if (!d) return "";
-    const diffMs = Date.now() - d.getTime();
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
     if (diffMs < 0) return formatAbsolute(dateStr, fallbackStr);
     const diffMin = Math.floor(diffMs / 60_000);
     const diffHr  = Math.floor(diffMin / 60);
-    const diffDay = Math.floor(diffHr  / 24);
-    if (diffMin < 1)   return "just now";
-    if (diffMin < 60)  return `filed ${diffMin}m ago`;
-    if (diffHr  < 24)  return `filed ${diffHr}h ago`;
-    if (diffDay === 1) return "filed yesterday";
-    if (diffDay < 7)   return `filed ${diffDay}d ago`;
-    if (diffDay < 30)  return `filed ${Math.floor(diffDay / 7)}w ago`;
-    const opts = { month: "short", day: "numeric" };
-    if (d.getFullYear() !== new Date().getFullYear()) opts.year = "numeric";
-    return `filed ${d.toLocaleDateString("en-US", opts)}`;
+
+    // Today: "3h ago" or "12m ago"
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayStart = new Date(todayStart.getTime() - 86_400_000);
+
+    if (d >= todayStart) {
+        if (diffMin < 1) return "just now";
+        if (diffMin < 60) return `${diffMin}m ago`;
+        return `${diffHr}h ago`;
+    }
+    // Yesterday: "yesterday 22:05"
+    if (d >= yesterdayStart) {
+        const hh = String(d.getHours()).padStart(2, "0");
+        const mm = String(d.getMinutes()).padStart(2, "0");
+        return `yesterday ${hh}:${mm}`;
+    }
+    // Older: "Apr 22 15:42"
+    const month = d.toLocaleDateString("en-US", { month: "short" });
+    const day = d.getDate();
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    if (d.getFullYear() !== now.getFullYear()) {
+        return `${month} ${day}, ${d.getFullYear()} ${hh}:${mm}`;
+    }
+    return `${month} ${day} ${hh}:${mm}`;
+}
+
+// Get the day key for grouping articles by date
+function dateDayKey(dateStr, fallbackStr) {
+    const parse = (s) => {
+        if (!s) return null;
+        const d = new Date(s);
+        return Number.isNaN(d.getTime()) ? null : d;
+    };
+    const d = parse(dateStr) || parse(fallbackStr);
+    if (!d) return "unknown";
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+// Format a day key into a human label: "Today · Apr 24", "Yesterday · Apr 23", "Apr 22"
+function dateDayLabel(dayKey) {
+    if (dayKey === "unknown") return "Unknown date";
+    const [y, m, day] = dayKey.split("-").map(Number);
+    const d = new Date(y, m - 1, day);
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const yesterdayKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+    const monthDay = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    if (dayKey === todayKey) return `Today \u00B7 ${monthDay}`;
+    if (dayKey === yesterdayKey) return `Yesterday \u00B7 ${monthDay}`;
+    if (d.getFullYear() !== now.getFullYear()) {
+        return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    }
+    return monthDay;
 }
 
 function shortSourceId(url) {
@@ -271,6 +318,13 @@ function renderFeed(articles) {
         }
     }
 
+    // Briefing block — only on the unfiltered front page
+    if (!filtersActive) {
+        renderBriefing();
+    } else if (briefingContainer) {
+        briefingContainer.hidden = true;
+    }
+
     renderLead(leadData, keyPoints);
     renderStandardList(rest);
 }
@@ -329,7 +383,34 @@ function renderLead(leadData, keyPoints) {
 function renderStandardList(articles) {
     if (!articleList) return;
     articleList.replaceChildren();
+
+    // Group articles by day for date separators.
+    // Pre-compute today/yesterday keys once to avoid per-article Date allocs.
+    const _now = new Date();
+    const _todayKey = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, "0")}-${String(_now.getDate()).padStart(2, "0")}`;
+
+    let lastDayKey = null;
+    const dayCounts = {};
+    for (const a of articles) {
+        const key = dateDayKey(a.published_date, a.created_at);
+        dayCounts[key] = (dayCounts[key] || 0) + 1;
+    }
+
     for (const article of articles) {
+        const dayKey = dateDayKey(article.published_date, article.created_at);
+        if (dayKey !== lastDayKey) {
+            const sep = document.createElement("div");
+            sep.className = "date-sep";
+            if (dayKey === _todayKey) sep.classList.add("today");
+            const label = document.createTextNode(dateDayLabel(dayKey) + " ");
+            const count = document.createElement("span");
+            count.className = "ds-count";
+            const n = dayCounts[dayKey] || 0;
+            count.textContent = `\u2014 ${n} article${n !== 1 ? "s" : ""}`;
+            sep.append(label, count);
+            articleList.appendChild(sep);
+            lastDayKey = dayKey;
+        }
         articleList.appendChild(buildArticleCard(article, { lead: false }));
     }
 }
@@ -622,6 +703,82 @@ async function loadArticles(category = "All") {
     }
 }
 
+// ---------- Daily Briefing ----------
+const briefingContainer = document.getElementById("briefing-container");
+
+async function loadBriefing() {
+    try {
+        const res = await fetch("/api/briefing", { headers: { "Accept": "application/json" } });
+        if (!res.ok) { dailyBriefing = { active: false }; return; }
+        const data = await res.json();
+        dailyBriefing = (data && typeof data === "object") ? data : { active: false };
+    } catch (err) {
+        console.warn("Briefing fetch failed:", err);
+        dailyBriefing = { active: false };
+    }
+}
+
+function renderBriefing() {
+    if (!briefingContainer) return;
+    briefingContainer.replaceChildren();
+
+    if (!dailyBriefing || !dailyBriefing.active) {
+        briefingContainer.hidden = true;
+        return;
+    }
+
+    briefingContainer.hidden = false;
+
+    const block = document.createElement("div");
+    block.className = "briefing";
+
+    // Header row
+    const header = document.createElement("div");
+    header.className = "briefing-header";
+    const label = document.createElement("div");
+    label.className = "briefing-label";
+    label.textContent = "Daily briefing";
+    const ts = document.createElement("div");
+    ts.className = "briefing-ts";
+    ts.textContent = `Generated ${formatAbsolute(dailyBriefing.generated_at)}`;
+    header.append(label, ts);
+    block.appendChild(header);
+
+    // Body — first sentence gets bold treatment
+    const body = document.createElement("div");
+    body.className = "briefing-body";
+    const text = String(dailyBriefing.body || "");
+    const firstSentEnd = text.indexOf(". ");
+    if (firstSentEnd > 0 && firstSentEnd < 120) {
+        const b = document.createElement("b");
+        b.textContent = text.slice(0, firstSentEnd + 1);
+        body.appendChild(b);
+        body.appendChild(document.createTextNode(" " + text.slice(firstSentEnd + 2)));
+    } else {
+        body.textContent = text;
+    }
+    block.appendChild(body);
+
+    // Theme tags
+    const themes = dailyBriefing.themes;
+    if (Array.isArray(themes) && themes.length > 0) {
+        const row = document.createElement("div");
+        row.className = "briefing-themes";
+        for (const t of themes) {
+            const tag = document.createElement("span");
+            tag.className = "briefing-theme";
+            if (t.severity === "hot") tag.classList.add("hot");
+            else if (t.severity === "warm") tag.classList.add("warm");
+            const countStr = t.count > 1 ? ` \u00D7${t.count}` : "";
+            tag.textContent = `${t.label}${countStr}`;
+            row.appendChild(tag);
+        }
+        block.appendChild(row);
+    }
+
+    briefingContainer.appendChild(block);
+}
+
 async function loadTopStory() {
     // Pulled once on init. A 404 / network error / malformed payload all land
     // in the same bucket: topStory = {active:false}, frontend falls back to
@@ -813,7 +970,7 @@ function setDateline() {
     }
     setDateline();
     setupConfidenceExplainer();
-    // Fire top-story and categories in parallel — neither blocks the other.
-    await Promise.all([loadTopStory(), loadCategories()]);
+    // Fire briefing, top-story, and categories in parallel — none block the others.
+    await Promise.all([loadBriefing(), loadTopStory(), loadCategories()]);
     await loadArticles(currentCategory);
 })();
