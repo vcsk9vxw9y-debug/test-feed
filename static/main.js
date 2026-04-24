@@ -742,34 +742,55 @@ function renderBriefing() {
     header.append(label, ts);
     block.appendChild(header);
 
-    // Body — first sentence gets bold treatment
-    const body = document.createElement("div");
-    body.className = "briefing-body";
-    const text = String(dailyBriefing.body || "");
-    const firstSentEnd = text.indexOf(". ");
-    if (firstSentEnd > 0 && firstSentEnd < 120) {
-        const b = document.createElement("b");
-        b.textContent = text.slice(0, firstSentEnd + 1);
-        body.appendChild(b);
-        body.appendChild(document.createTextNode(" " + text.slice(firstSentEnd + 2)));
-    } else {
-        body.textContent = text;
-    }
-    block.appendChild(body);
+    // Action list
+    const actions = dailyBriefing.actions;
+    if (Array.isArray(actions) && actions.length > 0) {
+        const ul = document.createElement("ul");
+        ul.className = "action-list";
+        for (const a of actions) {
+            const li = document.createElement("li");
+            li.className = "action-item";
 
-    // Theme tags
-    const themes = dailyBriefing.themes;
-    if (Array.isArray(themes) && themes.length > 0) {
+            const dot = document.createElement("span");
+            dot.className = "sev-dot";
+            if (a.severity === "critical") dot.classList.add("critical");
+            else if (a.severity === "high") dot.classList.add("high");
+            else dot.classList.add("medium");
+
+            const content = document.createElement("div");
+            const strong = document.createElement("strong");
+            strong.textContent = a.title;
+            content.appendChild(strong);
+            content.appendChild(document.createTextNode(" \u2014 " + a.description + " "));
+
+            if (a.action) {
+                const act = document.createElement("span");
+                act.className = "action-tag";
+                act.textContent = "\u2192 " + a.action;
+                content.appendChild(act);
+            }
+
+            li.append(dot, content);
+            ul.appendChild(li);
+        }
+        block.appendChild(ul);
+    }
+
+    // Stat row
+    const stats = dailyBriefing.stats;
+    if (Array.isArray(stats) && stats.length > 0) {
         const row = document.createElement("div");
-        row.className = "briefing-themes";
-        for (const t of themes) {
-            const tag = document.createElement("span");
-            tag.className = "briefing-theme";
-            if (t.severity === "hot") tag.classList.add("hot");
-            else if (t.severity === "warm") tag.classList.add("warm");
-            const countStr = t.count > 1 ? ` \u00D7${t.count}` : "";
-            tag.textContent = `${t.label}${countStr}`;
-            row.appendChild(tag);
+        row.className = "stat-row";
+        for (const s of stats) {
+            const stat = document.createElement("div");
+            stat.className = "stat";
+            const num = document.createElement("span");
+            num.className = "stat-num";
+            if (s.hot) num.classList.add("hot");
+            num.textContent = s.value;
+            const lbl = document.createTextNode(" " + s.label);
+            stat.append(num, lbl);
+            row.appendChild(stat);
         }
         block.appendChild(row);
     }

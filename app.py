@@ -17,7 +17,7 @@ from scheduler import EXCLUSIONS, FEEDS, fetch_all_feeds, prune_deleted_reddit_p
 TOP_STORY_PATH = os.path.join(os.path.dirname(__file__), "config", "top_story.yml")
 TOP_STORY_REQUIRED = ("title", "summary", "url", "source_name", "published_at")
 DAILY_BRIEFING_PATH = os.path.join(os.path.dirname(__file__), "config", "daily_briefing.yml")
-DAILY_BRIEFING_REQUIRED = ("body", "generated_at")
+DAILY_BRIEFING_REQUIRED = ("actions", "generated_at")
 
 app = Flask(__name__)
 
@@ -476,26 +476,56 @@ def _load_daily_briefing():
     if missing:
         return {"active": False}
 
-    # Sanitize themes: each must be a dict with label, count, severity
-    raw_themes = data.get("themes") or []
-    themes = []
-    for t in raw_themes:
-        if not isinstance(t, dict):
+    # Validate actions: each must have severity, title, description
+    VALID_SEVERITIES = {"critical", "high", "medium"}
+    raw_actions = data.get("actions") or []
+    if not isinstance(raw_actions, list) or len(raw_actions) == 0:
+        return {"active": False}
+
+    actions = []
+    for a in raw_actions:
+        if not isinstance(a, dict):
             continue
-        label = str(t.get("label", "")).strip()
+        title = str(a.get("title", "")).strip()
+        description = str(a.get("description", "")).strip()
+        severity = str(a.get("severity", "medium")).strip().lower()
+        if not title or not description:
+            continue
+        if severity not in VALID_SEVERITIES:
+            severity = "medium"
+        action_text = str(a.get("action", "")).strip()
+        entry = {
+            "severity": severity,
+            "title": title[:200],
+            "description": description[:500],
+        }
+        if action_text:
+            entry["action"] = action_text[:200]
+        actions.append(entry)
+
+    if not actions:
+        return {"active": False}
+
+    # Validate stats (optional)
+    raw_stats = data.get("stats") or []
+    stats = []
+    for s in raw_stats:
+        if not isinstance(s, dict):
+            continue
+        label = str(s.get("label", "")).strip()
         if not label:
             continue
-        themes.append({
+        stats.append({
             "label": label[:50],
-            "count": int(t.get("count", 1)) if isinstance(t.get("count"), (int, float)) else 1,
-            "severity": str(t.get("severity", "neutral"))[:10],
+            "value": int(s.get("value", 0)) if isinstance(s.get("value"), (int, float)) else 0,
+            "hot": bool(s.get("hot", False)),
         })
 
     return {
         "active": True,
-        "body": str(data["body"]).strip()[:2000],
-        "generated_at": str(data["generated_at"]),
-        "themes": themes[:10],
+        "generated_at": str(data["generated_at"]).strip()[:40],
+        "actions": actions[:8],
+        "stats": stats[:6],
     }
 
 

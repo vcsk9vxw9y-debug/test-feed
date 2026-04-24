@@ -6,7 +6,7 @@
 # move its block up or down in this file. Single source of truth.
 #
 # Current priority (top = highest):
-#   OT/ICS > Cloud Breach > SaaS Breach > Ransomware > Identity & Access
+#   OT/ICS > Cloud Breach > SaaS Breach > Identity & Access > Ransomware
 #   > Vulnerability/CVE > Nation State/APT > Malware/Infostealer > AI Security
 #   > Phishing & Social Engineering > Supply Chain > Mobile Security
 #   > Industry/Policy > Consumer Awareness > Uncategorized (fallback)
@@ -166,48 +166,6 @@ SaaS Breach:
   - defi hack
   - defi exploit
 
-Ransomware:
-  - ransomware
-  - ransom demand
-  - encrypted files
-  - lockbit
-  - blackcat
-  - cl0p
-  - clop
-  - dark side
-  - ryuk
-  - hive ransomware
-  - alphv
-  - play ransomware
-  - akira
-  - royal ransomware
-  - data extortion
-  - ransomware gang
-  - double extortion
-  - triple extortion
-  - leak site
-  - ransomware gangs
-  - leak sites
-  # Active groups — 2025/2026 roster (Huntress, DFIR Report coverage)
-  - blacksuit
-  - rhysida
-  - medusa ransomware
-  - bianlian
-  - hunters international
-  - inc ransom
-  - ransomware-as-a-service
-  - raas
-  - ransom payment
-  # 2025-2026 active groups (Huntress, DFIR Report coverage)
-  - fog ransomware
-  - cactus ransomware
-  - qilin
-  - embargo
-  - lynx ransomware
-  - interlock
-  - extortion group
-  - extortion gang
-
 Identity & Access:
   # Active Directory / Kerberos attacks
   - kerberoasting
@@ -267,6 +225,48 @@ Identity & Access:
   - data leak
   - data exposure
   - leaks user
+
+Ransomware:
+  - ransomware
+  - ransom demand
+  - encrypted files
+  - lockbit
+  - blackcat
+  - cl0p
+  - clop
+  - dark side
+  - ryuk
+  - hive ransomware
+  - alphv
+  - play ransomware
+  - akira
+  - royal ransomware
+  - data extortion
+  - ransomware gang
+  - double extortion
+  - triple extortion
+  - leak site
+  - ransomware gangs
+  - leak sites
+  # Active groups — 2025/2026 roster (Huntress, DFIR Report coverage)
+  - blacksuit
+  - rhysida
+  - medusa ransomware
+  - bianlian
+  - hunters international
+  - inc ransom
+  - ransomware-as-a-service
+  - raas
+  - ransom payment
+  # 2025-2026 active groups (Huntress, DFIR Report coverage)
+  - fog ransomware
+  - cactus ransomware
+  - qilin
+  - embargo
+  - lynx ransomware
+  - interlock
+  - extortion group
+  - extortion gang
 
 Vulnerability/CVE:
   - cve

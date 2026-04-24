@@ -3,23 +3,37 @@
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
 generated_at: "2026-04-24T23:30:00Z"
-body: "The Bitwarden CLI supply chain attack remains the top story — the first npm trusted publishing bypass deployed a self-propagating credential worm affecting 78K weekly downloads. NIST effectively abandoned universal CVE enrichment, moving 29,000 backlogged vulnerabilities to 'Not Scheduled' and limiting future scoring to KEV, federal, and critical software only. ESET uncovered GopherWhisper, a new China-aligned APT using Discord, Slack, and Outlook for C2 against Mongolian government targets. SentinelLABS revealed fast16 at Black Hat Asia — a pre-Stuxnet cyber sabotage framework from 2005 that tampers with high-precision calculations in-memory. Patch CrowdStrike LogScale self-hosted (CVE-2026-40050, CVSS 9.8) and FortiClient EMS (CVE-2026-35616, actively exploited)."
-themes:
+actions:
+  - severity: "critical"
+    title: "Bitwarden CLI @2026.4.0"
+    description: "First npm trusted publishing bypass. Self-propagating credential worm hit 78K weekly downloads."
+    action: "Audit all systems, rotate GitHub/npm/SSH/cloud creds"
+  - severity: "critical"
+    title: "CrowdStrike LogScale CVE-2026-40050 (9.8)"
+    description: "Unauthenticated path traversal — remote file read without auth. Self-hosted must patch."
+    action: "Upgrade LogScale immediately"
+  - severity: "critical"
+    title: "FortiClient EMS CVE-2026-35616 (9.1)"
+    description: "Pre-auth API bypass, confirmed exploited in the wild."
+    action: "Patch immediately"
+  - severity: "high"
+    title: "NIST NVD stops CVE enrichment"
+    description: "29K backlogged CVEs moved to 'Not Scheduled.' Only KEV/federal/critical software scored going forward."
+    action: "Evaluate alternative vuln intel sources"
+  - severity: "medium"
+    title: "GopherWhisper APT (China-aligned)"
+    description: "New APT using Discord/Slack/Outlook for C2, targeting Mongolian gov. ESET published IOCs."
+    action: "Hunt for Go backdoor IOCs on gov endpoints"
+stats:
+  - label: "critical CVEs"
+    value: 6
+    hot: true
   - label: "supply chain"
-    count: 3
-    severity: "hot"
-  - label: "china-nexus apt"
-    count: 2
-    severity: "hot"
-  - label: "critical cve"
-    count: 6
-    severity: "hot"
-  - label: "nvd policy shift"
-    count: 1
-    severity: "warm"
-  - label: "saas breach"
-    count: 1
-    severity: "neutral"
-  - label: "ot/ics research"
-    count: 1
-    severity: "neutral"
+    value: 3
+    hot: false
+  - label: "APT campaigns"
+    value: 2
+    hot: false
+  - label: "new KEV"
+    value: 0
+    hot: false
