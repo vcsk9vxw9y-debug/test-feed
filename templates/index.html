@@ -128,7 +128,27 @@
     <main class="feed" id="feed">
         <div class="feed-status" id="feed-status">Fetching latest threat intelligence…</div>
         <section id="lead-container" aria-label="Top Story" hidden></section>
-        <section id="article-list" aria-label="Threat intelligence articles"></section>
+        <section id="article-list" aria-label="Threat intelligence articles">
+            {#- SSR: server-rendered articles for crawlers and agents that don't
+                execute JS. main.js calls articleList.replaceChildren() on load,
+                so human visitors never see this markup — it's replaced by the
+                interactive JS-built cards within milliseconds. -#}
+            {% for a in articles %}
+            <article class="article">
+                <div class="meta-top">
+                    <span class="category">{{ a.category or 'Uncategorized' }}</span>
+                    <span class="source">{{ a.source_name or 'Unknown' }}</span>
+                </div>
+                <h3 class="title">
+                    {% if a.url %}<a href="{{ a.url }}" rel="noopener noreferrer">{{ a.title }}</a>{% else %}{{ a.title }}{% endif %}
+                </h3>
+                {% if a.summary %}<p class="summary">{{ a.summary }}</p>{% endif %}
+                <div class="meta-bottom">
+                    <time datetime="{{ a.published_date or a.created_at }}">{{ a.published_date or a.created_at }}</time>
+                </div>
+            </article>
+            {% endfor %}
+        </section>
     </main>
 
     <!-- ========== FOOTER ========== -->

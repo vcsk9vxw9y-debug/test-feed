@@ -2,6 +2,8 @@ import atexit
 import os
 import sqlite3
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlparse
+from xml.sax.saxutils import escape as xml_escape
 
 import yaml
 from flask import Flask, jsonify, render_template, request
@@ -27,7 +29,7 @@ limiter = Limiter(
     app=app,
     key_func=get_remote_address,
     storage_uri="memory://",
-    default_limits=[],  # No blanket limit — set per-route below
+    default_limits=["120 per minute"],  # Safety net for any undecorated route
 )
 
 
@@ -83,6 +85,10 @@ def _run_reclassify_migration(conn, name):
 def init_db():
     conn = get_db()
     try:
+        # WAL mode: allows concurrent readers during background writes
+        # (feed fetches). Sticky per-database — survives restarts once set.
+        conn.execute("PRAGMA journal_mode=WAL")
+
         conn.execute("""
             CREATE TABLE IF NOT EXISTS articles (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -262,6 +268,9 @@ def parse_since(value):
     return None, "Invalid 'since' value — use ISO 8601, e.g. 2026-04-17T00:00:00"
 
 
+# ---- CORS allowlist (O(1) lookup, allocated once) ----
+_CORS_PATHS = frozenset(("/api/articles", "/api/top-story", "/api/categories", "/feed.xml"))
+
 # ---- Security Headers ----
 @app.after_request
 def set_security_headers(response):
@@ -290,9 +299,8 @@ def set_security_headers(response):
     # public read-only surface — no credentials, no mutations, no side-effects.
     # Explicit allowlist — if a future /api/ route requires auth or
     # handles mutations, it must NOT inherit wildcard CORS. Update
-    # this tuple when adding new /api/* endpoints.
-    _cors_paths = ("/api/articles", "/api/top-story", "/api/categories", "/feed.xml")
-    if request.path in _cors_paths:
+    # _CORS_PATHS (module-level frozenset) when adding new endpoints.
+    if request.path in _CORS_PATHS:
         response.headers["Access-Control-Allow-Origin"] = "*"
         response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
         response.headers["Access-Control-Max-Age"] = "3600"
@@ -301,8 +309,27 @@ def set_security_headers(response):
 
 
 @app.route("/")
+@limiter.limit("60 per minute")
 def index():
-    return render_template("index.html")
+    conn = get_db()
+    try:
+        rows = conn.execute(
+            "SELECT title, summary, url, published_date, created_at, "
+            "source_name, category FROM articles "
+            "ORDER BY COALESCE(published_date, created_at) DESC LIMIT 50"
+        ).fetchall()
+    finally:
+        conn.close()
+    articles = [dict(r) for r in rows]
+    # Sanitize URLs at the data layer — same scheme allowlist used for the
+    # Atom feed (_safe_entry_url). Prevents javascript:/data: hrefs from
+    # reaching the SSR template. The JS path has its own safeHref().
+    for a in articles:
+        a["url"] = _safe_entry_url(a.get("url"))
+    resp = render_template("index.html", articles=articles)
+    resp = app.make_response(resp)
+    resp.headers["Cache-Control"] = "public, max-age=120"
+    return resp
 
 
 # Source -> {tier, reason} lookup, built once at startup from the committed
@@ -721,7 +748,6 @@ def _safe_entry_url(url):
     """
     if not url or not isinstance(url, str):
         return ""
-    from urllib.parse import urlparse
     parsed = urlparse(url)
     if parsed.scheme in ("http", "https") and parsed.netloc:
         return url
@@ -732,7 +758,6 @@ def _build_atom_feed(rows):
     """Hand-rolled Atom 1.0 — no new dependency. Every article field goes
     through CDATA wrap + ]]> split so a hostile source feed cannot break
     the XML or smuggle markup into a consuming client."""
-    from xml.sax.saxutils import escape as xml_escape
 
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     parts = [
