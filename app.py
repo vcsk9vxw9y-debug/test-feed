@@ -493,8 +493,13 @@ def _load_daily_briefing():
     Fail-closed: any failure mode — missing file, bad YAML, missing required
     field, active != True — returns {"active": False}. The frontend hides the
     briefing block entirely when active is false.
+
+    generated_at is derived from the file's modification time, not the
+    YAML field — so the timestamp always reflects when the briefing was
+    actually written, regardless of what the generator stamps inside.
     """
     try:
+        file_mtime = os.path.getmtime(DAILY_BRIEFING_PATH)
         with open(DAILY_BRIEFING_PATH, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
     except (OSError, yaml.YAMLError):
@@ -552,9 +557,14 @@ def _load_daily_briefing():
             "hot": bool(s.get("hot", False)),
         })
 
+    # Use file mtime as the authoritative generated_at timestamp.
+    generated_at = datetime.fromtimestamp(file_mtime, tz=timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+
     return {
         "active": True,
-        "generated_at": str(data["generated_at"]).strip()[:40],
+        "generated_at": generated_at,
         "actions": actions[:8],
         "stats": stats[:6],
     }
