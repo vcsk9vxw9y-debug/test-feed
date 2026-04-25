@@ -1,0 +1,44 @@
+# Global low-value phrase filter — drops articles that classify into a
+# security category but aren't actually threat-relevant.
+#
+# Schema: flat list of non-empty strings.
+#
+# Unlike exclusions.yml (per-source), this applies to ALL sources.
+# Matching is case-insensitive substring against title + summary.
+#
+# Use sparingly — every phrase here is a global suppression. Prefer
+# source-specific exclusions.yml when the noise comes from one feed.
+# Avoid broad phrases that could suppress legitimate security articles
+# (e.g., "product update" would block "critical security product update").
+#
+# This is a COMMITTED TRUST ANCHOR. To change, open a PR — no runtime
+# mutation, no admin endpoint.
+
+# Product marketing / commercial noise
+- product launch announcement
+- product announcement
+- new feature release
+- pricing update
+- customer story
+- customer success story
+- case study
+
+# Career / hiring / HR (source-agnostic catch-all)
+- career opportunity
+- join our team
+- we are hiring
+- open position
+
+# UI / UX bugs masquerading as security articles
+- ui bug
+- ui glitch
+- display issue
+- right-click paste broken
+- layout broken
+
+# Tooling / devops posts that hit security keywords incidentally
+- monitoring pipeline with
+- observability pipeline setup
+- logging pipeline tutorial
+- telemetry pipeline setup
+- tutorial for beginners

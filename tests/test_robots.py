@@ -11,8 +11,6 @@ Guarantees:
 Run: python -m unittest tests.test_robots -v
 """
 
-import os
-import sqlite3
 import sys
 import unittest
 from pathlib import Path
@@ -21,31 +19,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-# Shared sandbox DB path across the three bot-readability test modules.
-_TEST_DB = "/tmp/threat_feed_bot_readability_tests.db"
+from tests.conftest import get_test_db, patch_db, get_app  # noqa: E402
 
-if os.path.exists(_TEST_DB):
-    try:
-        os.remove(_TEST_DB)
-    except OSError:
-        pass
+_TEST_DB = get_test_db("robots")
+patch_db(_TEST_DB)
 
-_orig_connect = sqlite3.connect
-
-
-def _redirect(path, *args, **kwargs):
-    if path in ("./testfeed.db", "/data/testfeed.db"):
-        path = _TEST_DB
-    return _orig_connect(path, *args, **kwargs)
-
-
-sqlite3.connect = _redirect
-
-# Stub the feed fetcher so importing app doesn't trigger a real network run.
-import scheduler  # noqa: E402
-scheduler.fetch_all_feeds = lambda *a, **kw: None
-
-from app import app, init_db  # noqa: E402
+app, init_db = get_app()
 init_db()
 
 

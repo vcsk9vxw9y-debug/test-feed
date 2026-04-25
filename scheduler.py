@@ -1,7 +1,9 @@
 import calendar
 import html
+import ipaddress
 import os
 import re
+import socket
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs, unquote, urlencode, urlparse, urlunparse
@@ -388,7 +390,7 @@ FEEDS = [
         "name": "Ransomware.live",
         "filter_uncategorized": True,
         "source_tier": 3,
-        "reason": "Open-source ransomware leak-site monitor (~150 groups). Scrapes victim claims, not verified journalism — treat as unverified OSINT. High volume (100 entries/batch); filter_uncategorized drops noise. Canonical www. URL required (bare domain 301s and scheduler uses allow_redirects=False).",
+        "reason": "Open-source ransomware leak-site monitor (~150 groups). Scrapes victim claims, not verified journalism — treat as unverified OSINT. High volume (100 entries/batch); filter_uncategorized drops noise. Canonical www. URL preferred (bare domain 301s; _safe_get handles redirects but saves a hop).",
     },
     {
         "url": "https://databreaches.net/feed/",
@@ -432,6 +434,62 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "application/rss+xml, application/xml, text/xml, */*",
 }
+
+MAX_REDIRECTS = 3
+
+
+def _is_internal_ip(hostname):
+    """Return True if hostname resolves to a private, loopback, link-local,
+    or cloud-metadata IP address. Prevents SSRF via redirect chains that
+    land on internal infrastructure."""
+    try:
+        for info in socket.getaddrinfo(hostname, None, socket.AF_UNSPEC):
+            addr = ipaddress.ip_address(info[4][0])
+            if (addr.is_private or addr.is_loopback or addr.is_link_local
+                    or addr.is_reserved or addr.is_multicast):
+                return True
+            # AWS/GCP/Azure metadata endpoint (169.254.169.254)
+            if str(addr) == "169.254.169.254":
+                return True
+    except (socket.gaierror, ValueError, OSError):
+        # Unresolvable hostname — treat as safe (will fail on connect)
+        return False
+    return False
+
+
+def _safe_get(url, headers, timeout=15):
+    """GET with SSRF-safe redirect following.
+
+    Replaces ``allow_redirects=False`` which silently drops feeds when
+    vendors reorganize URLs. Follows up to MAX_REDIRECTS hops, rejecting
+    any redirect that targets an internal/cloud-metadata IP.
+
+    Returns the final Response, or raises requests.RequestException.
+    """
+    visited = set()
+    for _ in range(MAX_REDIRECTS + 1):
+        resp = requests.get(
+            url, headers=headers, timeout=timeout, allow_redirects=False
+        )
+        if resp.status_code not in (301, 302, 303, 307, 308):
+            return resp
+        location = resp.headers.get("Location")
+        if not location:
+            return resp
+        if location in visited:
+            print(f"    Redirect loop detected: {location}")
+            return resp
+        visited.add(location)
+        parsed = urlparse(location)
+        if parsed.scheme not in ("http", "https"):
+            print(f"    Blocked redirect to non-http scheme: {parsed.scheme}")
+            return resp
+        if _is_internal_ip(parsed.hostname or ""):
+            print(f"    Blocked SSRF redirect to internal IP: {parsed.hostname}")
+            return resp
+        url = location
+    print(f"    Too many redirects (>{MAX_REDIRECTS})")
+    return resp
 
 
 # --- Phrase exclusion filter -----------------------------------------------
@@ -490,6 +548,41 @@ def load_exclusions(path=EXCLUSIONS_PATH):
 # Loaded once at import. Re-loads require a deploy — same pattern as FEEDS.
 EXCLUSIONS = load_exclusions()
 
+LOW_VALUE_PATH = os.path.join(os.path.dirname(__file__), "config", "low_value.yml")
+
+
+def load_low_value(path=LOW_VALUE_PATH):
+    """Load global low-value phrase list from committed YAML.
+
+    Schema: flat list of non-empty strings. Anything else is silently
+    dropped. Fail-closed: parse failure → empty list (all articles pass).
+    Phrases are lowercased once at load time.
+    """
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            raw = yaml.safe_load(f)
+    except (FileNotFoundError, PermissionError, OSError, yaml.YAMLError):
+        return []
+    if not isinstance(raw, list):
+        return []
+    return [str(p).strip().lower() for p in raw if isinstance(p, str) and p.strip()]
+
+
+LOW_VALUE_PHRASES = load_low_value()
+
+
+def _is_low_value(title, summary):
+    """Return True if the article matches a global low-value phrase.
+
+    Applied after classification succeeds — catches articles that hit a
+    security keyword incidentally but aren't threat-relevant. Source-
+    agnostic; for per-source filtering use exclusions.yml instead.
+    """
+    if not LOW_VALUE_PHRASES:
+        return False
+    haystack = f"{title or ''} {summary or ''}".lower()
+    return any(p in haystack for p in LOW_VALUE_PHRASES)
+
 
 def _is_excluded(source_name, title, summary):
     """Return True if the article should be dropped per exclusions.yml.
@@ -531,7 +624,7 @@ def fetch_all_feeds(db_path, tier=None):
             try:
                 print(f"  Fetching {feed['name']}...")
 
-                response = requests.get(feed["url"], headers=HEADERS, timeout=15, allow_redirects=False)
+                response = _safe_get(feed["url"], headers=HEADERS, timeout=15)
                 print(f"    HTTP status: {response.status_code}")
 
                 if response.status_code != 200:
@@ -613,6 +706,15 @@ def fetch_all_feeds(db_path, tier=None):
 
                     # Skip uncategorized articles from noisy feeds (e.g. Reddit)
                     if feed.get("filter_uncategorized") and category == "Uncategorized":
+                        continue
+
+                    # Global low-value filter: drop articles that classified
+                    # into a security category but aren't threat-relevant
+                    # (product marketing, career posts, tooling tutorials).
+                    # Runs AFTER classification so we only pay the cost for
+                    # articles that would otherwise be inserted.
+                    if _is_low_value(title, summary):
+                        print(f"    Skipping (low-value): {title[:80]}")
                         continue
 
                     result = conn.execute(

@@ -44,27 +44,10 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 # --- Module-level setup must run BEFORE `import app` --------------------
+from tests.conftest import get_test_db, patch_db, get_app  # noqa: E402
 
-SMOKE_DB = "/tmp/testfeed_smoke.db"
-if os.path.exists(SMOKE_DB):
-    os.unlink(SMOKE_DB)
-
-# Redirect any connection the app opens to our throwaway /tmp DB.
-_real_connect = sqlite3.connect
-
-
-def _patched_connect(path, *a, **kw):
-    if path in ("./testfeed.db", "/data/testfeed.db"):
-        path = SMOKE_DB
-    return _real_connect(path, *a, **kw)
-
-
-sqlite3.connect = _patched_connect
-
-# Stub the scheduler so importing app doesn't hit real RSS.
-import scheduler as _real_scheduler  # noqa: E402
-
-_real_scheduler.fetch_all_feeds = lambda *a, **kw: None
+SMOKE_DB = get_test_db("smoke")
+patch_db(SMOKE_DB)
 
 # Seed the fixture DB via the patched connect (lands at SMOKE_DB).
 _seed = sqlite3.connect("./testfeed.db")

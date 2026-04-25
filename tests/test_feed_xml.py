@@ -21,8 +21,6 @@ Guarantees — the security-critical ones first:
 Run: python -m unittest tests.test_feed_xml -v
 """
 
-import os
-import sqlite3
 import sys
 import unittest
 import xml.etree.ElementTree as ET
@@ -32,29 +30,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-_TEST_DB = "/tmp/threat_feed_bot_readability_tests.db"
+from tests.conftest import get_test_db, patch_db, get_app, real_connect  # noqa: E402
 
-if os.path.exists(_TEST_DB):
-    try:
-        os.remove(_TEST_DB)
-    except OSError:
-        pass
+_TEST_DB = get_test_db("feed_xml")
+patch_db(_TEST_DB)
 
-_orig_connect = sqlite3.connect
-
-
-def _redirect(path, *args, **kwargs):
-    if path in ("./testfeed.db", "/data/testfeed.db"):
-        path = _TEST_DB
-    return _orig_connect(path, *args, **kwargs)
-
-
-sqlite3.connect = _redirect
-
-import scheduler  # noqa: E402
-scheduler.fetch_all_feeds = lambda *a, **kw: None
-
-from app import app, init_db  # noqa: E402
+app, init_db = get_app()
 init_db()
 
 ATOM_NS = "{http://www.w3.org/2005/Atom}"
@@ -62,7 +43,7 @@ ATOM_NS = "{http://www.w3.org/2005/Atom}"
 
 def _seed_articles(rows):
     """Insert raw rows directly into the sandbox DB used by the test app."""
-    conn = _orig_connect(_TEST_DB)
+    conn = real_connect(_TEST_DB)
     try:
         conn.executemany(
             "INSERT INTO articles (title, summary, url, published_date, "
@@ -75,7 +56,7 @@ def _seed_articles(rows):
 
 
 def _clear_articles():
-    conn = _orig_connect(_TEST_DB)
+    conn = real_connect(_TEST_DB)
     try:
         conn.execute("DELETE FROM articles")
         conn.commit()
