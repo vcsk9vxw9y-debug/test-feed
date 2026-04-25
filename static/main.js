@@ -36,7 +36,7 @@ let dailyBriefing = null;
 
 // Category → meta-top class (pip color + category text color).
 const categoryMap = {
-    "Cloud Breach":                  { cat: "cloud" },
+    "Cloud Security":                  { cat: "cloud" },
     "SaaS Breach":                   { cat: "saas" },
     "OT/ICS":                        { cat: "ot" },
     "Ransomware":                    { cat: "ransom" },

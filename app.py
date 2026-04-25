@@ -192,6 +192,24 @@ def init_db():
         ):
             _run_reclassify_migration(conn, migration_name)
 
+        # One-time category rename: Cloud Breach -> Cloud Security.
+        # Broadens the category from incidents-only to all cloud security
+        # topics (posture, misconfig, vulnerability, guidance).
+        _rename = "rename_cloud_breach_to_cloud_security"
+        if not conn.execute(
+            "SELECT 1 FROM migrations WHERE name = ?", (_rename,)
+        ).fetchone():
+            result = conn.execute(
+                "UPDATE articles SET category = 'Cloud Security' "
+                "WHERE category = 'Cloud Breach'"
+            )
+            conn.execute(
+                "INSERT INTO migrations (name, run_at) VALUES (?, ?)",
+                (_rename, datetime.now(timezone.utc).isoformat()),
+            )
+            if result.rowcount:
+                print(f"[migration] renamed {result.rowcount} 'Cloud Breach' -> 'Cloud Security'")
+
         # Startup prune: DELETE historical rows that would be excluded by
         # the current config/exclusions.yml. Idempotent — re-runs on every
         # deploy so a newly-added phrase also cleans pre-existing rows,
@@ -722,7 +740,7 @@ Atom 1.0 feed of the 50 most-recent articles.
 ## Categories
 
 Vulnerability/CVE, OT/ICS, Malware/Infostealer, SaaS Breach,
-AI Security, Nation State/APT, Ransomware, Cloud Breach, Supply Chain,
+AI Security, Nation State/APT, Ransomware, Cloud Security, Supply Chain,
 Identity & Access, Phishing & Social Engineering, Industry/Policy,
 Consumer Awareness, Mobile Security, Uncategorized.
 

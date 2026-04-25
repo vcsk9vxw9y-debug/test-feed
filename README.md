@@ -5,7 +5,7 @@ An open source cybersecurity threat feed aggregator. Pulls from free public RSS 
 ## Features
 
 - Aggregates 40+ security RSS feeds automatically
-- Classifies articles into 14 categories: Cloud Breach, SaaS Breach, OT/ICS, Ransomware, Identity & Access, Vulnerability/CVE, Nation State/APT, Malware/Infostealer, AI Security, Phishing & Social Engineering, Supply Chain, Mobile Security, Industry/Policy, Uncategorized
+- Classifies articles into 14 categories: Cloud Security, SaaS Breach, OT/ICS, Ransomware, Identity & Access, Vulnerability/CVE, Nation State/APT, Malware/Infostealer, AI Security, Phishing & Social Engineering, Supply Chain, Mobile Security, Industry/Policy, Uncategorized
 - Word-boundary regex classification with priority ordering — zero API costs
 - Tiered fetch schedule: priority sources (government CERTs, top threat-intel teams) hourly, secondary sources every 2h, community feeds every 4h
 - Rate-limited JSON API (`/api/articles`, `/api/categories`, `/api/top-story`)
@@ -45,7 +45,7 @@ Edit `categories.yml` — no code changes needed. Add keywords under any existin
 
 Example:
 ```yaml
-Cloud Breach:
+Cloud Security:
   - aws
   - your new keyword here
 ```

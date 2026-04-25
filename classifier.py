@@ -8,7 +8,7 @@ order. Python 3.7+ guarantees dict insertion order is preserved, and
 ``yaml.safe_load`` on a YAML mapping returns a regular dict, so the YAML
 file is the single source of truth:
 
-    OT/ICS -> Cloud Breach -> SaaS Breach -> Ransomware
+    OT/ICS -> Cloud Security -> SaaS Breach -> Ransomware
     -> Identity & Access -> Vulnerability/CVE -> Nation State/APT
     -> Malware/Infostealer -> AI Security -> Phishing & Social Engineering
     -> Supply Chain -> Mobile Security -> Industry/Policy

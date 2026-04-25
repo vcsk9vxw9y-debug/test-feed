@@ -6,7 +6,7 @@
 # move its block up or down in this file. Single source of truth.
 #
 # Current priority (top = highest):
-#   OT/ICS > Cloud Breach > SaaS Breach > Identity & Access > Ransomware
+#   OT/ICS > Cloud Security > SaaS Breach > Identity & Access > Ransomware
 #   > Vulnerability/CVE > Nation State/APT > Malware/Infostealer > AI Security
 #   > Phishing & Social Engineering > Supply Chain > Mobile Security
 #   > Industry/Policy > Consumer Awareness > Uncategorized (fallback)
@@ -62,7 +62,7 @@ OT/ICS:
   - purdue model
   - cip compliance
 
-Cloud Breach:
+Cloud Security:
   - aws
   - azure
   - gcp
@@ -510,7 +510,7 @@ Malware/Infostealer:
   - horabot
   - janelarat
   # Standalone "backdoor" — safe at Malware priority (8); higher-prio
-  # categories (Supply Chain, Cloud Breach, Vuln/CVE, Nation State)
+  # categories (Supply Chain, Cloud Security, Vuln/CVE, Nation State)
   # already claim articles that also mention backdoors.
   - backdoor
   - backdoors
