@@ -4,6 +4,7 @@ import os
 import re
 import sqlite3
 from datetime import datetime, timedelta, timezone
+from urllib.parse import parse_qs, unquote, urlencode, urlparse, urlunparse
 
 import bleach
 import feedparser
@@ -27,7 +28,53 @@ def clean_summary(raw):
     return re.sub(r"\s+", " ", decoded).strip()
 
 
-def normalize_published_date(entry):
+_TRACKING_PARAMS = {
+    "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
+    "utm_id", "ref", "source", "fbclid", "gclid", "mc_cid", "mc_eid",
+    "mkt_tok", "trk", "trkInfo", "li_fat_id", "soc_src", "soc_trk",
+}
+
+
+def _normalize_url(url):
+    """Collapse tracking-parameter variants of the same article URL.
+
+    Many feeds (CrowdStrike, vendor blogs) republish existing posts with
+    fresh dates and appended UTM / tracking query strings. Since dedup
+    keys on URL uniqueness, ``?utm_source=rss`` would bypass the check.
+
+    Only strips known tracking params (see _TRACKING_PARAMS), not all
+    query params — some feeds use ``?id=`` or ``?p=`` as the canonical
+    identifier. Also lowercases scheme and host and strips trailing
+    slashes from the path.
+
+    Returns the original URL unchanged if parsing fails (fail-open).
+    """
+    if not url:
+        return url
+    try:
+        parts = urlparse(url)
+        # Keep non-tracking query params intact
+        if parts.query:
+            qs = parse_qs(parts.query, keep_blank_values=True)
+            cleaned = {k: v for k, v in qs.items()
+                       if unquote(k).lower() not in _TRACKING_PARAMS}
+            new_query = urlencode(cleaned, doseq=True) if cleaned else ""
+        else:
+            new_query = ""
+        clean_path = parts.path.rstrip("/") or "/"
+        return urlunparse((
+            parts.scheme.lower(),
+            parts.netloc.lower(),
+            clean_path,
+            "",          # params
+            new_query,   # query — tracking params stripped
+            "",          # fragment — stripped
+        ))
+    except Exception:
+        return url
+
+
+def _normalize_published_date(entry):
     """Return an ISO 8601 UTC string for an RSS entry's publish date.
 
     Feeds publish dates in many formats (RFC 2822, RFC 3339, bespoke).
@@ -499,9 +546,24 @@ def fetch_all_feeds(db_path, tier=None):
                 entries = parsed.entries
                 print(f"    Found {len(entries)} entries")
 
+                # Pre-load recent titles for this source into a set so the
+                # title-dedup check is an O(1) lookup instead of a per-entry
+                # SELECT (eliminates ~N unindexed queries per feed).
+                title_window = (
+                    datetime.now(timezone.utc) - timedelta(days=7)
+                ).isoformat()
+                recent_titles = {
+                    row[0] for row in conn.execute(
+                        "SELECT title FROM articles "
+                        "WHERE source_name = ? "
+                        "AND COALESCE(published_date, created_at) > ?",
+                        (feed["name"], title_window),
+                    ).fetchall()
+                }
+
                 new_count = 0
                 for entry in entries:
-                    url = entry.get("link", "")
+                    url = _normalize_url(entry.get("link", ""))
                     if not url:
                         continue
 
@@ -512,8 +574,18 @@ def fetch_all_feeds(db_path, tier=None):
                         continue
 
                     title = html.unescape(entry.get("title", "No Title"))
+
+                    # Title-based dedup: catch recycled articles that use a
+                    # different URL slug but identical title from the same
+                    # source. Common with CrowdStrike and vendor blogs that
+                    # republish old posts with fresh dates. Scoped to 7 days
+                    # so recurring titles ("Weekly Roundup") don't permanently
+                    # block future editions.
+                    if title in recent_titles:
+                        continue
+
                     summary = clean_summary(entry.get("summary", ""))
-                    published = normalize_published_date(entry)
+                    published = _normalize_published_date(entry)
 
                     # Age guard: skip articles older than 90 days to prevent
                     # historical backlog floods when a new feed is added.
@@ -554,6 +626,7 @@ def fetch_all_feeds(db_path, tier=None):
                             "UPDATE stats SET value = value + 1 WHERE key = 'total_processed'"
                         )
                         new_count += 1
+                        recent_titles.add(title)
 
                 conn.commit()
                 total_new += new_count

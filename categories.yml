@@ -220,9 +220,16 @@ Identity & Access:
   - evilginx
   - aitm
   - adversary-in-the-middle
+  # Session hijacking / token theft (2026 dominant vector — Aegis audit)
+  - session hijacking
+  - cookie theft
+  - account takeover
+  - ato
+  # Non-human identity (API keys, machine creds — SpyCloud 2026 report)
+  - non-human identity
+  - machine identity
   # Data / metadata exposure
   - metadata leak
-  - data leak
   - data exposure
   - leaks user
 
@@ -267,6 +274,11 @@ Ransomware:
   - interlock
   - extortion group
   - extortion gang
+  # 2026 Q1 emerging groups (Aegis audit April 2026)
+  - the gentlemen
+  - nightspire
+  - devman
+  - dragonforce
 
 Vulnerability/CVE:
   - cve
@@ -402,6 +414,12 @@ Nation State/APT:
   - gopherwhisper
   - uat-4356
   - unc6692
+  # 2026 active aliases (Aegis audit April 2026)
+  - operator panda
+  - redmike
+  - ghostemperor
+  - unc5807
+  - apt36
   # Espionage framing
   - cyber espionage
   - espionage campaign
@@ -528,6 +546,12 @@ Malware/Infostealer:
   - firestarter
   - snow malware
   - caller-as-a-service
+  # macOS infostealers (Microsoft Defender Experts 2026 — Aegis audit)
+  - atomic macos stealer
+  - amos
+  - digitsstealer
+  - macsync
+  - zsteal
 
 AI Security:
   - ai guardrail
@@ -596,6 +620,11 @@ AI Security:
   - ai agent vulnerability
   - slopsquatting
   - vibe coding
+  # Agentic AI attack surface (OWASP 2026 — Aegis audit)
+  - memory poisoning
+  - tool misuse
+  - chatgpt credentials
+  - owasp agentic
 
 Phishing & Social Engineering:
   - phishing campaign
@@ -702,6 +731,11 @@ Supply Chain:
   # Package-specific names that signal supply chain incidents
   - bitwarden cli
   - axios npm
+  # Docker Hub / container supply chain (Aegis audit April 2026)
+  - docker hub
+  - docker image
+  - poisoned container
+  - teampcp
 
 Mobile Security:
   # Android

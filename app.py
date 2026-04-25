@@ -19,6 +19,11 @@ TOP_STORY_REQUIRED = ("title", "summary", "url", "source_name", "published_at")
 DAILY_BRIEFING_PATH = os.path.join(os.path.dirname(__file__), "config", "daily_briefing.yml")
 DAILY_BRIEFING_REQUIRED = ("actions", "generated_at")
 
+# Hard ceiling on article count — prevents unbounded DB growth even if
+# the 30-day rolling prune can't keep up (e.g., feed floods, new source
+# onboarding bursts). Oldest articles beyond this cap are deleted.
+MAX_ARTICLES = 2000
+
 app = Flask(__name__)
 
 # Use Railway's persistent volume when available, otherwise local
@@ -932,7 +937,14 @@ def _prune(db_path):
 
 
 def _prune_old_articles(db_path):
-    """Daily rolling prune — delete articles older than 30 days.
+    """Daily rolling prune — delete articles older than 30 days, then
+    enforce a hard ceiling (MAX_ARTICLES) on total article count.
+
+    Two layers:
+      1. Age-based: remove anything older than 30 days.
+      2. Count-based: if total still exceeds MAX_ARTICLES, delete the
+         oldest surplus so the DB never grows unbounded.
+
     Keeps the DB lean and category counts honest. The ingestion-side
     90-day guard in scheduler.py is a separate safety net against
     historical backlog floods on first ingest of a new feed.
@@ -946,6 +958,23 @@ def _prune_old_articles(db_path):
             )
             if result.rowcount:
                 print(f"[prune-old] removed {result.rowcount} articles older than 30 days")
+
+            # Hard ceiling — safety net against feed floods
+            total = conn.execute("SELECT COUNT(*) FROM articles").fetchone()[0]
+            if total > MAX_ARTICLES:
+                surplus = total - MAX_ARTICLES
+                conn.execute(
+                    """DELETE FROM articles WHERE id IN (
+                        SELECT id FROM articles
+                        ORDER BY COALESCE(published_date, created_at) ASC
+                        LIMIT ?
+                    )""",
+                    (surplus,),
+                )
+                print(
+                    f"[prune-cap] removed {surplus} oldest articles "
+                    f"(was {total}, cap {MAX_ARTICLES})"
+                )
     except Exception as e:
         print(f"[prune-old] failed: {type(e).__name__}: {e}")
 
