@@ -30,7 +30,11 @@ OT/ICS:
   - hmi
   - distributed control
   - energy sector
-  - pipeline
+  - pipeline attack
+  - pipeline security
+  - gas pipeline
+  - oil pipeline
+  - colonial pipeline
   - manufacturing plant
   - industrial cybersecurity
   - safety instrumented system
@@ -674,7 +678,10 @@ Supply Chain:
   - supply chain compromise
   - software supply chain
   - npm package
+  - npm vulnerability
+  - npmjs
   - pypi package
+  - pypi vulnerability
   - malicious package
   - open source attack
   - dependency confusion
@@ -892,6 +899,9 @@ Industry/Policy:
   - treasury sanctions
   - us sanctions
   # Privacy & surveillance legislation
+  - section 702
+  - fisa
+  - reauthorization
   - privacy bill
   - privacy legislation
   - national privacy
