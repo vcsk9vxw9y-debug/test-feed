@@ -180,6 +180,13 @@ def init_db():
         #       whatsapp scam (Consumer Awareness)
         #   v8: data wiper (Malware), propaganda/bot farm (Nation State),
         #       cyber resilience (Industry/Policy)
+        #   v9: npm standalone (Supply Chain), autonomous agent/multi-agent/
+        #       securing ai (AI Security), uac bypass/uac/elevate privileges
+        #       (Vuln/CVE), account compromise (Identity), fake apps/fake
+        #       wallet/seed phrase (Mobile), operational resilience/age
+        #       verification/threat intelligence report/autonomous warfare/
+        #       incident response (Industry/Policy), social engineering
+        #       standalone (Phishing)
         for migration_name in (
             "reclassify_uncategorized_v1",
             "reclassify_uncategorized_v2",
@@ -189,6 +196,7 @@ def init_db():
             "reclassify_uncategorized_v6",
             "reclassify_uncategorized_v7",
             "reclassify_uncategorized_v8",
+            "reclassify_uncategorized_v9",
         ):
             _run_reclassify_migration(conn, migration_name)
 

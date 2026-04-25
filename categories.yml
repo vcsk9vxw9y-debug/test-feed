@@ -236,6 +236,8 @@ Identity & Access:
   - metadata leak
   - data exposure
   - leaks user
+  # Account-level compromise framing (Aegis maintenance April 2026)
+  - account compromise
 
 Ransomware:
   - ransomware
@@ -325,6 +327,10 @@ Vulnerability/CVE:
   - maximum severity flaw
   - maximum-severity flaw
   - near-maximum severity
+  # Windows security bypass research (Aegis maintenance April 2026)
+  - uac bypass
+  - uac
+  - elevate privileges
   # Exploitation status language (CERT Vuln Notes, CISA KEV references)
   - kev
   - actively exploited
@@ -629,6 +635,11 @@ AI Security:
   - tool misuse
   - chatgpt credentials
   - owasp agentic
+  # Autonomous / multi-agent AI (Aegis maintenance April 2026)
+  - autonomous agent
+  - autonomous agents
+  - multi-agent
+  - securing ai
 
 Phishing & Social Engineering:
   - phishing campaign
@@ -672,6 +683,8 @@ Phishing & Social Engineering:
   - consent phishing
   - browser-in-the-browser
   - bitb
+  # Standalone — safe in security feeds (Aegis maintenance April 2026)
+  - social engineering
 
 Supply Chain:
   - supply chain attack
@@ -743,6 +756,8 @@ Supply Chain:
   - docker image
   - poisoned container
   - teampcp
+  # Standalone ecosystem names — always supply-chain context in security feeds
+  - npm
 
 Mobile Security:
   # Android
@@ -794,6 +809,13 @@ Mobile Security:
   # Compound zero-day terms
   - ios zero-day
   - android zero-day
+  # Plural fix + crypto-targeting apps (Aegis maintenance April 2026)
+  - fake apps
+  - fake wallet
+  - fake wallets
+  - seed phrase
+  - seed phrases
+  - recovery phrases
 
 Industry/Policy:
   # Regulators & government bodies
@@ -931,6 +953,13 @@ Industry/Policy:
   - scam compounds
   - scam center
   - scam centres
+  # Operational resilience / autonomous weapons policy (Aegis maintenance April 2026)
+  - operational resilience
+  - age verification
+  - threat intelligence report
+  - autonomous warfare
+  - autonomous weapons
+  - incident response
 
 Consumer Awareness:
   # Personal / family safety framings
