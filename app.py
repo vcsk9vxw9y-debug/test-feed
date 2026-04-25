@@ -18,6 +18,8 @@ TOP_STORY_PATH = os.path.join(os.path.dirname(__file__), "config", "top_story.ym
 TOP_STORY_REQUIRED = ("title", "summary", "url", "source_name", "published_at")
 DAILY_BRIEFING_PATH = os.path.join(os.path.dirname(__file__), "config", "daily_briefing.yml")
 DAILY_BRIEFING_REQUIRED = ("actions", "generated_at")
+THREAT_CONTEXT_PATH = os.path.join(os.path.dirname(__file__), "config", "threat_context.yml")
+THREAT_CONTEXT_REQUIRED = ("generated_at", "landscape_summary")
 
 # Hard ceiling on article count — prevents unbounded DB growth even if
 # the 30-day rolling prune can't keep up (e.g., feed floods, new source
@@ -302,7 +304,7 @@ def parse_since(value):
 
 
 # ---- CORS allowlist (O(1) lookup, allocated once) ----
-_CORS_PATHS = frozenset(("/api/articles", "/api/top-story", "/api/briefing", "/api/categories", "/feed.xml"))
+_CORS_PATHS = frozenset(("/api/articles", "/api/top-story", "/api/briefing", "/api/categories", "/api/threat-context", "/feed.xml"))
 
 # ---- Security Headers ----
 @app.after_request
@@ -578,6 +580,93 @@ def get_daily_briefing():
     return resp
 
 
+def _load_threat_context():
+    """Read config/threat_context.yml, validate, and return the payload.
+
+    Fail-closed: any failure mode — missing file, bad YAML, missing required
+    field — returns {"active": False}. The endpoint is consumed by Aegis
+    (CISO agent) for situational awareness; a missing context is safe.
+
+    Strings are cast explicitly to prevent YAML-injection of non-string
+    types into the JSON response.
+    """
+    try:
+        if os.path.getsize(THREAT_CONTEXT_PATH) > 50_000:  # 50 KB sanity cap
+            return {"active": False}
+        with open(THREAT_CONTEXT_PATH, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+    except (OSError, yaml.YAMLError):
+        return {"active": False}
+
+    if not isinstance(data, dict):
+        return {"active": False}
+
+    missing = [k for k in THREAT_CONTEXT_REQUIRED if not data.get(k)]
+    if missing:
+        return {"active": False}
+
+    # Sanitize list-of-dict sections: cast every value to str/int/bool.
+    def _sanitize_list(raw, allowed_keys):
+        """Return a list of dicts with only allowed_keys, values cast to str."""
+        if not isinstance(raw, list):
+            return []
+        out = []
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            entry = {}
+            for k in allowed_keys:
+                v = item.get(k)
+                if v is None:
+                    continue
+                if isinstance(v, bool):
+                    entry[k] = v
+                elif isinstance(v, (int, float)):
+                    entry[k] = v
+                else:
+                    entry[k] = str(v)[:500]
+            if entry:
+                out.append(entry)
+        return out
+
+    stack_cves = _sanitize_list(
+        data.get("stack_cves"),
+        ("cve_id", "package", "affected_versions", "severity", "status",
+         "summary", "source_url", "our_version", "action"),
+    )
+    trending = _sanitize_list(
+        data.get("trending_techniques"),
+        ("technique", "mitre_id", "relevance", "context"),
+    )
+    campaigns = _sanitize_list(
+        data.get("active_campaigns"),
+        ("name", "actor", "targets", "relevance_to_us", "summary"),
+    )
+    alerts = _sanitize_list(
+        data.get("stack_alerts"),
+        ("alert", "severity", "detail"),
+    )
+
+    return {
+        "active": True,
+        "generated_at": str(data["generated_at"]),
+        "expires_at": str(data.get("expires_at", "")),
+        "stack_cves": stack_cves[:20],
+        "trending_techniques": trending[:10],
+        "active_campaigns": campaigns[:10],
+        "stack_alerts": alerts[:10],
+        "landscape_summary": str(data["landscape_summary"]).strip()[:1000],
+    }
+
+
+@app.route("/api/threat-context")
+@limiter.limit("60 per minute")
+def get_threat_context():
+    resp = jsonify(_load_threat_context())
+    resp.headers["Cache-Control"] = "public, max-age=600"
+    return resp
+
+
 # NOTE: /api/stats (exposing cumulative total_processed) was removed in PR 3.
 # See SECURITY.md — "Count disclosure policy". The `stats` table is kept
 # for operator-side inspection via the SQLite CLI, but no public endpoint
@@ -631,7 +720,7 @@ Sitemap: https://threat-feed.up.railway.app/sitemap.xml
 #   /llms.txt         — site overview for LLMs
 #   /llms-full.txt    — full API reference for LLMs and agents
 #   /feed.xml         — Atom 1.0 feed of aggregated headlines
-#   /api/articles, /api/top-story, /api/categories — JSON
+#   /api/articles, /api/top-story, /api/categories, /api/threat-context — JSON
 #   /.well-known/security.txt — responsible disclosure
 """
 
@@ -659,6 +748,9 @@ The front-end is a single-page client that reads three JSON endpoints.
 - `/api/top-story` — JSON object for the operator-curated lead article.
   Returns `{"active": false}` when no lead is pinned.
 - `/api/categories` — JSON array of category names with counts.
+- `/api/threat-context` — JSON object with rolling threat landscape context
+  (active CVEs, trending techniques, campaigns, stack alerts). Returns
+  `{"active": false}` when no context file is present.
 
 ## Polling
 
@@ -668,6 +760,7 @@ Rate limits are per-IP. Well-behaved agents should stay well under these:
 - `/api/articles` — 30 requests per minute
 - `/api/top-story` — 60 requests per minute
 - `/api/categories` — 60 requests per minute
+- `/api/threat-context` — 60 requests per minute
 - `/robots.txt`, `/llms.txt`, `/llms-full.txt` — 60 requests per minute
 
 Recommended polling interval: once every 15–30 minutes for `/feed.xml`
@@ -751,6 +844,19 @@ Response shape (JSON object):
   When inactive:
     {"active": false}
 
+### GET /api/threat-context
+
+Rolling threat landscape context for agent consumption.
+
+Response shape (JSON object):
+  When active:
+    {"active": true, "generated_at": "...", "expires_at": "...",
+     "stack_cves": [...], "trending_techniques": [...],
+     "active_campaigns": [...], "stack_alerts": [...],
+     "landscape_summary": "..."}
+  When inactive:
+    {"active": false}
+
 ### GET /feed.xml
 
 Atom 1.0 feed of the 50 most-recent articles.
@@ -773,8 +879,9 @@ Consumer Awareness, Mobile Security, Uncategorized.
 Rate limits are per-IP:
   /feed.xml        — 30 req/min
   /api/articles    — 30 req/min
-  /api/top-story   — 60 req/min
-  /api/categories  — 60 req/min
+  /api/top-story      — 60 req/min
+  /api/categories     — 60 req/min
+  /api/threat-context — 60 req/min
 
 Recommended: poll /feed.xml or /api/articles every 15-30 minutes.
 
