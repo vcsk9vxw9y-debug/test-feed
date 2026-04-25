@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-04-25T12:00:00Z"
+generated_at: "2026-04-25T13:00:00Z"
 actions:
   - severity: "critical"
-    title: "CISA emergency directive — FIRESTARTER backdoor on Cisco ASA/FTD"
-    description: "Joint CISA/NCSC advisory issued April 24: custom ELF backdoor persists through firmware updates and reboots on Cisco Firepower and ASA devices. Only a hard power cycle removes it. Federal agency compromised since September 2025; wider campaign suspected against government and CNI."
-    action: "Audit all Cisco ASA/FTD/Firepower devices for FIRESTARTER IOCs, submit memory snapshots per CISA directive, hard power-cycle confirmed-infected devices"
+    title: "CISA ED 25-03 — FIRESTARTER backdoor on Cisco ASA/FTD"
+    description: "Custom ELF backdoor persists through firmware updates on Cisco ASA/FTD/Firepower devices. Federal agency compromised since September 2025. Only physical power cycle removes it."
+    action: "Audit all Cisco ASA/FTD/Firepower for FIRESTARTER IOCs per CISA MAR AR26-113A, apply latest Cisco patches, schedule hard power cycles for infected devices by April 30"
   - severity: "critical"
-    title: "Bitwarden CLI supply chain — downstream package audits ongoing"
-    description: "Self-propagating worm from April 22 compromise may have injected malicious code into victims' own npm packages. Downstream impact still being assessed across the ecosystem."
-    action: "Audit for @bitwarden/cli@2026.4.0, check your own npm packages for unauthorized version bumps, rotate all exposed credentials"
-  - severity: "critical"
+    title: "Bitwarden CLI supply chain — downstream audits ongoing"
+    description: "Self-propagating Shai-Hulud worm from April 22 compromise injected malicious code into victims' own npm packages. 90-minute exposure window but downstream cascade still being assessed."
+    action: "Audit for @bitwarden/cli@2026.4.0, check your own npm packages for unauthorized version bumps, rotate all GitHub/npm tokens, SSH keys, and cloud credentials on affected systems"
+  - severity: "high"
     title: "CISA adds 4 KEV entries — Samsung MagicINFO, SimpleHelp, D-Link"
-    description: "Four actively exploited vulnerabilities added April 24: CVE-2024-7399 (Samsung MagicINFO path traversal), CVE-2024-57726 and CVE-2024-57728 (SimpleHelp authz bypass + path traversal), CVE-2025-29635 (D-Link DIR-823X command injection)."
+    description: "Four actively exploited vulnerabilities added April 24: CVE-2024-7399 (Samsung MagicINFO path traversal), CVE-2024-57726/57728 (SimpleHelp privilege escalation + path traversal), CVE-2025-29635 (D-Link command injection)."
     action: "Patch Samsung MagicINFO 9 Server, SimpleHelp, and D-Link DIR-823X immediately or isolate from network"
   - severity: "high"
-    title: "ADT breach — ShinyHunters sets April 27 deadline"
-    description: "ShinyHunters claims 10M+ records from ADT via vishing attack on employee Okta SSO. PII includes names, phones, addresses, partial SSNs. Pay-or-leak deadline is Sunday."
-    action: "Monitor for leaked credentials if your org uses ADT services, enforce phishing-resistant MFA on all SSO accounts"
+    title: "ADT breach — ShinyHunters sets April 27 leak deadline"
+    description: "ShinyHunters claims 10M+ records from ADT via vishing attack on employee Okta SSO. PII includes names, phones, addresses, partial SSNs. Leak deadline is Sunday April 27."
+    action: "Monitor for leaked credentials if your org uses ADT services, enforce phishing-resistant MFA on all SSO accounts, brief employees on vishing threat"
   - severity: "high"
-    title: "Lotus Wiper targets Venezuelan energy infrastructure"
-    description: "Destructive wiper malware deployed against Venezuelan energy systems. Novel ICS/OT threat with potential for adaptation to other critical infrastructure targets."
-    action: "Review OT/ICS segmentation and backup procedures, monitor for Lotus Wiper IOCs if operating in energy sector"
+    title: "Microsoft SharePoint zero-day CVE-2026-32201 actively exploited"
+    description: "Spoofing vulnerability in SharePoint Server actively exploited in the wild. Part of April 2026 Patch Tuesday with 168 fixes including 8 critical-rated flaws."
+    action: "Apply April 2026 SharePoint cumulative updates immediately, prioritize CVE-2026-32201 and wormable TCP/IP flaw CVE-2026-33827"
 stats:
   - label: "articles today"
-    value: 72
+    value: 68
     hot: false
-  - label: "npm supply chain"
+  - label: "CISA directives active"
+    value: 2
+    hot: true
+  - label: "actively exploited CVEs"
+    value: 7
+    hot: true
+  - label: "supply chain incidents"
     value: 3
     hot: true
-  - label: "CISA KEV additions"
-    value: 4
-    hot: true
-  - label: "APT campaigns"
-    value: 5
-    hot: false
   - label: "ransomware victims"
-    value: 9
+    value: 11
     hot: false
