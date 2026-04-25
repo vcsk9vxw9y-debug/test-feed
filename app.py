@@ -831,6 +831,20 @@ def llms_full_txt():
     return response
 
 
+@app.route("/license")
+@limiter.limit("60 per minute")
+def license_page():
+    license_path = os.path.join(os.path.dirname(__file__), "LICENSE")
+    try:
+        with open(license_path, "r", encoding="utf-8") as f:
+            text = f.read()
+    except FileNotFoundError:
+        text = "License file not found."
+    response = app.response_class(text, mimetype="text/plain")
+    response.headers["Cache-Control"] = "public, max-age=86400"
+    return response
+
+
 @app.route("/.well-known/security.txt")
 @limiter.limit("60 per minute")
 def security_txt():

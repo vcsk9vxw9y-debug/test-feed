@@ -940,6 +940,9 @@ mark {
 .aegis .n { color: var(--lime); }
 .aegis .t { color: var(--type-2); }
 .aegis .r { color: var(--type-4); }
+.license-row { margin-top: 12px; color: var(--type-4); }
+.license-link { color: var(--type-3); text-decoration: none; }
+.license-link:hover { color: var(--lime); }
 
 /* ========================= MOBILE ========================= */
 @media (max-width: 720px) {

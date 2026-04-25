@@ -91,4 +91,4 @@ Pull requests welcome. The easiest contribution is adding keywords to `categorie
 
 ## License
 
-MIT
+Free to use — not for enterprise. See [LICENSE](LICENSE) for full terms.
