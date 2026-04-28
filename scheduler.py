@@ -12,6 +12,7 @@ import bleach
 import feedparser
 import requests
 import yaml
+from dateutil import parser as dateutil_parser
 
 from classifier import classify_article
 
@@ -83,8 +84,10 @@ def _normalize_published_date(entry):
     ``feedparser`` normalizes them into a ``published_parsed`` struct_time
     expressed in UTC — we use ``calendar.timegm`` (UTC-aware) rather than
     ``time.mktime`` (local-time-aware) to avoid a TZ-offset shift on the
-    host. Falls back to ``updated_parsed`` and finally to "now" if nothing
-    usable is provided.
+    host. Falls back to ``updated_parsed``, then tries ``dateutil.parser``
+    on the raw ``published``/``updated`` strings for feeds whose date
+    format feedparser can't handle (e.g. CrowdStrike's non-standard
+    ``"Apr 27, 2026 00:00:00-0700"``). Last resort is "now".
     """
     for key in ("published_parsed", "updated_parsed"):
         parsed = entry.get(key)
@@ -95,6 +98,26 @@ def _normalize_published_date(entry):
             return dt.isoformat()
         except (TypeError, ValueError, OverflowError):
             continue
+
+    # Fallback: feedparser couldn't parse the date struct (e.g. CrowdStrike's
+    # non-standard "Apr 27, 2026 00:00:00-0700" format). Try parsing the raw
+    # published/updated string with dateutil before giving up.
+    for key in ("published", "updated"):
+        raw = entry.get(key)
+        if not raw or not isinstance(raw, str) or len(raw) > 64:
+            continue
+        try:
+            dt = dateutil_parser.parse(raw)
+            # Normalize to UTC; if naive, assume UTC (fail-safe — better
+            # than stamping with "now" which guarantees wrong ordering).
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            else:
+                dt = dt.astimezone(timezone.utc)
+            return dt.isoformat()
+        except (ValueError, OverflowError):
+            continue
+
     return datetime.now(timezone.utc).isoformat()
 
 # FEEDS is the committed trust anchor for the Confidence signal.
