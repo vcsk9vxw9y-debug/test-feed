@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-04-28T02:50:00Z"
+generated_at: "2026-04-29T03:15:00Z"
 actions:
   - severity: "critical"
-    title: "STARDUST CHOLLIMA compromises Axios npm package"
-    description: "CrowdStrike confirms DPRK-linked STARDUST CHOLLIMA likely compromised the Axios npm package — one of the most downloaded HTTP client libraries in the JavaScript ecosystem."
-    action: "Audit all projects for Axios dependency immediately, pin to verified clean version, scan CI/CD artifacts for WAVESHAPER backdoor indicators, block auto-updates until CrowdStrike publishes full IOC set"
+    title: "CVE-2026-32202 — Windows Shell actively exploited"
+    description: "Microsoft revised its advisory to confirm active in-the-wild exploitation of a Windows Shell spoofing flaw (CVSS 4.3) that exposes sensitive information."
+    action: "Verify April Patch Tuesday updates are fully deployed, hunt for exploitation indicators on Windows endpoints, escalate any unpatched systems to emergency remediation"
   - severity: "critical"
-    title: "TeamPCP campaign resurges — 3 concurrent supply chain compromises"
-    description: "SANS ISC reports the TeamPCP supply chain campaign ended its 26-day pause with simultaneous compromises of Checkmarx KICS, Bitwarden CLI cascade, and xinference PyPI package. CanisterSprawl npm worm also identified."
-    action: "Audit dependencies for Checkmarx KICS, Bitwarden CLI, and xinference packages, run npm/pip audit across all repos, hunt for CanisterSprawl worm indicators in node_modules"
+    title: "CVE-2026-25874 — Hugging Face LeRobot RCE (CVSS 9.3)"
+    description: "Critical untrusted deserialization flaw in HuggingFace LeRobot (24k GitHub stars) allows unauthenticated remote code execution. No patch available yet."
+    action: "Audit any ML pipelines using LeRobot, isolate or remove the dependency until a patched version ships, block untrusted model inputs at network boundary"
   - severity: "high"
-    title: "Medtronic breach — hackers claim 9 million records"
-    description: "Medical device giant Medtronic confirmed a network breach with unauthorized access to corporate IT systems. Threat actors claim exfiltration of 9 million records."
-    action: "If you use Medtronic devices or systems, contact your Medtronic rep for breach scope details, monitor for credential exposure related to Medtronic integrations, review healthcare supply chain access controls"
+    title: "ShinyHunters campaign — Medtronic 9M records, Vimeo threatened"
+    description: "ShinyHunters confirmed breach of Medtronic (9M patient/employee records) and issued a pay-or-leak ultimatum to Vimeo via compromised Snowflake/Anodot data. Deadline 30 Apr."
+    action: "Check for credential exposure tied to Medtronic or Vimeo integrations, audit Snowflake and Anodot access tokens, rotate any shared credentials with affected vendors"
   - severity: "high"
-    title: "Incomplete Windows patch enables APT28 zero-click attacks"
-    description: "An incomplete Microsoft patch has reopened a vulnerability now being actively exploited by Russia-linked APT28 against Ukraine and EU targets in zero-click attacks."
-    action: "Apply all April Patch Tuesday updates, verify the specific incomplete patch fix is deployed, hunt for APT28 IOCs in environments with EU or Ukraine-facing operations"
+    title: "Scattered Spider arrest — extradition from Finland"
+    description: "Alleged Scattered Spider member 'Bouquet' arrested in Finland; US seeks extradition. Group remains active despite law enforcement pressure."
+    action: "Review defenses against Scattered Spider TTPs — SIM-swap, help-desk social engineering, Okta abuse — and ensure MFA is phishing-resistant across all identity providers"
   - severity: "high"
-    title: "OpenSSH root shell flaw — CVE lurked 15 years"
-    description: "A code reuse flaw in OpenSSH allows comma characters in certificate principals to be interpreted as list separators, enabling full root shell access. The vulnerability existed undetected for 15 years."
-    action: "Upgrade OpenSSH to the latest patched version immediately, audit certificate-based authentication configurations for principal injection, review SSH access logs for anomalous principal usage"
+    title: "PhantomRPC privilege escalation — no patch available"
+    description: "A fake RPC server technique allows impersonation of target services to escalate privileges to SYSTEM on Windows. No Microsoft patch exists."
+    action: "Monitor for anomalous RPC server registrations, restrict RPC endpoint access via firewall rules, hunt for unsigned or unexpected RPC services in your environment"
 stats:
   - label: "articles today"
-    value: 43
+    value: 31
     hot: false
-  - label: "active supply chain attacks"
-    value: 4
-    hot: true
-  - label: "Qilin victims posted"
-    value: 6
-    hot: true
-  - label: "days to FIRESTARTER deadline"
+  - label: "shinyhunters victims"
     value: 2
     hot: true
+  - label: "unpatched critical cves"
+    value: 2
+    hot: true
+  - label: "nation-state stories"
+    value: 4
+    hot: false
   - label: "tier-1 sources reporting"
-    value: 5
+    value: 4
     hot: false
