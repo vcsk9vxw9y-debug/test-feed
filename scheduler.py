@@ -409,6 +409,12 @@ FEEDS = [
     },
     # --- Dark Web Intel & Breach Tracking ---
     {
+        "url": "https://feeds.feedburner.com/HaveIBeenPwnedLatestBreaches",
+        "name": "Have I Been Pwned",
+        "source_tier": 2,
+        "reason": "Troy Hunt's curated breach disclosure feed. Low volume (~2-4/month), high trust, universally cited. Each entry names the breached org, account count, and exposed data types.",
+    },
+    {
         "url": "https://www.ransomware.live/rss.xml",
         "name": "Ransomware.live",
         "filter_uncategorized": True,
