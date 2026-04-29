@@ -189,6 +189,12 @@ def init_db():
         #       verification/threat intelligence report/autonomous warfare/
         #       incident response (Industry/Policy), social engineering
         #       standalone (Phishing)
+        #   v10: glassworm/lofystealer/grabbot/information-stealing (Malware),
+        #        blackfile/ransom demands (Ransomware), foreign adversary
+        #        (Nation State), ai governance/ai workforce/ai deployment
+        #        (AI Security), openvsx/sleeper extension (Supply Chain),
+        #        privacy fine/privacy laws/zero trust/election security
+        #        (Industry/Policy), social media scam (Consumer Awareness)
         for migration_name in (
             "reclassify_uncategorized_v1",
             "reclassify_uncategorized_v2",
@@ -199,6 +205,7 @@ def init_db():
             "reclassify_uncategorized_v7",
             "reclassify_uncategorized_v8",
             "reclassify_uncategorized_v9",
+            "reclassify_uncategorized_v10",
         ):
             _run_reclassify_migration(conn, migration_name)
 

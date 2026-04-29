@@ -285,6 +285,10 @@ Ransomware:
   - nightspire
   - devman
   - dragonforce
+  # 2026 Q2 emerging groups (Aegis maintenance 28-Apr-2026)
+  - blackfile
+  # Plural fix: "ransom demands" wasn't matching "ransom demand"
+  - ransom demands
 
 Vulnerability/CVE:
   - cve
@@ -430,6 +434,9 @@ Nation State/APT:
   - ghostemperor
   - unc5807
   - apt36
+  # Government advisory language (Aegis maintenance 28-Apr-2026)
+  - foreign adversary
+  - foreign adversaries
   # Espionage framing
   - cyber espionage
   - espionage campaign
@@ -562,6 +569,12 @@ Malware/Infostealer:
   - digitsstealer
   - macsync
   - zsteal
+  # Named families / campaigns (Aegis maintenance 28-Apr-2026)
+  - glassworm
+  - lofystealer
+  - grabbot
+  # Framing pattern: "information-stealing campaign/malware"
+  - information-stealing
 
 AI Security:
   - ai guardrail
@@ -640,6 +653,11 @@ AI Security:
   - autonomous agents
   - multi-agent
   - securing ai
+  # AI governance / operations (Aegis maintenance 28-Apr-2026)
+  - ai governance
+  - ai workforce
+  - ai deployment
+  - ai deployments
 
 Phishing & Social Engineering:
   - phishing campaign
@@ -756,6 +774,11 @@ Supply Chain:
   - docker image
   - poisoned container
   - teampcp
+  # IDE extension marketplaces (Aegis maintenance 28-Apr-2026)
+  - openvsx
+  - open vsx
+  - sleeper extension
+  - sleeper extensions
   # Standalone ecosystem names — always supply-chain context in security feeds
   - npm
 
@@ -960,6 +983,12 @@ Industry/Policy:
   - autonomous warfare
   - autonomous weapons
   - incident response
+  # Privacy / architecture / election (Aegis maintenance 28-Apr-2026)
+  - privacy fine
+  - privacy fines
+  - privacy laws
+  - zero trust
+  - election security
 
 Consumer Awareness:
   # Personal / family safety framings
@@ -1035,3 +1064,6 @@ Consumer Awareness:
   - hacked account
   # WhatsApp-specific scams (messenger-borne fraud)
   - whatsapp scam
+  # Social media scam category (Aegis maintenance 28-Apr-2026)
+  - social media scam
+  - social media scams

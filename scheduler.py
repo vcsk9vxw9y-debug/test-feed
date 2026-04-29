@@ -200,12 +200,18 @@ FEEDS = [
         "source_tier": 1,
         "reason": "Top-tier threat intelligence research. Caveat: mixed with commercial marketing — filter_uncategorized drops partnership promos and thought-leadership fluff.",
     },
-    {
-        "url": "https://cloud.google.com/blog/topics/threat-intelligence/rss.xml",
-        "name": "Google Mandiant",
-        "source_tier": 1,
-        "reason": "Industry-leading primary threat intelligence research. Nation-state attribution and campaign tracking.",
-    },
+    # ── Google Mandiant — DISABLED 28-Apr-2026 ──────────────────────
+    # Google retired RSS across cloud.google.com/blog; the endpoint now
+    # returns HTML (Content-Type: text/html) causing SAXParseException
+    # with 0 entries.  Tried /rss.xml, /rss, blog.google/threat-analysis-group,
+    # and /feeds/ paths — all dead or 404.  Re-enable if Google restores
+    # an RSS/Atom endpoint or we build an HTML scraper.
+    # {
+    #     "url": "https://cloud.google.com/blog/topics/threat-intelligence/rss.xml",
+    #     "name": "Google Mandiant",
+    #     "source_tier": 1,
+    #     "reason": "Industry-leading primary threat intelligence research. Nation-state attribution and campaign tracking.",
+    # },
     {
         "url": "http://feeds.feedburner.com/feedburner/Talos",
         "name": "Cisco Talos",
@@ -408,6 +414,12 @@ FEEDS = [
         "reason": "Gold-standard intrusion analysis with full kill-chain TTPs. Peer-reviewed, reproducible, community-trusted.",
     },
     # --- Dark Web Intel & Breach Tracking ---
+    {
+        "url": "https://feeds.feedburner.com/HaveIBeenPwnedLatestBreaches",
+        "name": "Have I Been Pwned",
+        "source_tier": 2,
+        "reason": "Troy Hunt's curated breach disclosure feed. Low volume (~2-4/month), high trust, universally cited. Each entry names the breached org, account count, and exposed data types.",
+    },
     {
         "url": "https://www.ransomware.live/rss.xml",
         "name": "Ransomware.live",
