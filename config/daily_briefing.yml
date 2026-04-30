@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-04-29T12:00:00Z"
+generated_at: "2026-04-30T12:00:00Z"
 actions:
   - severity: "critical"
-    title: "GlassWorm sleeper extensions — 73 new Open VSX implants active"
-    description: "Socket.dev confirmed 6 of 73 sleeper extensions on Open VSX have activated, delivering AdaptixC2 payloads attributed to Tropic Trooper. Extensions impersonate popular dev tools and use manifest dependency fields for silent install."
-    action: "Audit all Open VSX extensions against Socket.dev IOC list, remove the six confirmed malicious extensions, scan developer workstations for AdaptixC2 indicators, review extensionPack/extensionDependencies fields in .vsix manifests"
+    title: "CVE-2026-41940 — cPanel/WHM auth bypass, PoC now public"
+    description: "CRLF injection in cPanel session handling (CVSS 9.8) was exploited as a zero-day for 30+ days before April 28 emergency patch. watchTowr published full PoC today. 70 million domains at risk."
+    action: "Run '/scripts/upcp --force' on all cPanel servers immediately, verify version with '/usr/local/cpanel/cpanel -V', block ports 2083/2087/2095/2096 if patching is delayed, audit WHM logs for unauthorized root sessions"
   - severity: "critical"
-    title: "Microsoft Defender zero-days — RedSun and UnDefend still unpatched"
-    description: "Two of three Defender zero-days (RedSun: SYSTEM privilege escalation, UnDefend: blocks definition updates) remain actively exploited with no patch. BlueHammer was fixed in April Patch Tuesday."
-    action: "Deploy compensating controls for RedSun and UnDefend — restrict local privilege escalation paths, monitor Defender definition update status across fleet, hunt for BlueHammer/RedSun exploitation indicators, escalate to Microsoft TAM if under enterprise agreement"
+    title: "CVE-2026-42208 — LiteLLM pre-auth SQL injection in the wild"
+    description: "Critical SQLi (CVSS 9.3) in BerriAI's LiteLLM proxy exploited within 36 hours of disclosure. Attackers targeting credential tables to steal upstream LLM provider API keys."
+    action: "Patch LiteLLM to version 1.83.7-stable or later, if immediate patching is not possible set 'disable_error_logs: true' in general_settings, rotate any LLM provider API keys managed by exposed LiteLLM instances"
   - severity: "critical"
-    title: "CVE-2026-32202 — Windows Shell zero-day added to CISA KEV"
-    description: "CISA added CVE-2026-32202 (Windows Shell spoofing, linked to APT28/Fancy Bear) to KEV on April 28. Federal deadline May 12. Exploitation triggers unintended network communication exposing sensitive data."
-    action: "Verify April Patch Tuesday updates are fully deployed across all Windows endpoints, hunt for APT28 indicators, escalate unpatched systems to emergency remediation before May 12 deadline"
+    title: "CVE-2026-3854 — GitHub RCE via single git push, 88% of GHES unpatched"
+    description: "Wiz disclosed a critical RCE (CVSS 8.7) in GitHub's git push pipeline affecting GitHub.com (patched) and all GHES prior to 3.19.3. A crafted push option achieves arbitrary command execution on storage nodes with access to all repositories."
+    action: "Upgrade GitHub Enterprise Server to 3.19.3 or later immediately, audit git push logs for anomalous push options, review repository access on self-hosted instances for signs of compromise"
   - severity: "high"
-    title: "Storm-1175 Medusa ransomware — 24-hour breach-to-encryption"
-    description: "Microsoft reports China-linked Storm-1175 deploying Medusa ransomware within 24 hours of initial access, using zero-days in SmarterMail and GoAnywhere MFT. Targeting healthcare, education, and finance in US/UK/AU."
-    action: "Patch SmarterMail and GoAnywhere MFT to latest versions immediately, review perimeter asset exposure, ensure offline backups are current, validate incident response playbook assumes sub-24-hour ransomware timelines"
+    title: "ShinyHunters deadline today — Vimeo pay-or-leak via Anodot/Snowflake"
+    description: "ShinyHunters' April 30 deadline for Vimeo data leak has arrived. Data exfiltrated via compromised Anodot integration accessing Snowflake and BigQuery instances. Medtronic (9M records) appears to have paid."
+    action: "Audit Snowflake and Anodot integration tokens, check for credential exposure tied to Vimeo or Medtronic vendor relationships, rotate shared credentials with affected vendors today"
   - severity: "high"
-    title: "ShinyHunters deadline tomorrow — Medtronic 9M records, Vimeo ultimatum"
-    description: "ShinyHunters set April 30 pay-or-leak deadline for Vimeo data via compromised Snowflake/Anodot access. Medtronic breach confirmed at 9M patient/employee records."
-    action: "Check for credential exposure tied to Medtronic or Vimeo integrations, audit Snowflake and Anodot access tokens, rotate shared credentials with affected vendors before tomorrow's deadline"
+    title: "GlassWorm sleeper extensions — no new activations but 67 dormant"
+    description: "Six of 73 GlassWorm sleeper extensions on Open VSX remain active with AdaptixC2 payloads. No new activations since April 28 but 67 dormant implants still present in the marketplace, attributed to Tropic Trooper."
+    action: "Continue auditing Open VSX extensions against Socket.dev IOC list, scan developer workstations for AdaptixC2 indicators, pin extension versions and disable auto-updates"
 stats:
-  - label: "articles today"
-    value: 28
-    hot: false
-  - label: "unpatched defender 0days"
-    value: 2
+  - label: "domains at risk (cpanel)"
+    value: 70000000
     hot: true
-  - label: "glassworm extensions active"
-    value: 6
+  - label: "ghes instances unpatched"
+    value: 88
+    hot: true
+  - label: "litellm exploit hours"
+    value: 36
     hot: true
   - label: "nation-state campaigns"
     value: 4
     hot: false
   - label: "cisa kev additions (april)"
-    value: 19
-    hot: true
+    value: 23
+    hot: false
