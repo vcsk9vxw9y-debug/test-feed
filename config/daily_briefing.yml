@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-04-30T12:00:00Z"
+generated_at: "2026-05-01T12:00:00Z"
 actions:
   - severity: "critical"
-    title: "CVE-2026-41940 — cPanel/WHM auth bypass, PoC now public"
-    description: "CRLF injection in cPanel session handling (CVSS 9.8) was exploited as a zero-day for 30+ days before April 28 emergency patch. watchTowr published full PoC today. 70 million domains at risk."
-    action: "Run '/scripts/upcp --force' on all cPanel servers immediately, verify version with '/usr/local/cpanel/cpanel -V', block ports 2083/2087/2095/2096 if patching is delayed, audit WHM logs for unauthorized root sessions"
+    title: "CVE-2026-41940 — cPanel/WHM auth bypass, CISA KEV deadline May 3"
+    description: "CRLF injection in cPanel session handling (CVSS 9.8) now in CISA KEV with a May 3 federal deadline. PoC is public, exploitation confirmed since February 23. 70 million domains remain at risk."
+    action: "Run '/scripts/upcp --force' on all cPanel servers immediately, verify patched version with '/usr/local/cpanel/cpanel -V', block ports 2083/2087/2095/2096 if patching is delayed, audit WHM access logs for unauthorized root sessions dating back to February"
   - severity: "critical"
-    title: "CVE-2026-42208 — LiteLLM pre-auth SQL injection in the wild"
-    description: "Critical SQLi (CVSS 9.3) in BerriAI's LiteLLM proxy exploited within 36 hours of disclosure. Attackers targeting credential tables to steal upstream LLM provider API keys."
-    action: "Patch LiteLLM to version 1.83.7-stable or later, if immediate patching is not possible set 'disable_error_logs: true' in general_settings, rotate any LLM provider API keys managed by exposed LiteLLM instances"
-  - severity: "critical"
-    title: "CVE-2026-3854 — GitHub RCE via single git push, 88% of GHES unpatched"
-    description: "Wiz disclosed a critical RCE (CVSS 8.7) in GitHub's git push pipeline affecting GitHub.com (patched) and all GHES prior to 3.19.3. A crafted push option achieves arbitrary command execution on storage nodes with access to all repositories."
-    action: "Upgrade GitHub Enterprise Server to 3.19.3 or later immediately, audit git push logs for anomalous push options, review repository access on self-hosted instances for signs of compromise"
+    title: "CVE-2026-31431 — Copy Fail Linux LPE affects every distro since 2017"
+    description: "Logic bug in the Linux kernel's authencesn crypto template enables a deterministic 4-byte page-cache write. A 732-byte Python script achieves root on all major distros — no race condition required. Disclosed April 29."
+    action: "Apply kernel patches from your distribution vendor immediately (Ubuntu, RHEL, SUSE, Amazon Linux all have fixes available), prioritize any internet-facing Linux hosts where chaining with a web RCE is possible, monitor for local exploitation attempts"
   - severity: "high"
-    title: "ShinyHunters deadline today — Vimeo pay-or-leak via Anodot/Snowflake"
-    description: "ShinyHunters' April 30 deadline for Vimeo data leak has arrived. Data exfiltrated via compromised Anodot integration accessing Snowflake and BigQuery instances. Medtronic (9M records) appears to have paid."
-    action: "Audit Snowflake and Anodot integration tokens, check for credential exposure tied to Vimeo or Medtronic vendor relationships, rotate shared credentials with affected vendors today"
+    title: "PyTorch Lightning supply chain — malicious versions 2.6.2/2.6.3 on PyPI"
+    description: "Attacker published two trojanized versions of the 'lightning' PyPI package on April 30, harvesting SSH keys, cloud credentials, GitHub/npm tokens, and crypto wallets. Linked to the Shai-Hulud campaign."
+    action: "Pin lightning to version 2.6.1 or earlier, audit pip install logs for versions 2.6.2 or 2.6.3, rotate SSH keys and cloud credentials on any machine that installed the malicious versions, scan for hidden _runtime directories in the lightning package"
   - severity: "high"
-    title: "GlassWorm sleeper extensions — no new activations but 67 dormant"
-    description: "Six of 73 GlassWorm sleeper extensions on Open VSX remain active with AdaptixC2 payloads. No new activations since April 28 but 67 dormant implants still present in the marketplace, attributed to Tropic Trooper."
-    action: "Continue auditing Open VSX extensions against Socket.dev IOC list, scan developer workstations for AdaptixC2 indicators, pin extension versions and disable auto-updates"
+    title: "CVE-2026-3854 — GitHub RCE via git push, 88% of GHES still unpatched"
+    description: "Wiz-disclosed RCE (CVSS 8.7) in GitHub's git push pipeline. GitHub.com is patched but the vast majority of GitHub Enterprise Server instances remain vulnerable."
+    action: "Upgrade GitHub Enterprise Server to 3.19.3 or later, audit git push logs for anomalous push options, review repository access on self-hosted instances for signs of compromise"
+  - severity: "high"
+    title: "CVE-2026-32202 — Windows Shell flaw added to CISA KEV"
+    description: "Incomplete fix for CVE-2026-21510 created a new Windows Shell vulnerability now actively exploited. CISA set a May 12 federal remediation deadline."
+    action: "Apply the latest Windows cumulative update, prioritize systems exposed to untrusted users, monitor for exploitation of .lnk or shell-related attack vectors"
 stats:
   - label: "domains at risk (cpanel)"
     value: 70000000
     hot: true
-  - label: "ghes instances unpatched"
+  - label: "linux distros affected (copy fail)"
+    value: 9
+    hot: true
+  - label: "ghes instances unpatched (%)"
     value: 88
     hot: true
-  - label: "litellm exploit hours"
-    value: 36
-    hot: true
-  - label: "nation-state campaigns"
-    value: 4
+  - label: "pypi malicious downloads (est)"
+    value: 14500
     hot: false
   - label: "cisa kev additions (april)"
-    value: 23
+    value: 27
     hot: false
