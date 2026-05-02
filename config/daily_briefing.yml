@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-01T12:00:00Z"
+generated_at: "2026-05-02T12:00:00Z"
 actions:
   - severity: "critical"
-    title: "CVE-2026-41940 — cPanel/WHM auth bypass, CISA KEV deadline May 3"
-    description: "CRLF injection in cPanel session handling (CVSS 9.8) now in CISA KEV with a May 3 federal deadline. PoC is public, exploitation confirmed since February 23. 70 million domains remain at risk."
-    action: "Run '/scripts/upcp --force' on all cPanel servers immediately, verify patched version with '/usr/local/cpanel/cpanel -V', block ports 2083/2087/2095/2096 if patching is delayed, audit WHM access logs for unauthorized root sessions dating back to February"
+    title: "CVE-2026-41940 — cPanel/WHM auth bypass, CISA KEV deadline MAY 3"
+    description: "CISA KEV federal deadline is tomorrow. Shadowserver reports 44K IPs actively exploiting and 650K cPanel instances still exposed. PoC public since April 30, exploitation confirmed since February 23."
+    action: "Run '/scripts/upcp --force' on all cPanel servers NOW, verify with '/usr/local/cpanel/cpanel -V', block ports 2083/2087/2095/2096 if patching is delayed, audit WHM access logs back to February for unauthorized root sessions"
   - severity: "critical"
-    title: "CVE-2026-31431 — Copy Fail Linux LPE affects every distro since 2017"
-    description: "Logic bug in the Linux kernel's authencesn crypto template enables a deterministic 4-byte page-cache write. A 732-byte Python script achieves root on all major distros — no race condition required. Disclosed April 29."
-    action: "Apply kernel patches from your distribution vendor immediately (Ubuntu, RHEL, SUSE, Amazon Linux all have fixes available), prioritize any internet-facing Linux hosts where chaining with a web RCE is possible, monitor for local exploitation attempts"
+    title: "CVE-2026-31431 — Copy Fail Linux LPE, deterministic root on all distros"
+    description: "Logic bug in Linux kernel's authencesn crypto template enables a 4-byte page-cache write achieving root via a 732-byte Python script. No race condition needed. All major distributions since 2017 are affected."
+    action: "Apply kernel patches from your distribution vendor immediately (Ubuntu, RHEL, SUSE, Amazon Linux all have fixes), prioritize internet-facing Linux hosts where chaining with a web RCE is possible, reboot after patching to load the new kernel"
+  - severity: "high"
+    title: "CVE-2026-32201 — SharePoint zero-day RCE, actively exploited"
+    description: "SharePoint remote code execution vulnerability is under active exploitation. Linked to state-sponsored actors. CISA added to KEV with a May 12 federal deadline."
+    action: "Apply the latest SharePoint cumulative update, restrict internet exposure of SharePoint instances, review ULS logs for anomalous activity, enforce least-privilege on SharePoint service accounts"
   - severity: "high"
     title: "PyTorch Lightning supply chain — malicious versions 2.6.2/2.6.3 on PyPI"
-    description: "Attacker published two trojanized versions of the 'lightning' PyPI package on April 30, harvesting SSH keys, cloud credentials, GitHub/npm tokens, and crypto wallets. Linked to the Shai-Hulud campaign."
-    action: "Pin lightning to version 2.6.1 or earlier, audit pip install logs for versions 2.6.2 or 2.6.3, rotate SSH keys and cloud credentials on any machine that installed the malicious versions, scan for hidden _runtime directories in the lightning package"
+    description: "Trojanized 'lightning' PyPI package versions published April 30 harvest SSH keys, cloud credentials, GitHub/npm tokens, and crypto wallets. Part of the Shai-Hulud campaign."
+    action: "Pin lightning to version 2.6.1 or earlier, audit pip install logs for versions 2.6.2 or 2.6.3, rotate SSH keys and cloud credentials on affected machines, scan for hidden _runtime directories in the lightning package"
   - severity: "high"
-    title: "CVE-2026-3854 — GitHub RCE via git push, 88% of GHES still unpatched"
-    description: "Wiz-disclosed RCE (CVSS 8.7) in GitHub's git push pipeline. GitHub.com is patched but the vast majority of GitHub Enterprise Server instances remain vulnerable."
-    action: "Upgrade GitHub Enterprise Server to 3.19.3 or later, audit git push logs for anomalous push options, review repository access on self-hosted instances for signs of compromise"
-  - severity: "high"
-    title: "CVE-2026-32202 — Windows Shell flaw added to CISA KEV"
-    description: "Incomplete fix for CVE-2026-21510 created a new Windows Shell vulnerability now actively exploited. CISA set a May 12 federal remediation deadline."
-    action: "Apply the latest Windows cumulative update, prioritize systems exposed to untrusted users, monitor for exploitation of .lnk or shell-related attack vectors"
+    title: "CVE-2026-32202 — Windows Shell flaw, CISA KEV deadline May 12"
+    description: "Incomplete fix for CVE-2026-21510 created a new Windows Shell vulnerability now actively exploited by APT28 and Kimsuky. CISA added to KEV."
+    action: "Apply the latest Windows cumulative update, prioritize systems exposed to untrusted users, monitor for .lnk-based attack vectors, review endpoint telemetry for shell-related exploitation indicators"
 stats:
-  - label: "domains at risk (cpanel)"
-    value: 70000000
+  - label: "cisa kev deadline (days)"
+    value: 1
+    hot: true
+  - label: "cpanel ips attacking"
+    value: 44000
+    hot: true
+  - label: "cpanel instances exposed"
+    value: 650000
     hot: true
   - label: "linux distros affected (copy fail)"
     value: 9
-    hot: true
-  - label: "ghes instances unpatched (%)"
-    value: 88
-    hot: true
+    hot: false
   - label: "pypi malicious downloads (est)"
     value: 14500
-    hot: false
-  - label: "cisa kev additions (april)"
-    value: 27
     hot: false
