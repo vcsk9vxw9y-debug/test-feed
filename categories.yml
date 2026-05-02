@@ -169,6 +169,15 @@ SaaS Breach:
   # DeFi protocol breaches
   - defi hack
   - defi exploit
+  # Source code / repository compromise (Aegis maintenance 02-May-2026)
+  - source code breach
+  - source code repository
+  # Generic incident disclosure language
+  - cyber incident
+  - cybersecurity incident
+  # Breach corpus / underground forums
+  - breached accounts
+  - hacking forum
 
 Identity & Access:
   # Active Directory / Kerberos attacks
@@ -348,6 +357,9 @@ Vulnerability/CVE:
   - use-after-free
   - type confusion
   - integer overflow
+  # Local privilege escalation shorthand (Aegis maintenance 02-May-2026)
+  - lpe
+  - local privilege escalation
   # Exposure / misconfiguration language
   - lack encryption
   - unencrypted
@@ -440,6 +452,8 @@ Nation State/APT:
   # Espionage framing
   - cyber espionage
   - espionage campaign
+  - cyber spy
+  - cyber spies
   # Commercial surveillance vendors (Citizen Lab coverage)
   - nso group
   - predator spyware
@@ -575,6 +589,11 @@ Malware/Infostealer:
   - grabbot
   # Framing pattern: "information-stealing campaign/malware"
   - information-stealing
+  # Standalone "stealer" — in security feeds, always means infostealer malware
+  # (Aegis maintenance 02-May-2026)
+  - stealer
+  # Named families (Aegis maintenance 02-May-2026)
+  - etherrat
 
 AI Security:
   - ai guardrail
@@ -658,6 +677,10 @@ AI Security:
   - ai workforce
   - ai deployment
   - ai deployments
+  # AI companion / chatbot safety (Aegis maintenance 02-May-2026)
+  - ai companion
+  - ai companions
+  - ai regulation
 
 Phishing & Social Engineering:
   - phishing campaign
@@ -781,6 +804,8 @@ Supply Chain:
   - sleeper extensions
   # Standalone ecosystem names — always supply-chain context in security feeds
   - npm
+  # Named supply chain attacks (Aegis maintenance 02-May-2026)
+  - shai-hulud
 
 Mobile Security:
   # Android
@@ -989,6 +1014,12 @@ Industry/Policy:
   - privacy laws
   - zero trust
   - election security
+  # FBI / FCC framing (Aegis maintenance 02-May-2026)
+  - fbi warns
+  - fbi warning
+  - fcc
+  - cargo theft
+  - swatting
 
 Consumer Awareness:
   # Personal / family safety framings
