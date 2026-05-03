@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-02T12:00:00Z"
+generated_at: "2026-05-03T12:00:00Z"
 actions:
   - severity: "critical"
-    title: "CVE-2026-41940 — cPanel/WHM auth bypass, CISA KEV deadline MAY 3"
-    description: "CISA KEV federal deadline is tomorrow. Shadowserver reports 44K IPs actively exploiting and 650K cPanel instances still exposed. PoC public since April 30, exploitation confirmed since February 23."
-    action: "Run '/scripts/upcp --force' on all cPanel servers NOW, verify with '/usr/local/cpanel/cpanel -V', block ports 2083/2087/2095/2096 if patching is delayed, audit WHM access logs back to February for unauthorized root sessions"
+    title: "CVE-2026-41940 — cPanel/WHM auth bypass, CISA KEV deadline is TODAY"
+    description: "CISA KEV federal remediation deadline hits today May 3. Shadowserver reports 44K+ IPs actively exploiting, 650K cPanel instances still exposed, Picus estimates 1.5M affected servers. PoC public, exploitation since February."
+    action: "Run '/scripts/upcp --force' on all cPanel servers immediately, verify with '/usr/local/cpanel/cpanel -V', block ports 2083/2087/2095/2096 if patching is delayed, audit WHM access logs back to February for unauthorized root sessions"
   - severity: "critical"
     title: "CVE-2026-31431 — Copy Fail Linux LPE, deterministic root on all distros"
-    description: "Logic bug in Linux kernel's authencesn crypto template enables a 4-byte page-cache write achieving root via a 732-byte Python script. No race condition needed. All major distributions since 2017 are affected."
+    description: "Linux kernel authencesn crypto template bug enables a 4-byte page-cache write achieving root via 732-byte Python script. No race condition. All major distros since 2017 affected. Microsoft warns of increasing threat actor testing activity."
     action: "Apply kernel patches from your distribution vendor immediately (Ubuntu, RHEL, SUSE, Amazon Linux all have fixes), prioritize internet-facing Linux hosts where chaining with a web RCE is possible, reboot after patching to load the new kernel"
   - severity: "high"
     title: "CVE-2026-32201 — SharePoint zero-day RCE, actively exploited"
-    description: "SharePoint remote code execution vulnerability is under active exploitation. Linked to state-sponsored actors. CISA added to KEV with a May 12 federal deadline."
+    description: "SharePoint remote code execution vulnerability under active exploitation by state-sponsored actors. CISA KEV deadline May 12."
     action: "Apply the latest SharePoint cumulative update, restrict internet exposure of SharePoint instances, review ULS logs for anomalous activity, enforce least-privilege on SharePoint service accounts"
   - severity: "high"
     title: "PyTorch Lightning supply chain — malicious versions 2.6.2/2.6.3 on PyPI"
     description: "Trojanized 'lightning' PyPI package versions published April 30 harvest SSH keys, cloud credentials, GitHub/npm tokens, and crypto wallets. Part of the Shai-Hulud campaign."
     action: "Pin lightning to version 2.6.1 or earlier, audit pip install logs for versions 2.6.2 or 2.6.3, rotate SSH keys and cloud credentials on affected machines, scan for hidden _runtime directories in the lightning package"
   - severity: "high"
-    title: "CVE-2026-32202 — Windows Shell flaw, CISA KEV deadline May 12"
-    description: "Incomplete fix for CVE-2026-21510 created a new Windows Shell vulnerability now actively exploited by APT28 and Kimsuky. CISA added to KEV."
-    action: "Apply the latest Windows cumulative update, prioritize systems exposed to untrusted users, monitor for .lnk-based attack vectors, review endpoint telemetry for shell-related exploitation indicators"
+    title: "3.4M RDP/VNC servers exposed — Forescout research"
+    description: "Forescout found 1.8M RDP and 1.6M VNC servers exposed to the internet, many on end-of-life operating systems. Combined with active exploitation of cPanel and Windows Shell flaws, exposed management interfaces are under sustained pressure."
+    action: "Audit all internet-facing RDP and VNC instances, move behind VPN or zero-trust access, disable RDP/VNC on systems that do not require remote access, enforce NLA for RDP and require strong authentication for VNC"
 stats:
-  - label: "cisa kev deadline (days)"
-    value: 1
+  - label: "cisa kev deadline (cpanel)"
+    value: 0
     hot: true
   - label: "cpanel ips attacking"
     value: 44000
     hot: true
-  - label: "cpanel instances exposed"
-    value: 650000
+  - label: "cpanel servers affected (est)"
+    value: 1500000
     hot: true
-  - label: "linux distros affected (copy fail)"
-    value: 9
-    hot: false
+  - label: "exposed rdp/vnc servers"
+    value: 3400000
+    hot: true
   - label: "pypi malicious downloads (est)"
     value: 14500
     hot: false
