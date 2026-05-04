@@ -2,41 +2,37 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-03T12:00:00Z"
+generated_at: "2026-05-04T12:00:00Z"
 actions:
   - severity: "critical"
-    title: "CVE-2026-41940 — cPanel/WHM auth bypass, CISA KEV deadline is TODAY"
-    description: "CISA KEV federal remediation deadline hits today May 3. Shadowserver reports 44K+ IPs actively exploiting, 650K cPanel instances still exposed, Picus estimates 1.5M affected servers. PoC public, exploitation since February."
-    action: "Run '/scripts/upcp --force' on all cPanel servers immediately, verify with '/usr/local/cpanel/cpanel -V', block ports 2083/2087/2095/2096 if patching is delayed, audit WHM access logs back to February for unauthorized root sessions"
+    title: "CVE-2026-31431 — Copy Fail Linux root exploit, CISA KEV deadline May 15"
+    description: "CISA confirmed active exploitation of this nine-year-old Linux kernel flaw. Attackers chaining it with web/VPN RCE bugs for ransomware deployment. Deterministic root via 732-byte script on every distro since 2017. Confirmed attacks on think tanks, manufacturing, cloud providers."
+    action: "Apply kernel patches from your distro vendor (Ubuntu, RHEL, SUSE, Amazon Linux all have fixes), reboot to load the new kernel, prioritize internet-facing Linux hosts, audit system logs for unauthorized privilege escalation since late April, update container host kernels"
   - severity: "critical"
-    title: "CVE-2026-31431 — Copy Fail Linux LPE, deterministic root on all distros"
-    description: "Linux kernel authencesn crypto template bug enables a 4-byte page-cache write achieving root via 732-byte Python script. No race condition. All major distros since 2017 affected. Microsoft warns of increasing threat actor testing activity."
-    action: "Apply kernel patches from your distribution vendor immediately (Ubuntu, RHEL, SUSE, Amazon Linux all have fixes), prioritize internet-facing Linux hosts where chaining with a web RCE is possible, reboot after patching to load the new kernel"
+    title: "CVE-2026-41940 — cPanel 'Sorry' ransomware wave, KEV deadline passed"
+    description: "CISA KEV deadline passed May 3. The cPanel auth bypass is now being mass-exploited in 'Sorry' ransomware attacks encrypting hosted sites. 44K+ IPs still scanning, 650K instances exposed, 1.5M potentially affected. Unpatched servers should be assumed compromised."
+    action: "Run '/scripts/upcp --force' immediately if not already patched, verify with '/usr/local/cpanel/cpanel -V', block ports 2083/2087/2095/2096, audit WHM access logs back to February 23 for unauthorized root sessions, check for 'Sorry' ransomware indicators"
   - severity: "high"
-    title: "CVE-2026-32201 — SharePoint zero-day RCE, actively exploited"
-    description: "SharePoint remote code execution vulnerability under active exploitation by state-sponsored actors. CISA KEV deadline May 12."
-    action: "Apply the latest SharePoint cumulative update, restrict internet exposure of SharePoint instances, review ULS logs for anomalous activity, enforce least-privilege on SharePoint service accounts"
+    title: "CVE-2026-32202 + CVE-2024-1708 — State-sponsored exploitation of Windows Shell and ScreenConnect"
+    description: "APT28 (Russia) exploiting incomplete Windows Shell patch, Kimsuky (North Korea) deploying ToddlerShark malware via ScreenConnect path traversal. CISA KEV deadline May 12."
+    action: "Apply May cumulative Windows updates, patch ConnectWise ScreenConnect to latest version, hunt for ToddlerShark indicators (scheduled task persistence, registry defense lowering), restrict ScreenConnect server exposure"
   - severity: "high"
-    title: "PyTorch Lightning supply chain — malicious versions 2.6.2/2.6.3 on PyPI"
-    description: "Trojanized 'lightning' PyPI package versions published April 30 harvest SSH keys, cloud credentials, GitHub/npm tokens, and crypto wallets. Part of the Shai-Hulud campaign."
-    action: "Pin lightning to version 2.6.1 or earlier, audit pip install logs for versions 2.6.2 or 2.6.3, rotate SSH keys and cloud credentials on affected machines, scan for hidden _runtime directories in the lightning package"
-  - severity: "high"
-    title: "3.4M RDP/VNC servers exposed — Forescout research"
-    description: "Forescout found 1.8M RDP and 1.6M VNC servers exposed to the internet, many on end-of-life operating systems. Combined with active exploitation of cPanel and Windows Shell flaws, exposed management interfaces are under sustained pressure."
-    action: "Audit all internet-facing RDP and VNC instances, move behind VPN or zero-trust access, disable RDP/VNC on systems that do not require remote access, enforce NLA for RDP and require strong authentication for VNC"
+    title: "PyTorch Lightning supply chain — Shai-Hulud campaign still active"
+    description: "Trojanized 'lightning' PyPI versions 2.6.2/2.6.3 harvest SSH keys, cloud credentials, GitHub/npm tokens. Part of the broader Shai-Hulud supply chain campaign that began with the Bitwarden CLI npm worm."
+    action: "Pin lightning to version 2.6.1 or earlier, audit pip install logs for 2.6.2/2.6.3, rotate SSH keys and cloud credentials on affected machines, scan for hidden _runtime directories, add --require-hashes to pip install"
 stats:
-  - label: "cisa kev deadline (cpanel)"
-    value: 0
+  - label: "days to copy fail kev deadline"
+    value: 11
     hot: true
-  - label: "cpanel ips attacking"
-    value: 44000
+  - label: "linux distros affected (years)"
+    value: 9
     hot: true
-  - label: "cpanel servers affected (est)"
-    value: 1500000
+  - label: "cpanel servers still exposed"
+    value: 650000
     hot: true
-  - label: "exposed rdp/vnc servers"
-    value: 3400000
-    hot: true
+  - label: "state-sponsored kev deadline (days)"
+    value: 8
+    hot: false
   - label: "pypi malicious downloads (est)"
     value: 14500
     hot: false
