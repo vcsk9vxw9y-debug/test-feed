@@ -140,6 +140,10 @@ html { scroll-behavior: smooth; }
     font-weight: 700;
     margin-right: 2px;
 }
+.brand h1 .domain-ai {
+    color: var(--lime);
+    font-weight: 700;
+}
 .brand .strap {
     font-family: var(--mono);
     font-size: 11px;
