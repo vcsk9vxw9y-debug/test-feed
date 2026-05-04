@@ -824,7 +824,7 @@ REDDIT_REMOVED_CATEGORIES = frozenset({
 # Respectful UA — identifies us so Reddit can throttle identifiably if we
 # misbehave, rather than blanket-blocking all of Threat-Feed.
 REDDIT_CHECK_HEADERS = {
-    "User-Agent": "Threat-Feed/1.0 (+https://threat-feed.up.railway.app)",
+    "User-Agent": "Threat-Feed/1.0 (+https://threat-feed.ai)",
     "Accept": "application/json",
 }
 

@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from xml.sax.saxutils import escape as xml_escape
 
 import yaml
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -30,6 +30,21 @@ app = Flask(__name__)
 
 # Use Railway's persistent volume when available, otherwise local
 DB_PATH = "/data/testfeed.db" if os.path.exists("/data") else "./testfeed.db"
+
+# ---- Domain redirect ----
+# 301 redirect from the legacy Railway subdomain to the canonical domain.
+# Preserves path + query string so bookmarks and API consumers land on the
+# right page. The Railway deployment stays alive to serve this redirect.
+OLD_RAILWAY_HOST = "threat-feed.up.railway.app"
+
+
+@app.before_request
+def redirect_old_domain():
+    if request.host == OLD_RAILWAY_HOST:
+        return redirect(
+            f"https://threat-feed.ai{request.full_path}", code=301
+        )
+
 
 # ---- Rate Limiting ----
 # memory:// is correct for single-worker deployments.
@@ -705,7 +720,7 @@ def get_categories():
 _SITE_URL_ENV = os.environ.get("SITE_URL", "").strip()
 if not _SITE_URL_ENV:
     raise RuntimeError(
-        "SITE_URL env var is required (e.g. https://threat-feed.up.railway.app "
+        "SITE_URL env var is required (e.g. https://threat-feed.ai "
         "for prod, http://localhost:5000 for local dev)."
     )
 SITE_URL = _SITE_URL_ENV.rstrip("/")
@@ -721,7 +736,7 @@ _ROBOTS_TXT = """\
 User-agent: *
 Allow: /
 
-Sitemap: https://threat-feed.up.railway.app/sitemap.xml
+Sitemap: https://threat-feed.ai/sitemap.xml
 
 # Machine-readable site description:
 #   /llms.txt         — site overview for LLMs
@@ -909,29 +924,29 @@ _SECURITY_TXT = """\
 Contact: https://github.com/vcsk9vxw9y-debug/test-feed/issues
 Expires: 2027-04-23T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://threat-feed.up.railway.app/.well-known/security.txt
+Canonical: https://threat-feed.ai/.well-known/security.txt
 """
 
 _SITEMAP_XML = """\
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://threat-feed.up.railway.app/</loc>
+    <loc>https://threat-feed.ai/</loc>
     <changefreq>hourly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://threat-feed.up.railway.app/feed.xml</loc>
+    <loc>https://threat-feed.ai/feed.xml</loc>
     <changefreq>hourly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://threat-feed.up.railway.app/llms.txt</loc>
+    <loc>https://threat-feed.ai/llms.txt</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://threat-feed.up.railway.app/llms-full.txt</loc>
+    <loc>https://threat-feed.ai/llms-full.txt</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
