@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
 from xml.sax.saxutils import escape as xml_escape
 
+import json as json_module
 import yaml
 from flask import Flask, jsonify, redirect, render_template, request
 from flask_limiter import Limiter
@@ -446,7 +447,12 @@ def get_articles():
     finally:
         conn.close()
 
-    resp = jsonify([_enrich_with_confidence(dict(row)) for row in rows])
+    articles = [_enrich_with_confidence(dict(row)) for row in rows]
+
+    if _wants_markdown():
+        return _md_response(_articles_to_markdown(articles))
+
+    resp = jsonify(articles)
     resp.headers["Cache-Control"] = "public, max-age=300"
     return resp
 
@@ -506,7 +512,12 @@ def _load_top_story():
 @app.route("/api/top-story")
 @limiter.limit("60 per minute")
 def get_top_story():
-    resp = jsonify(_load_top_story())
+    story = _load_top_story()
+
+    if _wants_markdown():
+        return _md_response(_top_story_to_markdown(story))
+
+    resp = jsonify(story)
     resp.headers["Cache-Control"] = "public, max-age=600"
     return resp
 
@@ -597,7 +608,12 @@ def _load_daily_briefing():
 @app.route("/api/briefing")
 @limiter.limit("60 per minute")
 def get_daily_briefing():
-    resp = jsonify(_load_daily_briefing())
+    briefing = _load_daily_briefing()
+
+    if _wants_markdown():
+        return _md_response(_briefing_to_markdown(briefing))
+
+    resp = jsonify(briefing)
     resp.headers["Cache-Control"] = "public, max-age=600"
     return resp
 
@@ -707,7 +723,12 @@ def get_categories():
     finally:
         conn.close()
 
-    resp = jsonify([dict(row) for row in rows])
+    categories = [dict(row) for row in rows]
+
+    if _wants_markdown():
+        return _md_response(_categories_to_markdown(categories))
+
+    resp = jsonify(categories)
     resp.headers["Cache-Control"] = "public, max-age=600"
     return resp
 
@@ -726,6 +747,291 @@ if not _SITE_URL_ENV:
 SITE_URL = _SITE_URL_ENV.rstrip("/")
 
 
+# ---- Content negotiation: Markdown for agents ----
+# When Accept: text/markdown is present, API routes can return markdown
+# instead of JSON. This lets LLM agents consume structured content without
+# parsing JSON. HTML remains the default for browsers.
+
+
+def _wants_markdown():
+    """Return True if the client prefers text/markdown."""
+    accept = request.headers.get("Accept", "")
+    return "text/markdown" in accept
+
+
+def _articles_to_markdown(articles):
+    """Convert a list of article dicts to a readable markdown document."""
+    lines = [f"# Threat-Feed Articles ({len(articles)} results)\n"]
+    for a in articles:
+        lines.append(f"## {a.get('title', 'Untitled')}\n")
+        lines.append(f"- **Source:** {a.get('source_name', 'Unknown')}")
+        lines.append(f"- **Category:** {a.get('category', 'Uncategorized')}")
+        lines.append(
+            f"- **Published:** {a.get('published_date', a.get('created_at', 'Unknown'))}"
+        )
+        lines.append(f"- **Confidence:** {a.get('confidence', 'N/A')}")
+        lines.append(f"- **URL:** {a.get('url', '')}")
+        summary = a.get("summary", "")
+        if summary:
+            lines.append(f"\n{summary[:300]}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def _briefing_to_markdown(briefing):
+    """Convert a briefing dict to markdown."""
+    if not briefing.get("active"):
+        return "# Daily Briefing\n\n*No active briefing.*\n"
+    lines = [
+        f"# Daily Briefing\n",
+        f"*Generated: {briefing.get('generated_at', 'Unknown')}*\n",
+        "## Action Items\n",
+    ]
+    for action in briefing.get("actions", []):
+        sev = action.get("severity", "medium").upper()
+        lines.append(f"### [{sev}] {action.get('title', '')}\n")
+        lines.append(f"{action.get('description', '')}\n")
+        if action.get("action"):
+            lines.append(f"**Action:** {action['action']}\n")
+    if briefing.get("stats"):
+        lines.append("## Stats\n")
+        for s in briefing["stats"]:
+            hot = " 🔥" if s.get("hot") else ""
+            lines.append(f"- **{s.get('label', '')}:** {s.get('value', 0)}{hot}")
+    return "\n".join(lines)
+
+
+def _top_story_to_markdown(story):
+    """Convert a top story dict to markdown."""
+    if not story.get("active"):
+        return "# Top Story\n\n*No active top story.*\n"
+    lines = [
+        f"# Top Story: {story.get('title', '')}\n",
+        f"- **Source:** {story.get('source_name', '')}",
+        f"- **Category:** {story.get('category', '')}",
+        f"- **Published:** {story.get('published_at', '')}",
+        f"- **Confidence:** {story.get('confidence', '')}",
+        f"- **URL:** {story.get('url', '')}\n",
+        f"{story.get('summary', '')}\n",
+    ]
+    if story.get("key_points"):
+        lines.append("## Key Points\n")
+        for p in story["key_points"]:
+            lines.append(f"- {p}")
+    return "\n".join(lines)
+
+
+def _categories_to_markdown(categories):
+    """Convert categories list to markdown."""
+    lines = ["# Categories\n", "| Category | Count |", "|---|---|"]
+    for c in categories:
+        lines.append(f"| {c.get('category', '')} | {c.get('count', 0)} |")
+    return "\n".join(lines)
+
+
+def _md_response(content):
+    """Return a text/markdown response with standard caching."""
+    resp = app.response_class(content, mimetype="text/markdown; charset=utf-8")
+    resp.headers["Cache-Control"] = "public, max-age=300"
+    return resp
+
+
+# ---- API catalog and agent discovery ----
+
+_API_CATALOG = {
+    "name": "Threat-Feed API",
+    "version": "1.0",
+    "base_url": "https://threat-feed.ai",
+    "description": "Real-time cybersecurity intelligence aggregator — 46 public RSS sources, keyword-classified, confidence-rated.",
+    "content_negotiation": {
+        "default": "application/json",
+        "supported": ["application/json", "text/markdown"],
+        "usage": "Set Accept: text/markdown header to receive markdown-formatted responses instead of JSON.",
+    },
+    "endpoints": [
+        {
+            "path": "/api/articles",
+            "method": "GET",
+            "description": "Search recent security articles by time range and category.",
+            "parameters": {
+                "since": {"type": "string", "format": "ISO 8601", "required": False, "description": "Only articles published on or after this date"},
+                "category": {"type": "string", "required": False, "description": "Filter by exact category name"},
+            },
+            "rate_limit": "30/min",
+            "response": "Array of article objects (up to 500)",
+            "accepts": ["application/json", "text/markdown"],
+        },
+        {
+            "path": "/api/top-story",
+            "method": "GET",
+            "description": "Operator-curated lead story with key points and confidence rating.",
+            "parameters": {},
+            "rate_limit": "60/min",
+            "response": "Object with active flag, title, summary, key_points, confidence",
+            "accepts": ["application/json", "text/markdown"],
+        },
+        {
+            "path": "/api/briefing",
+            "method": "GET",
+            "description": "Daily threat briefing with prioritized action items and stats.",
+            "parameters": {},
+            "rate_limit": "60/min",
+            "response": "Object with actions (severity/title/description/action) and stats",
+            "accepts": ["application/json", "text/markdown"],
+        },
+        {
+            "path": "/api/threat-context",
+            "method": "GET",
+            "description": "Rolling threat landscape context — active CVEs, trending techniques, campaigns.",
+            "parameters": {},
+            "rate_limit": "60/min",
+            "response": "Object with landscape_summary, stack_cves, trending_techniques, active_campaigns",
+            "accepts": ["application/json", "text/markdown"],
+        },
+        {
+            "path": "/api/categories",
+            "method": "GET",
+            "description": "Category names with article counts.",
+            "parameters": {},
+            "rate_limit": "60/min",
+            "response": "Array of {category, count} objects",
+            "accepts": ["application/json", "text/markdown"],
+        },
+        {
+            "path": "/feed.xml",
+            "method": "GET",
+            "description": "Atom 1.0 feed of the 50 most-recent articles.",
+            "parameters": {},
+            "rate_limit": "30/min",
+            "response": "Atom XML",
+            "accepts": ["application/atom+xml"],
+        },
+    ],
+}
+
+_AGENT_MANIFEST = {
+    "schema_version": "1.0",
+    "name": "Threat-Feed",
+    "description": "Real-time cybersecurity intelligence aggregator. Ingests 46 public RSS sources hourly, classifies by threat category, assigns confidence ratings. No auth required.",
+    "base_url": "https://threat-feed.ai",
+    "capabilities": ["search", "briefing", "categorization", "threat-context", "feed"],
+    "tools": [
+        {
+            "name": "search_articles",
+            "description": "Search recent cybersecurity articles by time range and/or category. Returns up to 500 results sorted by recency.",
+            "endpoint": "/api/articles",
+            "method": "GET",
+            "parameters": {
+                "since": {"type": "string", "format": "ISO 8601", "description": "Cutoff date — only articles after this timestamp"},
+                "category": {"type": "string", "description": "Exact category name to filter by"},
+            },
+            "accepts": ["application/json", "text/markdown"],
+            "use_when": "Agent needs current threat intel, wants to check if a CVE or threat actor is being reported on, needs to assess today's threat landscape, or wants to verify a security claim against recent reporting.",
+        },
+        {
+            "name": "get_top_story",
+            "description": "Get the operator-curated lead story — the single most significant developing threat right now.",
+            "endpoint": "/api/top-story",
+            "method": "GET",
+            "parameters": {},
+            "accepts": ["application/json", "text/markdown"],
+            "use_when": "Agent needs to know the single most important cybersecurity story right now, or wants to brief a user on the top threat.",
+        },
+        {
+            "name": "get_briefing",
+            "description": "Get the daily threat briefing — prioritized action items with severity ratings and stats.",
+            "endpoint": "/api/briefing",
+            "method": "GET",
+            "parameters": {},
+            "accepts": ["application/json", "text/markdown"],
+            "use_when": "Agent needs a prioritized daily security digest, action items for a security team, or a quick threat summary for a morning briefing.",
+        },
+        {
+            "name": "get_threat_context",
+            "description": "Get rolling threat landscape context — active CVEs, trending attacker techniques, named campaigns, and stack-specific alerts.",
+            "endpoint": "/api/threat-context",
+            "method": "GET",
+            "parameters": {},
+            "accepts": ["application/json", "text/markdown"],
+            "use_when": "Agent is performing security review, needs to understand the current threat landscape before making recommendations, or wants to correlate a finding against known active campaigns.",
+        },
+        {
+            "name": "get_categories",
+            "description": "Get all threat categories with article counts — shows the distribution of current reporting.",
+            "endpoint": "/api/categories",
+            "method": "GET",
+            "parameters": {},
+            "accepts": ["application/json", "text/markdown"],
+            "use_when": "Agent wants to understand what types of threats are being most reported on, or needs to pick the right category filter for a search.",
+        },
+    ],
+    "authentication": "none",
+    "rate_limits": {
+        "articles": "30 req/min",
+        "other_endpoints": "60 req/min",
+        "recommended_polling": "every 15-30 minutes",
+    },
+    "categories": [
+        "Vulnerability/CVE", "OT/ICS", "Malware/Infostealer", "SaaS Breach",
+        "AI Security", "Nation State/APT", "Ransomware", "Cloud Security",
+        "Supply Chain", "Identity & Access", "Phishing & Social Engineering",
+        "Industry/Policy", "Consumer Awareness", "Mobile Security", "Uncategorized",
+    ],
+    "confidence_levels": {
+        "HIGH": "Tier-1: government CERTs, top threat-intel teams",
+        "MEDIUM": "Tier-2: established journalism, vendor research blogs",
+        "LOW": "Tier-3: community, Reddit, unverified OSINT",
+    },
+    "related_resources": {
+        "llms_txt": "/llms.txt",
+        "full_reference": "/llms-full.txt",
+        "atom_feed": "/feed.xml",
+        "api_catalog": "/api",
+        "security_policy": "/.well-known/security.txt",
+    },
+}
+
+
+@app.route("/api")
+@limiter.limit("60 per minute")
+def api_catalog():
+    if _wants_markdown():
+        lines = [
+            "# Threat-Feed API Catalog\n",
+            f"**Base URL:** {_API_CATALOG['base_url']}",
+            f"**Description:** {_API_CATALOG['description']}\n",
+            "## Content Negotiation\n",
+            "Set `Accept: text/markdown` to receive markdown responses. Default is JSON.\n",
+            "## Endpoints\n",
+        ]
+        for ep in _API_CATALOG["endpoints"]:
+            lines.append(f"### `{ep['method']} {ep['path']}`\n")
+            lines.append(f"{ep['description']}\n")
+            if ep["parameters"]:
+                lines.append("**Parameters:**\n")
+                for k, v in ep["parameters"].items():
+                    lines.append(f"- `{k}` ({v['type']}) — {v['description']}")
+                lines.append("")
+            lines.append(f"- Rate limit: {ep['rate_limit']}")
+            lines.append(f"- Accepts: {', '.join(ep['accepts'])}\n")
+        return _md_response("\n".join(lines))
+
+    resp = jsonify(_API_CATALOG)
+    resp.headers["Cache-Control"] = "public, max-age=3600"
+    return resp
+
+
+@app.route("/.well-known/agent.json")
+@limiter.limit("60 per minute")
+def agent_json():
+    resp = app.response_class(
+        json_module.dumps(_AGENT_MANIFEST, indent=2),
+        mimetype="application/json",
+    )
+    resp.headers["Cache-Control"] = "public, max-age=3600"
+    return resp
+
+
 # ---- Bot / agent / AI discoverability ----
 # Three cheap static-ish responses that make the site readable to non-JS
 # clients (traditional crawlers, LLM indexers, feed readers). Public by
@@ -739,9 +1045,11 @@ Allow: /
 Sitemap: https://threat-feed.ai/sitemap.xml
 
 # Machine-readable site description:
-#   /llms.txt         — site overview for LLMs
-#   /llms-full.txt    — full API reference for LLMs and agents
-#   /feed.xml         — Atom 1.0 feed of aggregated headlines
+#   /llms.txt              — site overview for LLMs
+#   /llms-full.txt         — full API reference for LLMs and agents
+#   /.well-known/agent.json — agent skill/tool discovery manifest
+#   /api                   — API endpoint catalog (JSON or markdown)
+#   /feed.xml              — Atom 1.0 feed of aggregated headlines
 #   /api/articles, /api/top-story, /api/categories, /api/threat-context — JSON
 #   /.well-known/security.txt — responsible disclosure
 """

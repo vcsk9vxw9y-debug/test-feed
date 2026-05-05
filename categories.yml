@@ -353,6 +353,62 @@ Vulnerability/CVE:
   - unencrypted
   - internet-facing
   - misconfigured server
+  # Security research / offensive security (PortSwigger, Trail of Bits, Rhino coverage)
+  - web hacking
+  - web security
+  - exfiltration
+  - obfuscation
+  - pentest
+  - penetration test
+  - penetration testing
+  - red team
+  - red teaming
+  - offensive security
+  - attack surface
+  - security research
+  - code audit
+  - security audit
+  - security testing
+  - bug bounty
+  - responsible disclosure
+  - hacking technique
+  - hacking techniques
+  - bypass technique
+  - authentication bypass
+  - auth bypass
+  - deserialization
+  - server-side request forgery
+  - ssrf
+  - cross-site scripting
+  - xss
+  - request smuggling
+  - cache poisoning
+  - prototype pollution
+  - race condition
+  - idor
+  - path traversal
+  - directory traversal
+  - local file inclusion
+  - remote file inclusion
+  - command injection
+  - code injection
+  - template injection
+  - header injection
+  - intruder
+  - anomaly detection
+  - security scanner
+  - vulnerability scanner
+  - web application firewall
+  - waf bypass
+  - waf
+  # Cyber incident language (The Record, SecurityWeek coverage)
+  - cyber incident
+  - cyberattack
+  - cyber attack
+  - hacked
+  - hacker
+  - hackers
+  - hacking
 
 Nation State/APT:
   - covert network
@@ -989,6 +1045,14 @@ Industry/Policy:
   - privacy laws
   - zero trust
   - election security
+  # Legal / settlement / lawsuit language (The Record coverage)
+  - wiretapping
+  - wiretap lawsuit
+  - privacy lawsuit
+  - privacy settlement
+  - class action
+  - data privacy bill
+  - cybersecurity bill
 
 Consumer Awareness:
   # Personal / family safety framings

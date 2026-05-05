@@ -305,9 +305,8 @@ FEEDS = [
     {
         "url": "https://blog.trailofbits.com/feed/",
         "name": "Trail of Bits",
-        "filter_uncategorized": True,
         "source_tier": 1,
-        "reason": "Top-tier security research firm. Formal verification, crypto, smart contract, and systems security. Primary research.",
+        "reason": "Top-tier security research firm. Formal verification, crypto, smart contract, and systems security. Primary research. No filter_uncategorized — 100% security content.",
     },
     {
         "url": "https://citizenlab.ca/feed/",
@@ -352,9 +351,8 @@ FEEDS = [
     {
         "url": "https://portswigger.net/research/rss",
         "name": "PortSwigger Research",
-        "filter_uncategorized": True,
         "source_tier": 2,
-        "reason": "Primary web application security research from the makers of Burp Suite. Niche-authoritative.",
+        "reason": "Primary web application security research from the makers of Burp Suite. Niche-authoritative. No filter_uncategorized — 100% security content.",
     },
     {
         "url": "https://bishopfox.com/feeds/blog.rss",
@@ -373,16 +371,14 @@ FEEDS = [
     {
         "url": "https://rhinosecuritylabs.com/feed/",
         "name": "Rhino Security Labs",
-        "filter_uncategorized": True,
         "source_tier": 2,
-        "reason": "Primary research from smaller consulting firm, solid technical write-ups.",
+        "reason": "Primary research from smaller consulting firm, solid technical write-ups. No filter_uncategorized — 100% security content.",
     },
     {
         "url": "https://samcurry.net/api/feed.rss",
         "name": "Sam Curry",
-        "filter_uncategorized": True,
         "source_tier": 2,
-        "reason": "Individual researcher with exceptional track record (car-hacking series, university hacks). Single-author caveat applies but quality is high.",
+        "reason": "Individual researcher with exceptional track record (car-hacking series, university hacks). Single-author caveat applies but quality is high. No filter_uncategorized — 100% security content.",
     },
     {
         "url": "https://www.schneier.com/feed/atom/",
