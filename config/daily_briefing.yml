@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-05T12:00:00Z"
+generated_at: "2026-05-06T12:00:00Z"
 actions:
   - severity: "critical"
-    title: "Copy Fail Linux exploit — KEV deadline May 15, exploitation expanding"
-    description: "CVE-2026-31431 exploitation continues to escalate. Attackers chaining with web/VPN RCE for ransomware. Patches available for Ubuntu, SUSE, AlmaLinux, CloudLinux. RHEL still awaiting upstream fix. 10 days to CISA KEV deadline."
-    action: "Patch kernel immediately on all Linux hosts — prioritize internet-facing systems. Reboot after patching. For RHEL, apply CloudLinux KernelCare live patch or mitigate by disabling AF_ALG. Hunt for unauthorized privilege escalation in auth logs since April 28."
+    title: "CVE-2026-0300 — Palo Alto PAN-OS zero-day, unpatched firewall RCE"
+    description: "Actively exploited buffer overflow in PAN-OS User-ID Authentication Portal. CVSS 9.3. Unauthenticated remote root on PA-Series and VM-Series firewalls. No patch until May 13."
+    action: "Restrict User-ID Authentication Portal to trusted zones immediately. Disable entirely if not required. Monitor firewall logs for anomalous captive portal traffic. Plan emergency patching for May 13."
   - severity: "critical"
-    title: "CVE-2026-23918 — Apache HTTP/2 double-free enables RCE on millions of servers"
-    description: "Critical double-free in Apache httpd 2.4.66 mod_http2 disclosed May 4. Triggered by HEADERS+RST_STREAM race on same stream. Patch released in version 2.4.67. PoC details public. Millions of internet-facing Apache servers affected."
-    action: "Upgrade Apache HTTP Server to 2.4.67 immediately. If upgrade is not feasible, disable HTTP/2 (remove h2 from Protocols directive) as interim mitigation. Audit access logs for unusual HTTP/2 RST_STREAM patterns."
+    title: "Copy Fail Linux exploit — KEV deadline May 15, 9 days remaining"
+    description: "CVE-2026-31431 exploitation continues expanding. Attackers chaining with web/VPN RCE for ransomware. Patches available for Ubuntu, SUSE, AlmaLinux, CloudLinux. RHEL still awaiting upstream fix."
+    action: "Patch kernel on all Linux hosts — prioritize internet-facing systems. Reboot after patching. For RHEL, apply CloudLinux KernelCare live patch or mitigate by disabling AF_ALG. Hunt for privilege escalation in auth logs since April 28."
+  - severity: "critical"
+    title: "CVE-2026-4670 — MOVEit Automation auth bypass, CVSS 9.8"
+    description: "Critical authentication bypass in Progress MOVEit Automation disclosed May 4. Unauthenticated attackers can gain admin control. 1,400+ instances exposed online including U.S. government agencies. No confirmed exploitation yet but MOVEit has a history of rapid weaponization."
+    action: "Upgrade MOVEit Automation to 2025.1.5, 2025.0.9, or 2024.1.8 immediately. Restrict backend command port access. Audit MOVEit Automation logs for unauthorized admin actions."
   - severity: "high"
-    title: "UAT-8302 — New China-nexus APT targeting governments"
-    description: "Cisco Talos disclosed UAT-8302, a sophisticated Chinese APT active since late 2024 targeting government entities in South America and southeastern Europe with a full malware toolkit."
-    action: "Review Talos IOCs immediately, hunt for UAT-8302 indicators in government-adjacent networks, brief GRC teams on new threat actor targeting sovereign infrastructure."
+    title: "CVE-2026-23918 — Apache HTTP/2 double-free RCE, PoC public"
+    description: "Double-free in Apache httpd 2.4.66 mod_http2. CVSS 8.8. Working RCE PoC demonstrated on x86_64. Patch available in 2.4.67. No confirmed wild exploitation yet but weaponization expected imminently."
+    action: "Upgrade Apache HTTP Server to 2.4.67. If upgrade is not feasible, disable HTTP/2 (remove h2 from Protocols directive). Audit access logs for unusual HTTP/2 RST_STREAM patterns."
   - severity: "high"
-    title: "Medtronic confirms 9M medical records stolen by ShinyHunters"
-    description: "ShinyHunters exfiltrated terabytes including 9 million patient records from Medtronic. Removed from leak site — ransom payment suspected. ShinyHunters also hit Vimeo via third-party vendor Anodot (119K accounts)."
-    action: "Healthcare orgs: review DLP controls and third-party data access. All orgs: audit analytics vendor integrations (Anodot), reset Vimeo-connected service accounts if applicable."
-  - severity: "medium"
-    title: "cPanel exploitation continues post-KEV-deadline — 'Sorry' ransomware active"
-    description: "Active scanning from compromised cPanel hosts dropped to 3,540 IPs but 'Sorry' ransomware operators continue encrypting unpatched sites. CISA KEV deadline passed May 3."
-    action: "Assume breach on unpatched cPanel hosts and initiate IR. Verify patch with '/usr/local/cpanel/cpanel -V'. Block management ports from untrusted IPs."
+    title: "Medtronic/ShinyHunters — 9M records, third-party vendor pattern continues"
+    description: "ShinyHunters exfiltrated 9M patient records from Medtronic and hit Vimeo via analytics vendor Anodot (119K accounts). Third-party vendor compromise pattern expanding."
+    action: "Healthcare orgs: review DLP controls and third-party data access. All orgs: audit analytics vendor integrations, reset Vimeo-connected service accounts if applicable."
 stats:
+  - label: "days until pan-os patch"
+    value: 7
+    hot: true
   - label: "days to copy fail kev deadline"
-    value: 10
+    value: 9
+    hot: true
+  - label: "moveit instances exposed"
+    value: 1400
     hot: true
   - label: "apache servers to patch"
     value: 4200000
-    hot: true
+    hot: false
   - label: "medtronic records stolen"
     value: 9000000
-    hot: true
-  - label: "cpanel compromised ips (active)"
-    value: 3540
-    hot: false
-  - label: "cves added to kev this week"
-    value: 3
     hot: false
