@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-06T12:00:00Z"
+generated_at: "2026-05-07T12:00:00Z"
 actions:
   - severity: "critical"
-    title: "CVE-2026-0300 — Palo Alto PAN-OS zero-day, unpatched firewall RCE"
-    description: "Actively exploited buffer overflow in PAN-OS User-ID Authentication Portal. CVSS 9.3. Unauthenticated remote root on PA-Series and VM-Series firewalls. No patch until May 13."
-    action: "Restrict User-ID Authentication Portal to trusted zones immediately. Disable entirely if not required. Monitor firewall logs for anomalous captive portal traffic. Plan emergency patching for May 13."
+    title: "CVE-2026-0300 — PAN-OS zero-day exploited since April 9, CISA deadline May 9"
+    description: "State-sponsored actors (CL-STA-1132) have exploited this unpatched PAN-OS firewall RCE for nearly a month. CVSS 9.3. CISA FCEB deadline is May 9 — 2 days away. No patch until May 13."
+    action: "Restrict User-ID Authentication Portal to trusted zones or disable it. Hunt for compromise in firewall logs dating back to April 9. Plan emergency patching for May 13. Audit for backdoor installation."
   - severity: "critical"
-    title: "Copy Fail Linux exploit — KEV deadline May 15, 9 days remaining"
-    description: "CVE-2026-31431 exploitation continues expanding. Attackers chaining with web/VPN RCE for ransomware. Patches available for Ubuntu, SUSE, AlmaLinux, CloudLinux. RHEL still awaiting upstream fix."
+    title: "Copy Fail Linux exploit — KEV deadline May 15, 8 days remaining"
+    description: "CVE-2026-31431 exploitation continues expanding. Attackers chaining with web/VPN RCE for ransomware deployment. Patches available for Ubuntu, SUSE, AlmaLinux, CloudLinux. RHEL still awaiting upstream fix."
     action: "Patch kernel on all Linux hosts — prioritize internet-facing systems. Reboot after patching. For RHEL, apply CloudLinux KernelCare live patch or mitigate by disabling AF_ALG. Hunt for privilege escalation in auth logs since April 28."
-  - severity: "critical"
+  - severity: "high"
+    title: "Ollama Bleeding Llama — CVE-2026-7482, 300K servers at risk"
+    description: "Critical unauthenticated memory leak (CVSS 9.1) in Ollama exposes chat history, PII, credentials, and development code. Patch available in 0.17.1 but many instances remain unpatched and internet-exposed without authentication."
+    action: "Upgrade Ollama to 0.17.1 immediately. Restrict network access to Ollama deployments — never expose to the internet without authentication. Audit for data exfiltration if running a pre-0.17.1 version."
+  - severity: "high"
     title: "CVE-2026-4670 — MOVEit Automation auth bypass, CVSS 9.8"
-    description: "Critical authentication bypass in Progress MOVEit Automation disclosed May 4. Unauthenticated attackers can gain admin control. 1,400+ instances exposed online including U.S. government agencies. No confirmed exploitation yet but MOVEit has a history of rapid weaponization."
-    action: "Upgrade MOVEit Automation to 2025.1.5, 2025.0.9, or 2024.1.8 immediately. Restrict backend command port access. Audit MOVEit Automation logs for unauthorized admin actions."
+    description: "Critical authentication bypass in Progress MOVEit Automation. 1,400+ instances exposed online. No confirmed exploitation yet but MOVEit's history of rapid weaponization warrants urgency."
+    action: "Upgrade MOVEit Automation to 2025.1.5, 2025.0.9, or 2024.1.8. Restrict backend command port access. Audit logs for unauthorized admin actions."
   - severity: "high"
     title: "CVE-2026-23918 — Apache HTTP/2 double-free RCE, PoC public"
-    description: "Double-free in Apache httpd 2.4.66 mod_http2. CVSS 8.8. Working RCE PoC demonstrated on x86_64. Patch available in 2.4.67. No confirmed wild exploitation yet but weaponization expected imminently."
+    description: "Double-free in Apache httpd 2.4.66 mod_http2. CVSS 8.8. Working RCE PoC on x86_64. Patch available in 2.4.67. Weaponization expected imminently."
     action: "Upgrade Apache HTTP Server to 2.4.67. If upgrade is not feasible, disable HTTP/2 (remove h2 from Protocols directive). Audit access logs for unusual HTTP/2 RST_STREAM patterns."
-  - severity: "high"
-    title: "Medtronic/ShinyHunters — 9M records, third-party vendor pattern continues"
-    description: "ShinyHunters exfiltrated 9M patient records from Medtronic and hit Vimeo via analytics vendor Anodot (119K accounts). Third-party vendor compromise pattern expanding."
-    action: "Healthcare orgs: review DLP controls and third-party data access. All orgs: audit analytics vendor integrations, reset Vimeo-connected service accounts if applicable."
 stats:
+  - label: "days to cisa fceb deadline"
+    value: 2
+    hot: true
   - label: "days until pan-os patch"
-    value: 7
+    value: 6
     hot: true
   - label: "days to copy fail kev deadline"
-    value: 9
+    value: 8
+    hot: true
+  - label: "ollama servers exposed"
+    value: 300000
     hot: true
   - label: "moveit instances exposed"
     value: 1400
-    hot: true
-  - label: "apache servers to patch"
-    value: 4200000
-    hot: false
-  - label: "medtronic records stolen"
-    value: 9000000
     hot: false
