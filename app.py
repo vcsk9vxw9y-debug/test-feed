@@ -384,6 +384,13 @@ def index():
     # reaching the SSR template. The JS path has its own safeHref().
     for a in articles:
         a["url"] = _safe_entry_url(a.get("url"))
+
+    # --- Markdown content negotiation (Cloudflare "Markdown for Agents") ---
+    # When Accept: text/markdown is present, return a markdown representation
+    # instead of HTML so LLM agents get structured, parseable content.
+    if _wants_markdown():
+        return _md_response(_homepage_to_markdown(articles))
+
     resp = render_template("index.html", articles=articles)
     resp = app.make_response(resp)
     resp.headers["Cache-Control"] = "public, max-age=120"
@@ -818,6 +825,48 @@ def _top_story_to_markdown(story):
         lines.append("## Key Points\n")
         for p in story["key_points"]:
             lines.append(f"- {p}")
+    return "\n".join(lines)
+
+
+def _homepage_to_markdown(articles):
+    """Convert the homepage to a markdown document for agent consumption.
+
+    Provides site context (what this is, available endpoints) plus the
+    latest articles — everything an LLM agent needs in a single request.
+    """
+    lines = [
+        "# Threat-Feed — Open Source Threat Intelligence\n",
+        "Real-time cybersecurity news aggregated from 46 public RSS feeds,",
+        "classified into 14 security categories. Updated hourly.\n",
+        "## Available Endpoints\n",
+        f"- **Articles API:** {SITE_URL}/api/articles"
+        " (supports `?category=`, `?since=`)",
+        f"- **Categories:** {SITE_URL}/api/categories",
+        f"- **Top Story:** {SITE_URL}/api/top-story",
+        f"- **Daily Briefing:** {SITE_URL}/api/briefing",
+        f"- **Threat Context:** {SITE_URL}/api/threat-context",
+        f"- **Atom Feed:** {SITE_URL}/feed.xml",
+        f"- **API Catalog:** {SITE_URL}/api\n",
+        "All API endpoints accept `Accept: text/markdown` for"
+        " markdown-formatted responses.\n",
+        f"## Latest Articles ({len(articles)} most recent)\n",
+    ]
+    for a in articles:
+        title = a.get("title", "Untitled")
+        url = a.get("url", "")
+        source = a.get("source_name", "Unknown")
+        category = a.get("category", "Uncategorized")
+        published = a.get("published_date") or a.get("created_at", "Unknown")
+        lines.append(f"### {title}\n")
+        lines.append(f"- **Source:** {source}")
+        lines.append(f"- **Category:** {category}")
+        lines.append(f"- **Published:** {published}")
+        if url:
+            lines.append(f"- **URL:** {url}")
+        summary = a.get("summary", "")
+        if summary:
+            lines.append(f"\n{summary[:300]}")
+        lines.append("")
     return "\n".join(lines)
 
 
