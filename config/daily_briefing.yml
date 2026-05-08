@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-07T12:00:00Z"
+generated_at: "2026-05-08T12:00:00Z"
 actions:
   - severity: "critical"
-    title: "CVE-2026-0300 — PAN-OS zero-day exploited since April 9, CISA deadline May 9"
-    description: "State-sponsored actors (CL-STA-1132) have exploited this unpatched PAN-OS firewall RCE for nearly a month. CVSS 9.3. CISA FCEB deadline is May 9 — 2 days away. No patch until May 13."
-    action: "Restrict User-ID Authentication Portal to trusted zones or disable it. Hunt for compromise in firewall logs dating back to April 9. Plan emergency patching for May 13. Audit for backdoor installation."
+    title: "CVE-2026-0300 — PAN-OS zero-day, CISA FCEB deadline TOMORROW"
+    description: "State-sponsored actors (CL-STA-1132) have exploited this unpatched PAN-OS firewall RCE for a month. CVSS 9.3. CISA FCEB deadline is May 9 — TOMORROW. No patch until May 13 (5 days). Urgency is at peak."
+    action: "Restrict User-ID Authentication Portal to trusted zones or disable it NOW. Hunt for compromise in firewall logs dating back to April 9. Confirm mitigation is in place before tomorrow's CISA deadline. Plan emergency patching for May 13."
   - severity: "critical"
-    title: "Copy Fail Linux exploit — KEV deadline May 15, 8 days remaining"
+    title: "Dirty Frag — CVE-2026-43284/43500, universal Linux root LPE disclosed today"
+    description: "New unpatched Linux kernel LPE in esp4/esp6/rxrpc decryption paths. Successor to Copy Fail. Disclosed prematurely (embargo was May 12). PoC available. Affects Ubuntu, RHEL, openSUSE, CentOS, AlmaLinux, Fedora. No vendor patches for most distros yet."
+    action: "Blacklist esp4, esp6, and rxrpc kernel modules immediately on all Linux hosts. Monitor distro security advisories for kernel updates — AlmaLinux has a test kernel available. Audit for any systems running IPsec or rxrpc workloads that cannot disable these modules."
+  - severity: "critical"
+    title: "Copy Fail Linux exploit — KEV deadline May 15, 7 days remaining"
     description: "CVE-2026-31431 exploitation continues expanding. Attackers chaining with web/VPN RCE for ransomware deployment. Patches available for Ubuntu, SUSE, AlmaLinux, CloudLinux. RHEL still awaiting upstream fix."
     action: "Patch kernel on all Linux hosts — prioritize internet-facing systems. Reboot after patching. For RHEL, apply CloudLinux KernelCare live patch or mitigate by disabling AF_ALG. Hunt for privilege escalation in auth logs since April 28."
   - severity: "high"
-    title: "Ollama Bleeding Llama — CVE-2026-7482, 300K servers at risk"
-    description: "Critical unauthenticated memory leak (CVSS 9.1) in Ollama exposes chat history, PII, credentials, and development code. Patch available in 0.17.1 but many instances remain unpatched and internet-exposed without authentication."
-    action: "Upgrade Ollama to 0.17.1 immediately. Restrict network access to Ollama deployments — never expose to the internet without authentication. Audit for data exfiltration if running a pre-0.17.1 version."
-  - severity: "high"
-    title: "CVE-2026-4670 — MOVEit Automation auth bypass, CVSS 9.8"
-    description: "Critical authentication bypass in Progress MOVEit Automation. 1,400+ instances exposed online. No confirmed exploitation yet but MOVEit's history of rapid weaponization warrants urgency."
-    action: "Upgrade MOVEit Automation to 2025.1.5, 2025.0.9, or 2024.1.8. Restrict backend command port access. Audit logs for unauthorized admin actions."
+    title: "Canvas/Instructure breach — ShinyHunters, 275M users, leak deadline today"
+    description: "ShinyHunters breached Instructure's Canvas LMS. 275M student/faculty records from 9,000 schools. Data includes names, emails, student IDs, and user messages. Leak deadline is May 8 (today). Canvas taken offline."
+    action: "If your organization uses Canvas, assume data exposure. Reset credentials for any accounts using Canvas-linked email/password combinations. Monitor for credential stuffing attacks using leaked education sector data. Brief affected users."
   - severity: "high"
     title: "CVE-2026-23918 — Apache HTTP/2 double-free RCE, PoC public"
     description: "Double-free in Apache httpd 2.4.66 mod_http2. CVSS 8.8. Working RCE PoC on x86_64. Patch available in 2.4.67. Weaponization expected imminently."
     action: "Upgrade Apache HTTP Server to 2.4.67. If upgrade is not feasible, disable HTTP/2 (remove h2 from Protocols directive). Audit access logs for unusual HTTP/2 RST_STREAM patterns."
 stats:
   - label: "days to cisa fceb deadline"
-    value: 2
+    value: 1
     hot: true
   - label: "days until pan-os patch"
-    value: 6
+    value: 5
     hot: true
   - label: "days to copy fail kev deadline"
-    value: 8
+    value: 7
     hot: true
-  - label: "ollama servers exposed"
-    value: 300000
+  - label: "new linux 0days this week"
+    value: 2
     hot: true
-  - label: "moveit instances exposed"
-    value: 1400
-    hot: false
+  - label: "canvas users exposed (millions)"
+    value: 275
+    hot: true
