@@ -549,19 +549,13 @@ class V7KeywordRegressionTests(unittest.TestCase):
             "Consumer Awareness",
         )
 
-    def test_hacked_account_goes_to_vuln_cve(self):
-        # "hacked" (Vulnerability/CVE, priority 6) fires before "hacked account"
-        # (Consumer Awareness, priority 14). This is a known priority conflict
-        # introduced when standalone "hacked" was added to Vuln/CVE for cyber
-        # incident language coverage. Acceptable trade-off: catching "Company X
-        # hacked" in Vuln/CVE is more valuable than preserving the consumer
-        # "hacked account" guide classification.
+    def test_hacked_account_is_consumer_awareness(self):
         self.assertEqual(
             classify_article(
                 "A quick guide to recovering a hacked account",
                 "What you do after an account is compromised",
             ),
-            "Vulnerability/CVE",
+            "Consumer Awareness",
         )
 
     def test_whatsapp_scam_is_consumer_awareness(self):
@@ -634,152 +628,6 @@ class V8KeywordRegressionTests(unittest.TestCase):
                 "Zero-day exploit used in propaganda campaign", ""
             ),
             "Vulnerability/CVE",
-        )
-
-
-class V11KeywordRegressionTests(unittest.TestCase):
-    """v11 keyword expansion (Aegis maintenance 09-May-2026).
-
-    Re-adds keywords lost in prior refactor + new keywords for current
-    uncategorized articles.
-    """
-
-    # --- SaaS Breach: source code breach ---
-    def test_source_code_breach_is_saas(self):
-        self.assertEqual(
-            classify_article(
-                "Trellix Confirms Source Code Breach With Unauthorized Repository Access",
-                "Trellix recently identified the compromise of its source code repository.",
-            ),
-            "SaaS Breach",
-        )
-
-    # --- Vulnerability/CVE: lpe, api flaw ---
-    def test_lpe_is_vuln(self):
-        self.assertEqual(
-            classify_article(
-                "A Copy Fail FAQ",
-                "The latest branded bug is a slick, portable LPE in many Linux kernels.",
-            ),
-            "Vulnerability/CVE",
-        )
-
-    def test_api_flaw_is_vuln(self):
-        self.assertEqual(
-            classify_article(
-                "A DOD contractor's API flaw exposed military course data",
-                "Schemata's platform exposed names, emails, base assignments.",
-            ),
-            "Vulnerability/CVE",
-        )
-
-    # --- Malware/Infostealer: stealer standalone, etherrat ---
-    def test_stealer_standalone_is_malware(self):
-        self.assertEqual(
-            classify_article(
-                "Stealthy Deep#Door Stealer Targets Windows Machines, Credentials",
-                "Deep#Door stealer is being used in intrusions targeting Windows.",
-            ),
-            "Malware/Infostealer",
-        )
-
-    def test_etherrat_is_malware(self):
-        self.assertEqual(
-            classify_article(
-                "EtherRAT Distribution Spoofing Administrative Tools via GitHub Facades",
-                "A sophisticated malicious campaign targeting enterprise administrators.",
-            ),
-            "Malware/Infostealer",
-        )
-
-    # --- AI Security: llm standalone ---
-    def test_llm_standalone_is_ai_security(self):
-        self.assertEqual(
-            classify_article(
-                "We Scanned 1 Million Exposed AI Services",
-                "Businesses are moving fast to self-host LLM infrastructure.",
-            ),
-            "AI Security",
-        )
-
-    # --- Mobile Security: play store, google play ---
-    def test_play_store_fraud_is_mobile(self):
-        self.assertEqual(
-            classify_article(
-                "Fake Call History Apps Stole Payments From Users After 7.3M Play Store Downloads",
-                "Fraudulent apps on the official Google Play Store for Android.",
-            ),
-            "Mobile Security",
-        )
-
-    # --- Industry/Policy: sentenced, convicted, pleaded guilty ---
-    def test_sentenced_is_industry_policy(self):
-        self.assertEqual(
-            classify_article(
-                "Crypto gang member gets 6.5 years for role in $230 million heist",
-                "A 20-year-old California man was sentenced to 78 months in prison.",
-            ),
-            "Industry/Policy",
-        )
-
-    def test_convicted_is_industry_policy(self):
-        self.assertEqual(
-            classify_article(
-                "Former govt contractor convicted for wiping dozens of federal databases",
-                "A 34-year-old Virginia man was found guilty of conspiring to destroy databases.",
-            ),
-            "Industry/Policy",
-        )
-
-    def test_pleaded_guilty_is_industry_policy(self):
-        self.assertEqual(
-            classify_article(
-                "Kingdom Market administrator given 16-year sentence",
-                "Alan Bill pleaded guilty to a conspiracy to distribute controlled substances.",
-            ),
-            "Industry/Policy",
-        )
-
-    # --- Consumer Awareness: suspicious website ---
-    def test_suspicious_websites_is_consumer_awareness(self):
-        self.assertEqual(
-            classify_article(
-                "Websites with an undefined trust level: avoiding the trap",
-                "We explain what suspicious websites are and how to distinguish a safe site.",
-            ),
-            "Consumer Awareness",
-        )
-
-    # --- Priority conflict guards ---
-    def test_stealer_does_not_steal_from_ransomware(self):
-        # Ransomware (prio 5) beats Malware (prio 8) even with "stealer"
-        self.assertEqual(
-            classify_article("LockBit deploys stealer before ransom demand", ""),
-            "Ransomware",
-        )
-
-    def test_sentenced_does_not_steal_from_ransomware(self):
-        # Ransomware keywords win over "sentenced" in Industry/Policy
-        self.assertEqual(
-            classify_article("Ransomware operator sentenced to 20 years", ""),
-            "Ransomware",
-        )
-
-    def test_llm_does_not_steal_from_supply_chain(self):
-        # Supply Chain (prio 11) beats AI Security (prio 9)?
-        # Actually AI Security is higher prio. But "malicious package" is
-        # in Supply Chain (prio 11). Let's verify "llm" in AI Security (prio 9)
-        # correctly wins when both match.
-        self.assertEqual(
-            classify_article("Malicious npm package targets LLM deployments", ""),
-            "AI Security",
-        )
-
-    def test_play_store_does_not_steal_from_malware(self):
-        # Malware/Infostealer (prio 8) beats Mobile Security (prio 12)
-        self.assertEqual(
-            classify_article("Play Store trojan drops infostealer payload", ""),
-            "Malware/Infostealer",
         )
 
 

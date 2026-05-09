@@ -169,10 +169,6 @@ SaaS Breach:
   # DeFi protocol breaches
   - defi hack
   - defi exploit
-  # Source code / repository compromise (Aegis maintenance 09-May-2026)
-  - source code breach
-  # Underground forums (BreachForums, etc.)
-  - hacking forum
 
 Identity & Access:
   # Active Directory / Kerberos attacks
@@ -352,11 +348,6 @@ Vulnerability/CVE:
   - use-after-free
   - type confusion
   - integer overflow
-  # Local privilege escalation shorthand (Aegis maintenance 09-May-2026)
-  - lpe
-  - local privilege escalation
-  # API vulnerability framing (Aegis maintenance 09-May-2026)
-  - api flaw
   # Exposure / misconfiguration language
   - lack encryption
   - unencrypted
@@ -505,8 +496,6 @@ Nation State/APT:
   # Espionage framing
   - cyber espionage
   - espionage campaign
-  - cyber spy
-  - cyber spies
   # Commercial surveillance vendors (Citizen Lab coverage)
   - nso group
   - predator spyware
@@ -642,11 +631,6 @@ Malware/Infostealer:
   - grabbot
   # Framing pattern: "information-stealing campaign/malware"
   - information-stealing
-  # Standalone "stealer" — in security feeds, always means infostealer malware
-  # (Aegis maintenance 09-May-2026)
-  - stealer
-  # Named families (Aegis maintenance 09-May-2026)
-  - etherrat
 
 AI Security:
   - ai guardrail
@@ -730,11 +714,6 @@ AI Security:
   - ai workforce
   - ai deployment
   - ai deployments
-  # AI regulation / governance (Aegis maintenance 09-May-2026)
-  - ai regulation
-  # Standalone LLM — in security feeds, always security-relevant
-  # (Aegis maintenance 09-May-2026)
-  - llm
 
 Phishing & Social Engineering:
   - phishing campaign
@@ -867,8 +846,6 @@ Mobile Security:
   - android trojan
   - android rat
   - play store malware
-  - play store
-  - google play
   - sideloading malware
   # iOS / Apple
   - ios vulnerability
@@ -1076,17 +1053,6 @@ Industry/Policy:
   - class action
   - data privacy bill
   - cybersecurity bill
-  # FBI / FCC framing (Aegis maintenance 09-May-2026)
-  - fbi warns
-  - fbi warning
-  - fcc
-  # Insider threat coverage (Aegis maintenance 09-May-2026)
-  - insider threat
-  - insider threats
-  # Cybercrime enforcement / sentencing (Aegis maintenance 09-May-2026)
-  - sentenced
-  - convicted
-  - pleaded guilty
 
 Consumer Awareness:
   # Personal / family safety framings
@@ -1165,6 +1131,3 @@ Consumer Awareness:
   # Social media scam category (Aegis maintenance 28-Apr-2026)
   - social media scam
   - social media scams
-  # Suspicious/untrusted site detection (Aegis maintenance 09-May-2026)
-  - suspicious website
-  - suspicious websites

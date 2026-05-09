@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-08T12:00:00Z"
+generated_at: "2026-05-09T12:00:00Z"
 actions:
   - severity: "critical"
-    title: "CVE-2026-0300 — PAN-OS zero-day, CISA FCEB deadline TOMORROW"
-    description: "State-sponsored actors (CL-STA-1132) have exploited this unpatched PAN-OS firewall RCE for a month. CVSS 9.3. CISA FCEB deadline is May 9 — TOMORROW. No patch until May 13 (5 days). Urgency is at peak."
-    action: "Restrict User-ID Authentication Portal to trusted zones or disable it NOW. Hunt for compromise in firewall logs dating back to April 9. Confirm mitigation is in place before tomorrow's CISA deadline. Plan emergency patching for May 13."
+    title: "CVE-2026-0300 — PAN-OS zero-day, CISA FCEB deadline TODAY"
+    description: "State-sponsored actors (CL-STA-1132) have exploited this unpatched PAN-OS firewall RCE for over a month. CVSS 9.3. CISA FCEB deadline is TODAY (May 9). No patch until May 13 (4 days). If mitigations are not in place, you are out of compliance NOW."
+    action: "Confirm User-ID Authentication Portal is restricted to trusted zones or disabled. Verify mitigation is in place before end of day. Hunt for compromise in firewall logs dating back to April 9. Plan emergency patching for May 13."
   - severity: "critical"
-    title: "Dirty Frag — CVE-2026-43284/43500, universal Linux root LPE disclosed today"
-    description: "New unpatched Linux kernel LPE in esp4/esp6/rxrpc decryption paths. Successor to Copy Fail. Disclosed prematurely (embargo was May 12). PoC available. Affects Ubuntu, RHEL, openSUSE, CentOS, AlmaLinux, Fedora. No vendor patches for most distros yet."
-    action: "Blacklist esp4, esp6, and rxrpc kernel modules immediately on all Linux hosts. Monitor distro security advisories for kernel updates — AlmaLinux has a test kernel available. Audit for any systems running IPsec or rxrpc workloads that cannot disable these modules."
+    title: "Dirty Frag — CVE-2026-43284/43500, active exploitation confirmed by Microsoft"
+    description: "Linux kernel LPE in esp4/esp6/rxrpc decryption paths now confirmed actively exploited in the wild (Microsoft, May 8). Upstream ESP patch merged May 8. Distro patches rolling out for AlmaLinux, CloudLinux, Ubuntu. RxRPC upstream patch still pending."
+    action: "Blacklist esp4, esp6, and rxrpc kernel modules on all Linux hosts where IPsec/rxrpc is not required. Apply distro kernel updates as they land — AlmaLinux and CloudLinux patches now in production repos. Ubuntu fixes available. Reboot after patching."
   - severity: "critical"
-    title: "Copy Fail Linux exploit — KEV deadline May 15, 7 days remaining"
-    description: "CVE-2026-31431 exploitation continues expanding. Attackers chaining with web/VPN RCE for ransomware deployment. Patches available for Ubuntu, SUSE, AlmaLinux, CloudLinux. RHEL still awaiting upstream fix."
-    action: "Patch kernel on all Linux hosts — prioritize internet-facing systems. Reboot after patching. For RHEL, apply CloudLinux KernelCare live patch or mitigate by disabling AF_ALG. Hunt for privilege escalation in auth logs since April 28."
+    title: "Copy Fail — CVE-2026-31431, KEV deadline May 15 (6 days)"
+    description: "Exploitation continues expanding. Attackers chaining with web/VPN RCE for ransomware deployment. Two concurrent unpatched Linux kernel LPE families active simultaneously."
+    action: "Patch kernel on all Linux hosts — prioritize internet-facing systems. Reboot after patching. For RHEL, apply CloudLinux KernelCare live patch or disable AF_ALG. Hunt for privilege escalation in auth logs since April 28."
   - severity: "high"
-    title: "Canvas/Instructure breach — ShinyHunters, 275M users, leak deadline today"
-    description: "ShinyHunters breached Instructure's Canvas LMS. 275M student/faculty records from 9,000 schools. Data includes names, emails, student IDs, and user messages. Leak deadline is May 8 (today). Canvas taken offline."
-    action: "If your organization uses Canvas, assume data exposure. Reset credentials for any accounts using Canvas-linked email/password combinations. Monitor for credential stuffing attacks using leaked education sector data. Brief affected users."
+    title: "CVE-2026-6973 — Ivanti EPMM zero-day, CISA KEV deadline TOMORROW (May 10)"
+    description: "Authenticated admin RCE in Ivanti Endpoint Manager Mobile. CVSS 7.2. Limited in-the-wild exploitation. 800+ internet-exposed instances. Added to CISA KEV May 7."
+    action: "Upgrade Ivanti EPMM to 12.6.1.1, 12.7.0.1, or 12.8.0.1. If upgrade not feasible, restrict admin portal access. Audit admin account activity for suspicious logins. Cloud-based Ivanti Neurons for MDM is not affected."
   - severity: "high"
-    title: "CVE-2026-23918 — Apache HTTP/2 double-free RCE, PoC public"
-    description: "Double-free in Apache httpd 2.4.66 mod_http2. CVSS 8.8. Working RCE PoC on x86_64. Patch available in 2.4.67. Weaponization expected imminently."
-    action: "Upgrade Apache HTTP Server to 2.4.67. If upgrade is not feasible, disable HTTP/2 (remove h2 from Protocols directive). Audit access logs for unusual HTTP/2 RST_STREAM patterns."
+    title: "Cushman & Wakefield — ShinyHunters leaks 50GB Salesforce dataset"
+    description: "ShinyHunters and Qilin both claim attacks on the real estate giant. 500K+ Salesforce records with PII leaked after ransom talks failed. Initial access via vishing (voice phishing) of an employee."
+    action: "Use as a vishing awareness case study for security teams. If your organization shares data with Cushman & Wakefield, assume exposure. Review Salesforce access controls and API token hygiene. Brief employees on vishing attack patterns."
 stats:
-  - label: "days to cisa fceb deadline"
-    value: 1
+  - label: "cisa fceb deadline (pan-os)"
+    value: 0
     hot: true
   - label: "days until pan-os patch"
-    value: 5
+    value: 4
     hot: true
   - label: "days to copy fail kev deadline"
-    value: 7
+    value: 6
     hot: true
-  - label: "new linux 0days this week"
+  - label: "days to ivanti epmm kev deadline"
+    value: 1
+    hot: true
+  - label: "concurrent unpatched linux kernel lpes"
     value: 2
-    hot: true
-  - label: "canvas users exposed (millions)"
-    value: 275
     hot: true
