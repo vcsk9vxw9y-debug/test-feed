@@ -211,6 +211,14 @@ def init_db():
         #        (AI Security), openvsx/sleeper extension (Supply Chain),
         #        privacy fine/privacy laws/zero trust/election security
         #        (Industry/Policy), social media scam (Consumer Awareness)
+        #   v11: source code breach/hacking forum (SaaS Breach),
+        #        lpe/local privilege escalation/api flaw (Vuln/CVE),
+        #        cyber spy (Nation State), stealer/etherrat (Malware),
+        #        ai regulation/llm standalone (AI Security),
+        #        play store/google play (Mobile Security),
+        #        fbi warns/fcc/insider threat/sentenced/convicted/
+        #        pleaded guilty (Industry/Policy),
+        #        suspicious website (Consumer Awareness)
         for migration_name in (
             "reclassify_uncategorized_v1",
             "reclassify_uncategorized_v2",
@@ -222,6 +230,7 @@ def init_db():
             "reclassify_uncategorized_v8",
             "reclassify_uncategorized_v9",
             "reclassify_uncategorized_v10",
+            "reclassify_uncategorized_v11",
         ):
             _run_reclassify_migration(conn, migration_name)
 
