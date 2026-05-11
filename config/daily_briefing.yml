@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-09T12:00:00Z"
+generated_at: "2026-05-11T12:00:00Z"
 actions:
   - severity: "critical"
-    title: "CVE-2026-0300 — PAN-OS zero-day, CISA FCEB deadline TODAY"
-    description: "State-sponsored actors (CL-STA-1132) have exploited this unpatched PAN-OS firewall RCE for over a month. CVSS 9.3. CISA FCEB deadline is TODAY (May 9). No patch until May 13 (4 days). If mitigations are not in place, you are out of compliance NOW."
-    action: "Confirm User-ID Authentication Portal is restricted to trusted zones or disabled. Verify mitigation is in place before end of day. Hunt for compromise in firewall logs dating back to April 9. Plan emergency patching for May 13."
+    title: "CVE-2026-0300 — PAN-OS zero-day, CISA deadline PASSED, patch in 2 days"
+    description: "State-sponsored actors (CL-STA-1132, likely China-nexus) continue exploiting this unpatched PAN-OS firewall RCE. CVSS 9.3. CISA FCEB deadline passed May 9 — non-compliant if mitigations not in place. First patch May 13 (2 days). Active exploitation since April 9."
+    action: "Verify User-ID Authentication Portal is restricted to trusted zones or disabled. Hunt for compromise in firewall logs back to April 9. Prepare emergency maintenance windows for May 13 patching. Monitor Unit 42 for updated IOCs."
   - severity: "critical"
-    title: "Dirty Frag — CVE-2026-43284/43500, active exploitation confirmed by Microsoft"
-    description: "Linux kernel LPE in esp4/esp6/rxrpc decryption paths now confirmed actively exploited in the wild (Microsoft, May 8). Upstream ESP patch merged May 8. Distro patches rolling out for AlmaLinux, CloudLinux, Ubuntu. RxRPC upstream patch still pending."
-    action: "Blacklist esp4, esp6, and rxrpc kernel modules on all Linux hosts where IPsec/rxrpc is not required. Apply distro kernel updates as they land — AlmaLinux and CloudLinux patches now in production repos. Ubuntu fixes available. Reboot after patching."
+    title: "CVE-2026-42208 — LiteLLM SQL injection, CISA KEV deadline TODAY"
+    description: "Pre-auth SQL injection in LiteLLM Proxy (CVSS 9.8) exploited within 36 hours of disclosure. Exposes API keys, LLM credentials, and proxy database. CISA FCEB deadline is TODAY (May 11). Patch available since April 19."
+    action: "Upgrade LiteLLM Proxy to v1.83.10-stable immediately. Rotate all API keys and LLM provider credentials managed by LiteLLM. Audit proxy database for unauthorized modifications. If not using LiteLLM, confirm no shadow deployments exist."
   - severity: "critical"
-    title: "Copy Fail — CVE-2026-31431, KEV deadline May 15 (6 days)"
-    description: "Exploitation continues expanding. Attackers chaining with web/VPN RCE for ransomware deployment. Two concurrent unpatched Linux kernel LPE families active simultaneously."
-    action: "Patch kernel on all Linux hosts — prioritize internet-facing systems. Reboot after patching. For RHEL, apply CloudLinux KernelCare live patch or disable AF_ALG. Hunt for privilege escalation in auth logs since April 28."
+    title: "Dirty Frag + Copy Fail — two concurrent Linux kernel LPEs actively exploited"
+    description: "Dirty Frag (CVE-2026-43284/43500) confirmed actively exploited per Microsoft May 8. ESP patches rolling out; rxrpc upstream fix still pending. Copy Fail (CVE-2026-31431) exploitation expanding, chained with web RCE for ransomware. KEV deadline May 15."
+    action: "Blacklist esp4, esp6, and rxrpc kernel modules on all Linux hosts where IPsec/rxrpc is not required. Apply distro kernel updates as they land. Patch Copy Fail — prioritize internet-facing systems. Reboot after patching."
   - severity: "high"
-    title: "CVE-2026-6973 — Ivanti EPMM zero-day, CISA KEV deadline TOMORROW (May 10)"
-    description: "Authenticated admin RCE in Ivanti Endpoint Manager Mobile. CVSS 7.2. Limited in-the-wild exploitation. 800+ internet-exposed instances. Added to CISA KEV May 7."
-    action: "Upgrade Ivanti EPMM to 12.6.1.1, 12.7.0.1, or 12.8.0.1. If upgrade not feasible, restrict admin portal access. Audit admin account activity for suspicious logins. Cloud-based Ivanti Neurons for MDM is not affected."
+    title: "CVE-2026-41940 — cPanel auth bypass, 1.5M instances exposed"
+    description: "CVSS 9.8 authentication bypass in cPanel & WHM exploited since February 2026. Multiple threat actors now targeting governments, MSPs, and hosting providers. Ransomware and botnet deployments observed. Patch available since April 28."
+    action: "Update cPanel & WHM to latest patched version immediately. If already compromised, assume full server takeover — rebuild from known-good state. Audit all hosted sites for webshells and unauthorized accounts. Review cPanel access logs for anomalous admin sessions."
   - severity: "high"
-    title: "Cushman & Wakefield — ShinyHunters leaks 50GB Salesforce dataset"
-    description: "ShinyHunters and Qilin both claim attacks on the real estate giant. 500K+ Salesforce records with PII leaked after ransom talks failed. Initial access via vishing (voice phishing) of an employee."
-    action: "Use as a vishing awareness case study for security teams. If your organization shares data with Cushman & Wakefield, assume exposure. Review Salesforce access controls and API token hygiene. Brief employees on vishing attack patterns."
+    title: "CVE-2026-6973 — Ivanti EPMM zero-day, KEV deadline passed (May 10)"
+    description: "Authenticated admin RCE in Ivanti Endpoint Manager Mobile. CVSS 7.2. Limited in-the-wild exploitation. CISA KEV deadline passed May 10. 800+ internet-exposed instances."
+    action: "Upgrade Ivanti EPMM to 12.6.1.1, 12.7.0.1, or 12.8.0.1. Restrict admin portal access. Audit admin account activity for suspicious logins. Cloud-based Neurons for MDM not affected."
 stats:
-  - label: "cisa fceb deadline (pan-os)"
-    value: 0
+  - label: "days since cisa pan-os deadline"
+    value: 2
     hot: true
   - label: "days until pan-os patch"
-    value: 4
+    value: 2
+    hot: true
+  - label: "litellm kev deadline"
+    value: 0
     hot: true
   - label: "days to copy fail kev deadline"
-    value: 6
-    hot: true
-  - label: "days to ivanti epmm kev deadline"
-    value: 1
-    hot: true
-  - label: "concurrent unpatched linux kernel lpes"
+    value: 4
+    hot: false
+  - label: "concurrent actively exploited linux kernel lpes"
     value: 2
     hot: true
