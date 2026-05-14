@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-13T12:00:00Z"
+generated_at: "2026-05-14T14:00:00Z"
 actions:
   - severity: "critical"
-    title: "CVE-2026-0300 PAN-OS — patches releasing TODAY, apply immediately"
-    description: "Palo Alto Networks began rolling out patches for the CVSS 9.3 zero-day exploited by China-nexus CL-STA-1132 since April 9. CISA FCEB deadline already passed May 9. This is the emergency patching window."
-    action: "Apply PAN-OS patches as they arrive for your release track. Prioritize internet-exposed firewalls. Until patched, restrict or disable User-ID Authentication Portal. Hunt for compromise back to April 9."
+    title: "NGINX Rift (CVE-2026-42945) — unauthenticated RCE on 1/3 of internet's web servers"
+    description: "18-year-old heap buffer overflow in ngx_http_rewrite_module. CVSS 9.2. Single crafted HTTP request achieves RCE or guaranteed DoS. Affects every nginx version from 0.6.27 through 1.30.0 plus nginx Plus R32-R36. Working PoC on GitHub. Vulnerable rewrite pattern is common in WordPress, PHP, and API gateway configs."
+    action: "Upgrade nginx to 1.30.1 (stable) or 1.31.0 (mainline) immediately. Upgrade nginx Plus to R36 P2. Audit rewrite configs for the vulnerable pattern (rewrite + PCRE captures + question mark + set/if). Inventory ALL nginx instances including containers, reverse proxies, load balancers, and CDN edge nodes."
   - severity: "critical"
-    title: "Microsoft Patch Tuesday — Netlogon wormable RCE (CVE-2026-41089) and DNS Client RCE (CVE-2026-41096)"
-    description: "May Patch Tuesday fixes 138 CVEs including 30 critical. CVE-2026-41089 is a CVSS 9.8 stack-based buffer overflow in Windows Netlogon — wormable, no auth required, compromised DC means compromised domain. CVE-2026-41096 is a CVSS 9.8 DNS Client heap overflow affecting virtually every Windows machine. No active exploitation yet but weaponization expected rapidly."
-    action: "Patch domain controllers for CVE-2026-41089 within 24 hours — this is wormable. Prioritize DNS Client patch (CVE-2026-41096) on internet-facing Windows hosts. Review all 30 critical CVEs against your environment. Schedule emergency patch cycle."
+    title: "Copy Fail CVE-2026-31431 — KEV deadline TOMORROW (May 15)"
+    description: "Linux kernel LPE via algif_aead/AF_ALG sockets. Actively exploited — chained with web/VPN RCE for ransomware deployment. CISA BOD 22-01 remediation deadline is May 15. Distro patches available for kernel 6.18.22, 6.19.12, and 7.0."
+    action: "Apply distro kernel updates and reboot TODAY. Blacklist AF_ALG on non-crypto hosts. Verify Railway/cloud platform host kernel patching. This is the last day before KEV non-compliance."
+  - severity: "critical"
+    title: "CVE-2026-0300 PAN-OS — Day 2 of patching, state-sponsored exploitation ongoing"
+    description: "PAN-OS patches continue rolling out (began May 13, full window through May 28). CVSS 9.3 zero-day actively exploited by China-nexus CL-STA-1132 since April 9. CISA FCEB deadline already passed May 9."
+    action: "Apply PAN-OS patches as they arrive for your release track. Prioritize internet-exposed firewalls. Until patched, restrict or disable User-ID Authentication Portal. Hunt for compromise back to April 9."
   - severity: "high"
-    title: "Exim Dead.Letter (CVE-2026-45185) — unauthenticated RCE on mail servers"
-    description: "CVSS 9.8 use-after-free in Exim BDAT parsing over GnuTLS TLS connections. Affects Exim 4.97-4.99.2 on Debian/Ubuntu builds that default to GnuTLS. AI-assisted exploit development confirmed by XBOW. No active exploitation yet but PoC expected imminently."
-    action: "Upgrade Exim to 4.99.3 on all mail servers. If immediate patching is not possible, switch TLS library from GnuTLS to OpenSSL or disable BDAT (CHUNKING) support as a workaround. Inventory all Exim instances including relay servers."
+    title: "Fragnesia (CVE-2026-46300) — third Linux kernel LPE in Dirty Frag family"
+    description: "New LPE disclosed TODAY via XFRM ESP-in-TCP subsystem. CVSS 7.8. Working PoC achieves deterministic root by corrupting page cache of read-only files. Affects all kernels before May 13. Third Dirty Frag variant in two weeks — same mitigation applies."
+    action: "Existing Dirty Frag mitigations (blacklist esp4, esp6, rxrpc) already protect against Fragnesia. Verify mitigations are in place. Apply latest distro kernel updates. Monitor for additional variants."
   - severity: "high"
-    title: "dnsmasq 6-CVE cluster — DNS poisoning, heap RCE, privilege escalation"
-    description: "CERT/CC disclosed six CVEs in dnsmasq (CVE-2026-2291, -4890, -4891, -4892, -4893, -5172) affecting DNS forwarding, DHCP, and resolver functions. Ubiquitous on routers, containers, Pi-hole, and small-network appliances. Patched in dnsmasq 2.92rel2."
-    action: "Upgrade dnsmasq to 2.92rel2. Inventory embedded dnsmasq instances in routers, containers, and IoT devices. Restrict DNS resolver access to trusted networks. Update Pi-hole installations. Monitor for anomalous DNS responses."
-  - severity: "high"
-    title: "Dirty Frag + Copy Fail — Linux kernel LPE exploitation continues"
-    description: "CVE-2026-43284/43500 (Dirty Frag) and CVE-2026-31431 (Copy Fail) exploitation ongoing. ESP distro patches available, rxrpc upstream fix still pending. Copy Fail KEV deadline May 15 (2 days)."
-    action: "Blacklist esp4, esp6, and rxrpc kernel modules where IPsec/rxrpc not required. Apply distro kernel updates. Prioritize Copy Fail patching — KEV deadline in 2 days. Reboot after patching."
+    title: "CVE-2026-41089 Netlogon wormable RCE — public exploit code available"
+    description: "CVSS 9.8 stack-based buffer overflow in Windows Netlogon. Wormable, no auth required. Compromised DC means compromised domain. Patched in May Patch Tuesday. No active exploitation yet but functional exploit code is publicly available."
+    action: "Patch domain controllers for CVE-2026-41089 within 24 hours. Also prioritize DNS Client CVE-2026-41096 (CVSS 9.8 heap overflow) on internet-facing Windows hosts."
 stats:
-  - label: "microsoft cves patched"
-    value: 138
+  - label: "nginx versions affected (years)"
+    value: 18
     hot: true
-  - label: "critical ms cves"
-    value: 30
-    hot: true
-  - label: "dnsmasq cves disclosed"
-    value: 6
-    hot: false
-  - label: "days to copy fail kev deadline"
-    value: 2
+  - label: "hours to copy fail kev deadline"
+    value: 24
     hot: true
   - label: "pan-os exploitation duration (days)"
-    value: 34
+    value: 35
     hot: true
+  - label: "linux kernel lpes in 2 weeks"
+    value: 3
+    hot: true
+  - label: "microsoft cves patched (may)"
+    value: 120
+    hot: false
