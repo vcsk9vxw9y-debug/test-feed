@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-14T14:00:00Z"
+generated_at: "2026-05-15T12:00:00Z"
 actions:
   - severity: "critical"
-    title: "NGINX Rift (CVE-2026-42945) — unauthenticated RCE on 1/3 of internet's web servers"
-    description: "18-year-old heap buffer overflow in ngx_http_rewrite_module. CVSS 9.2. Single crafted HTTP request achieves RCE or guaranteed DoS. Affects every nginx version from 0.6.27 through 1.30.0 plus nginx Plus R32-R36. Working PoC on GitHub. Vulnerable rewrite pattern is common in WordPress, PHP, and API gateway configs."
-    action: "Upgrade nginx to 1.30.1 (stable) or 1.31.0 (mainline) immediately. Upgrade nginx Plus to R36 P2. Audit rewrite configs for the vulnerable pattern (rewrite + PCRE captures + question mark + set/if). Inventory ALL nginx instances including containers, reverse proxies, load balancers, and CDN edge nodes."
+    title: "NGINX Rift (CVE-2026-42945) — Day 3, patch urgency remains maximum"
+    description: "18-year-old heap buffer overflow in ngx_http_rewrite_module. CVSS 9.2. Unauthenticated single-request RCE/DoS. Affects every nginx version from 0.6.27 through 1.30.0 and nginx Plus R32-R36. Public PoC on GitHub. No confirmed mass exploitation yet but scanning expected imminently. Patches released May 13."
+    action: "Upgrade nginx to 1.30.1 (stable) or 1.31.0 (mainline). Upgrade nginx Plus to R36 P2. Audit rewrite configs for the vulnerable pattern (unnamed PCRE captures + question mark + set/if). Inventory ALL nginx instances including containers, reverse proxies, and CDN edge nodes. Replace unnamed captures with named captures as interim mitigation."
   - severity: "critical"
-    title: "Copy Fail CVE-2026-31431 — KEV deadline TOMORROW (May 15)"
-    description: "Linux kernel LPE via algif_aead/AF_ALG sockets. Actively exploited — chained with web/VPN RCE for ransomware deployment. CISA BOD 22-01 remediation deadline is May 15. Distro patches available for kernel 6.18.22, 6.19.12, and 7.0."
-    action: "Apply distro kernel updates and reboot TODAY. Blacklist AF_ALG on non-crypto hosts. Verify Railway/cloud platform host kernel patching. This is the last day before KEV non-compliance."
+    title: "CVE-2026-20182 Cisco SD-WAN — CVSS 10.0 auth bypass, actively exploited"
+    description: "Maximum-severity authentication bypass in Cisco Catalyst SD-WAN Controller and Manager. Unauthenticated remote attacker gains admin privileges via crafted peering requests. Actively exploited by UAT-8616 (sophisticated threat actor). Added to CISA KEV May 14 with Emergency Directive 26-03."
+    action: "Apply Cisco patches immediately for all SD-WAN Controller and Manager instances. CISA remediation deadline is May 17. Review SD-WAN fabric for unauthorized peers or configuration changes. Hunt for UAT-8616 indicators — SSH key additions, NETCONF modifications, privilege escalation attempts."
   - severity: "critical"
-    title: "CVE-2026-0300 PAN-OS — Day 2 of patching, state-sponsored exploitation ongoing"
-    description: "PAN-OS patches continue rolling out (began May 13, full window through May 28). CVSS 9.3 zero-day actively exploited by China-nexus CL-STA-1132 since April 9. CISA FCEB deadline already passed May 9."
+    title: "Copy Fail CVE-2026-31431 — KEV deadline TODAY (May 15)"
+    description: "Linux kernel LPE via algif_aead/AF_ALG sockets. Actively exploited — chained with web/VPN RCE for ransomware deployment. CISA BOD 22-01 remediation deadline is today. Distro patches available for kernel 6.18.22, 6.19.12, and 7.0."
+    action: "Apply distro kernel updates and reboot TODAY if not already done. Blacklist AF_ALG on non-crypto hosts. Verify cloud platform host kernel patching. Federal agencies are non-compliant after today without remediation."
+  - severity: "high"
+    title: "CVE-2026-0300 PAN-OS — Day 3 of patching, state-sponsored exploitation ongoing"
+    description: "PAN-OS patches continue rolling out (began May 13, full window through May 28). CVSS 9.3 zero-day actively exploited by CL-STA-1132 (China-nexus) since April 9. Race between patching and attacker exploitation of remaining unpatched instances."
     action: "Apply PAN-OS patches as they arrive for your release track. Prioritize internet-exposed firewalls. Until patched, restrict or disable User-ID Authentication Portal. Hunt for compromise back to April 9."
   - severity: "high"
-    title: "Fragnesia (CVE-2026-46300) — third Linux kernel LPE in Dirty Frag family"
-    description: "New LPE disclosed TODAY via XFRM ESP-in-TCP subsystem. CVSS 7.8. Working PoC achieves deterministic root by corrupting page cache of read-only files. Affects all kernels before May 13. Third Dirty Frag variant in two weeks — same mitigation applies."
-    action: "Existing Dirty Frag mitigations (blacklist esp4, esp6, rxrpc) already protect against Fragnesia. Verify mitigations are in place. Apply latest distro kernel updates. Monitor for additional variants."
-  - severity: "high"
-    title: "CVE-2026-41089 Netlogon wormable RCE — public exploit code available"
-    description: "CVSS 9.8 stack-based buffer overflow in Windows Netlogon. Wormable, no auth required. Compromised DC means compromised domain. Patched in May Patch Tuesday. No active exploitation yet but functional exploit code is publicly available."
-    action: "Patch domain controllers for CVE-2026-41089 within 24 hours. Also prioritize DNS Client CVE-2026-41096 (CVSS 9.8 heap overflow) on internet-facing Windows hosts."
+    title: "Canvas/Instructure breach — largest education breach on record"
+    description: "ShinyHunters ransomware group breached Canvas LMS on May 7, affecting 8,809 educational institutions worldwide. Login page replaced with ransomware message. Unprecedented scale for an education sector attack."
+    action: "Education sector organizations: check for data exposure. All organizations: review SaaS vendor security posture for critical platforms. Monitor for credential exposure from Canvas accounts."
 stats:
-  - label: "nginx versions affected (years)"
-    value: 18
-    hot: true
-  - label: "hours to copy fail kev deadline"
-    value: 24
-    hot: true
-  - label: "pan-os exploitation duration (days)"
-    value: 35
-    hot: true
-  - label: "linux kernel lpes in 2 weeks"
+  - label: "days since nginx rift disclosure"
     value: 3
     hot: true
-  - label: "microsoft cves patched (may)"
-    value: 120
+  - label: "cisco sd-wan cvss score"
+    value: 10
+    hot: true
+  - label: "hours to copy fail kev deadline"
+    value: 0
+    hot: true
+  - label: "educational institutions breached (canvas)"
+    value: 8809
+    hot: true
+  - label: "pan-os exploitation duration (days)"
+    value: 36
     hot: false
