@@ -783,6 +783,165 @@ class V11KeywordRegressionTests(unittest.TestCase):
         )
 
 
+class V12KeywordRegressionTests(unittest.TestCase):
+    """v12 keyword expansion (Aegis maintenance 17-May-2026).
+
+    Promotes 8 of 15 uncategorized articles via 12 new keywords across
+    4 categories: Identity & Access, AI Security, Phishing & Social
+    Engineering, Industry/Policy.
+    """
+
+    # --- Identity & Access: identity security ---
+    def test_identity_security_is_identity_access(self):
+        self.assertEqual(
+            classify_article(
+                "White House cyber official: identity security matters more than ever in the age of AI",
+                "While AI tools present unique cybersecurity threats, they still rely on poor identity security.",
+            ),
+            "Identity & Access",
+        )
+
+    # --- AI Security: weaponized ai, ai sbom ---
+    def test_weaponized_ai_is_ai_security(self):
+        self.assertEqual(
+            classify_article(
+                "Weaponized AI: The new frontier of fraud and identity spoofing",
+                "As fake identity fraud is projected to cause 40 billion in losses.",
+            ),
+            "AI Security",
+        )
+
+    def test_ai_sbom_is_ai_security(self):
+        self.assertEqual(
+            classify_article(
+                "Major world economies spell out key elements of AI ingredients list",
+                "G7 guidance on AI SBOM security is good but could use improvements.",
+            ),
+            "AI Security",
+        )
+
+    # --- Phishing & Social Engineering: identity spoofing ---
+    def test_identity_spoofing_is_phishing(self):
+        self.assertEqual(
+            classify_article(
+                "New identity spoofing technique bypasses email verification",
+                "Attackers use identity spoofing to impersonate executives.",
+            ),
+            "Phishing & Social Engineering",
+        )
+
+    # --- Industry/Policy: cyber policy, odni, voter data, indictment, arrested, e2ee ---
+    def test_cyber_policy_is_industry_policy(self):
+        self.assertEqual(
+            classify_article(
+                "Pentagon cyber official calls advanced AI revolutionary warfare",
+                "Principal deputy assistant secretary for cyber policy discussed cyber offense.",
+            ),
+            "Industry/Policy",
+        )
+
+    def test_odni_is_industry_policy(self):
+        self.assertEqual(
+            classify_article(
+                "ODNI taps officials to coordinate response to foreign election threats",
+                "Director of National Intelligence has tapped officials to monitor 2026 election threats.",
+            ),
+            "Industry/Policy",
+        )
+
+    def test_voter_data_is_industry_policy(self):
+        self.assertEqual(
+            classify_article(
+                "DOJ releases legal rationale for nationwide voter data collection",
+                "The memo claims a robust executive branch role vetting voter eligibility.",
+            ),
+            "Industry/Policy",
+        )
+
+    def test_indictment_is_industry_policy(self):
+        self.assertEqual(
+            classify_article(
+                "Alleged Dream Market admin arrested in Germany after US indictment",
+                "Court documents said Dream Market was launched in 2013.",
+            ),
+            "Industry/Policy",
+        )
+
+    def test_e2ee_is_industry_policy(self):
+        self.assertEqual(
+            classify_article(
+                "iOS 26.5 Brings Default End-to-End Encrypted RCS Messaging",
+                "Apple released iOS 26.5 with support for end-to-end encryption (E2EE).",
+            ),
+            "Industry/Policy",
+        )
+
+    # --- Priority conflict guards ---
+
+    def test_arrested_does_not_steal_from_ransomware(self):
+        # Ransomware (prio 5) beats "arrested" in Industry/Policy (prio 13)
+        self.assertEqual(
+            classify_article("Ransomware leader arrested by FBI", "The LockBit ransomware gang leader was arrested."),
+            "Ransomware",
+        )
+
+    def test_indictment_does_not_steal_from_ransomware(self):
+        # Ransomware keywords win over "indictment" in Industry/Policy
+        self.assertEqual(
+            classify_article("Grand jury indictment unsealed against ransomware operator", "The ransomware gang member faces federal charges."),
+            "Ransomware",
+        )
+
+    def test_weaponized_ai_does_not_steal_from_malware(self):
+        # Malware/Infostealer (prio 8) beats AI Security (prio 9)
+        self.assertEqual(
+            classify_article("New trojan uses weaponized ai for evasion", "The infostealer leverages weaponized ai to bypass detection."),
+            "Malware/Infostealer",
+        )
+
+    def test_identity_security_vs_ai_security_priority(self):
+        # Identity & Access (prio 4) beats AI Security (prio 9) when both match.
+        # Known priority conflict: an article about AI attacks that also mentions
+        # "identity security" will land in Identity & Access. Acceptable trade-off:
+        # identity security articles are almost always about IAM, not AI attacks.
+        self.assertEqual(
+            classify_article(
+                "AI-powered identity security threats emerge",
+                "New prompt injection attacks target identity security systems using llm jailbreak techniques.",
+            ),
+            "Identity & Access",
+        )
+
+    def test_e2ee_does_not_steal_from_vulnerability(self):
+        # Vulnerability/CVE (prio 6) beats Industry/Policy (prio 13)
+        self.assertEqual(
+            classify_article(
+                "Critical vulnerability in end-to-end encryption library",
+                "A zero-day exploit was found in the e2ee implementation.",
+            ),
+            "Vulnerability/CVE",
+        )
+
+    # --- Still Uncategorized (by design) ---
+    def test_windows_driver_rollback_stays_uncategorized(self):
+        self.assertEqual(
+            classify_article(
+                "Microsoft to automatically roll back faulty Windows drivers",
+                "Microsoft is introducing a new capability for Windows Update.",
+            ),
+            "Uncategorized",
+        )
+
+    def test_dell_bsod_stays_uncategorized(self):
+        self.assertEqual(
+            classify_article(
+                "Dell confirms its SupportAssist software causes Windows BSOD crashes",
+                "Dell confirmed that its SupportAssist software is causing blue-screen crashes.",
+            ),
+            "Uncategorized",
+        )
+
+
 class SanityTests(unittest.TestCase):
     """Basic invariants — the function doesn't crash on edge inputs."""
 

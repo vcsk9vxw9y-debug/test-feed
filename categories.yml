@@ -242,6 +242,8 @@ Identity & Access:
   - leaks user
   # Account-level compromise framing (Aegis maintenance April 2026)
   - account compromise
+  # Identity security posture (Aegis maintenance 17-May-2026)
+  - identity security
 
 Ransomware:
   - ransomware
@@ -735,6 +737,9 @@ AI Security:
   # Standalone LLM — in security feeds, always security-relevant
   # (Aegis maintenance 09-May-2026)
   - llm
+  # AI SBOM / weaponized AI (Aegis maintenance 17-May-2026)
+  - ai sbom
+  - weaponized ai
 
 Phishing & Social Engineering:
   - phishing campaign
@@ -780,6 +785,8 @@ Phishing & Social Engineering:
   - bitb
   # Standalone — safe in security feeds (Aegis maintenance April 2026)
   - social engineering
+  # Identity spoofing (Aegis maintenance 17-May-2026)
+  - identity spoofing
 
 Supply Chain:
   - supply chain attack
@@ -1087,6 +1094,18 @@ Industry/Policy:
   - sentenced
   - convicted
   - pleaded guilty
+  # Enforcement / indictment (Aegis maintenance 17-May-2026)
+  - indictment
+  - arrested
+  # Government bodies / intelligence (Aegis maintenance 17-May-2026)
+  - odni
+  - director of national intelligence
+  # Policy framing (Aegis maintenance 17-May-2026)
+  - cyber policy
+  - voter data
+  # Encryption policy / privacy tech (Aegis maintenance 17-May-2026)
+  - end-to-end encryption
+  - e2ee
 
 Consumer Awareness:
   # Personal / family safety framings

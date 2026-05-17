@@ -219,6 +219,12 @@ def init_db():
         #        fbi warns/fcc/insider threat/sentenced/convicted/
         #        pleaded guilty (Industry/Policy),
         #        suspicious website (Consumer Awareness)
+        #   v12: identity security (Identity & Access),
+        #        weaponized ai/ai sbom (AI Security),
+        #        identity spoofing (Phishing & Social Engineering),
+        #        cyber policy/odni/director of national intelligence/
+        #        voter data/indictment/arrested/end-to-end encryption/
+        #        e2ee (Industry/Policy)
         for migration_name in (
             "reclassify_uncategorized_v1",
             "reclassify_uncategorized_v2",
@@ -231,6 +237,7 @@ def init_db():
             "reclassify_uncategorized_v9",
             "reclassify_uncategorized_v10",
             "reclassify_uncategorized_v11",
+            "reclassify_uncategorized_v12",
         ):
             _run_reclassify_migration(conn, migration_name)
 
