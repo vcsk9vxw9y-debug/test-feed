@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-15T12:00:00Z"
+generated_at: "2026-05-17T12:00:00Z"
 actions:
   - severity: "critical"
-    title: "NGINX Rift (CVE-2026-42945) — Day 3, patch urgency remains maximum"
-    description: "18-year-old heap buffer overflow in ngx_http_rewrite_module. CVSS 9.2. Unauthenticated single-request RCE/DoS. Affects every nginx version from 0.6.27 through 1.30.0 and nginx Plus R32-R36. Public PoC on GitHub. No confirmed mass exploitation yet but scanning expected imminently. Patches released May 13."
-    action: "Upgrade nginx to 1.30.1 (stable) or 1.31.0 (mainline). Upgrade nginx Plus to R36 P2. Audit rewrite configs for the vulnerable pattern (unnamed PCRE captures + question mark + set/if). Inventory ALL nginx instances including containers, reverse proxies, and CDN edge nodes. Replace unnamed captures with named captures as interim mitigation."
+    title: "NGINX Rift (CVE-2026-42945) — Day 5, NOW CONFIRMED EXPLOITED IN THE WILD"
+    description: "In-the-wild exploitation confirmed by VulnCheck — active attacks causing worker crashes and possible RCE. 18-year-old heap buffer overflow in ngx_http_rewrite_module. CVSS 9.2. Unauthenticated single-request RCE/DoS. Affects nginx 0.6.27 through 1.30.0 and nginx Plus R32-R36. The patching window is closing."
+    action: "Upgrade nginx to 1.30.1 (stable) or 1.31.0 (mainline) IMMEDIATELY. Upgrade nginx Plus to R36 P2. Audit rewrite configs for the vulnerable pattern (unnamed PCRE captures + question mark + set/if). Replace unnamed captures with named captures as interim mitigation. Inventory ALL nginx instances including containers, reverse proxies, CDN edge nodes, and ingress controllers."
   - severity: "critical"
-    title: "CVE-2026-20182 Cisco SD-WAN — CVSS 10.0 auth bypass, actively exploited"
-    description: "Maximum-severity authentication bypass in Cisco Catalyst SD-WAN Controller and Manager. Unauthenticated remote attacker gains admin privileges via crafted peering requests. Actively exploited by UAT-8616 (sophisticated threat actor). Added to CISA KEV May 14 with Emergency Directive 26-03."
-    action: "Apply Cisco patches immediately for all SD-WAN Controller and Manager instances. CISA remediation deadline is May 17. Review SD-WAN fabric for unauthorized peers or configuration changes. Hunt for UAT-8616 indicators — SSH key additions, NETCONF modifications, privilege escalation attempts."
+    title: "CVE-2026-20182 Cisco SD-WAN — CISA deadline TODAY (May 17)"
+    description: "CVSS 10.0 authentication bypass in Cisco Catalyst SD-WAN Controller and Manager. Unauthenticated remote attacker gains admin privileges via crafted peering requests. Actively exploited by UAT-8616. CISA Emergency Directive 26-03 remediation deadline is TODAY."
+    action: "Apply Cisco patches NOW — federal agencies are non-compliant after today. Review SD-WAN fabric for unauthorized peers, SSH key additions, and NETCONF modifications. Hunt for UAT-8616 indicators back to 2023. Non-federal organizations should treat this deadline as equally urgent."
   - severity: "critical"
-    title: "Copy Fail CVE-2026-31431 — KEV deadline TODAY (May 15)"
-    description: "Linux kernel LPE via algif_aead/AF_ALG sockets. Actively exploited — chained with web/VPN RCE for ransomware deployment. CISA BOD 22-01 remediation deadline is today. Distro patches available for kernel 6.18.22, 6.19.12, and 7.0."
-    action: "Apply distro kernel updates and reboot TODAY if not already done. Blacklist AF_ALG on non-crypto hosts. Verify cloud platform host kernel patching. Federal agencies are non-compliant after today without remediation."
+    title: "CVE-2026-42897 Microsoft Exchange zero-day — actively exploited, no permanent patch"
+    description: "On-prem Exchange Server spoofing/XSS vulnerability (CVSS 8.1). Actively exploited via crafted emails targeting OWA users. Added to CISA KEV May 15 with deadline May 29. Affects Exchange 2016, 2019, and Subscription Edition. No permanent patch — only mitigations available."
+    action: "Apply Exchange Emergency Mitigation Service (EEMS) or Exchange On-premises Mitigation Tool (EOMT) immediately. Restrict OWA access where possible. Monitor for suspicious emails targeting OWA users. Plan for permanent patch when Microsoft releases it."
   - severity: "high"
-    title: "CVE-2026-0300 PAN-OS — Day 3 of patching, state-sponsored exploitation ongoing"
-    description: "PAN-OS patches continue rolling out (began May 13, full window through May 28). CVSS 9.3 zero-day actively exploited by CL-STA-1132 (China-nexus) since April 9. Race between patching and attacker exploitation of remaining unpatched instances."
+    title: "CVE-2026-0300 PAN-OS — Day 5 of patching, exploitation ongoing"
+    description: "PAN-OS patches continue rolling out (began May 13, window through May 28). CVSS 9.3 zero-day actively exploited by CL-STA-1132 (China-nexus) since April 9. Race between patching and attacker exploitation of unpatched instances continues."
     action: "Apply PAN-OS patches as they arrive for your release track. Prioritize internet-exposed firewalls. Until patched, restrict or disable User-ID Authentication Portal. Hunt for compromise back to April 9."
   - severity: "high"
-    title: "Canvas/Instructure breach — largest education breach on record"
-    description: "ShinyHunters ransomware group breached Canvas LMS on May 7, affecting 8,809 educational institutions worldwide. Login page replaced with ransomware message. Unprecedented scale for an education sector attack."
-    action: "Education sector organizations: check for data exposure. All organizations: review SaaS vendor security posture for critical platforms. Monitor for credential exposure from Canvas accounts."
+    title: "Copy Fail (CVE-2026-31431) — KEV deadline PASSED (May 15)"
+    description: "Linux kernel LPE via algif_aead/AF_ALG sockets. Actively exploited — chained with web/VPN RCE for ransomware deployment. CISA BOD 22-01 deadline has passed. Federal agencies without remediation are non-compliant."
+    action: "If not already patched, apply distro kernel updates and reboot TODAY. Blacklist AF_ALG on non-crypto hosts. Verify cloud platform host kernel patching. Document compliance status for audit."
 stats:
   - label: "days since nginx rift disclosure"
-    value: 3
+    value: 5
     hot: true
-  - label: "cisco sd-wan cvss score"
-    value: 10
+  - label: "nginx rift exploitation status"
+    value: 1
     hot: true
-  - label: "hours to copy fail kev deadline"
+  - label: "hours to cisco sd-wan kev deadline"
     value: 0
     hot: true
-  - label: "educational institutions breached (canvas)"
-    value: 8809
+  - label: "exchange zero-days without permanent patch"
+    value: 1
     hot: true
   - label: "pan-os exploitation duration (days)"
-    value: 36
+    value: 38
     hot: false
