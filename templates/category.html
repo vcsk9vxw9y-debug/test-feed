@@ -1,0 +1,193 @@
+{#-
+    Category Spotlight page — server-rendered landing page for a single
+    high-volume threat category with a computed summary rollup above the
+    standard article list.
+
+    Inputs (from app.py:category_spotlight):
+      - category : exact category string (e.g. "Ransomware", "SaaS Breach")
+      - slug     : URL slug (e.g. "ransomware", "saas-breach")
+      - articles : list of article rows for the category, recency-sorted
+      - summary  : {"stats": {...}, "rows": [...]} — Ransomware has group rows,
+                   SaaS Breach has rows=[] in V1 (stats only).
+
+    Security: all user-visible strings come from the DB and the slug allowlist.
+    The slug is whitelisted in app.py before the template is rendered. Jinja's
+    default autoescape handles XSS for article fields.
+-#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ category }} — Threat-Feed AI Spotlight</title>
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23090c11'/><text x='50%25' y='57%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23c4ff3a'>//</text><circle cx='26' cy='6' r='3' fill='%23c4ff3a'/></svg>">
+
+    <meta property="og:title"       content="{{ category }} — Threat-Feed AI Spotlight">
+    <meta property="og:description" content="Live {{ category }} threat intelligence from public RSS feeds, classified by keyword.">
+    <meta property="og:type"        content="website">
+    <meta property="og:url"         content="https://threat-feed.ai/category/{{ slug }}">
+
+    <meta name="twitter:card"        content="summary">
+    <meta name="twitter:title"       content="{{ category }} — Threat-Feed AI Spotlight">
+    <meta name="twitter:description" content="Live {{ category }} threat intelligence.">
+
+    <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="Threat-Feed Atom">
+    {#- URL-encode the category — autoescape handles HTML attrs, not URL syntax.
+        "SaaS Breach" → "SaaS%20Breach" rather than an invalid raw space. -#}
+    <link rel="alternate" type="application/json" href="/api/articles?category={{ category|urlencode }}" title="Threat-Feed JSON API ({{ category }})">
+
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+
+<div class="wrap">
+
+    <!-- ========== MASTHEAD ========== -->
+    <header class="masthead">
+        <div class="dateline">
+            <div class="l">
+                <span>Threat Intelligence</span>
+                <span class="sep">·</span>
+                <span>Spotlight</span>
+            </div>
+            <div class="live">
+                <span class="dot" aria-hidden="true"></span>
+                <span>Operational</span>
+            </div>
+        </div>
+        <div class="brand">
+            <h1><a href="/" class="brand-link"><span class="slash">//</span>threat-feed<span class="domain-ai">.ai</span></a></h1>
+            <div class="strap">free to use · rss only · no accounts</div>
+        </div>
+        <div class="masthead-rule" aria-hidden="true"></div>
+        <div class="masthead-rule-sub" aria-hidden="true"></div>
+    </header>
+
+    <!-- ========== CATEGORY HEADER ========== -->
+    <section class="cat-header" aria-label="Category overview">
+        <div class="cat-header-row">
+            <a href="/" class="cat-back" aria-label="Back to feed">&larr; feed</a>
+            <span class="cat-sep">/</span>
+            <h2 class="cat-title">
+                <span class="dot-pip
+                    {%- if slug == 'ransomware' %} dot-ransom
+                    {%- elif slug == 'saas-breach' %} dot-saas
+                    {%- endif %}" aria-hidden="true"></span>
+                {{ category }}
+            </h2>
+            <span class="cat-flag">Spotlight</span>
+        </div>
+
+        {#- Stats bar — computed from articles table at request time -#}
+        {% if summary and summary.stats %}
+        <div class="summary-stats" role="list" aria-label="Category statistics">
+            {% for key, value in summary.stats.items() %}
+            <div class="stat" role="listitem">
+                <div class="stat-value">{{ value }}</div>
+                <div class="stat-label">{{ key.replace('_', ' ') }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+
+    {#- ========== GROUP ROLLUP (Ransomware) ========== -#}
+    {% if summary and summary.rows %}
+    <section class="rollup" aria-label="Group activity rollup">
+        <h3 class="rollup-head">
+            <span>Group Activity</span>
+            <span class="rollup-meta">click row to expand</span>
+        </h3>
+        <div class="rollup-rows">
+            {% for row in summary.rows %}
+            <div class="group-row" data-group="{{ row.group }}" tabindex="0" role="button" aria-expanded="false" aria-label="Expand {{ row.group }} victims">
+                <div class="group-row-main">
+                    <span class="group-chevron" aria-hidden="true">▸</span>
+                    <span class="group-name">{{ row.group }}</span>
+                    <span class="group-spacer"></span>
+                    <span class="group-count">{{ row.count }} {% if row.count == 1 %}claim{% else %}claims{% endif %}</span>
+                </div>
+                <ul class="group-victims" hidden>
+                    {% for v in row.victims %}
+                    <li class="victim">
+                        <span class="victim-title">{{ v.title }}</span>
+                        <span class="victim-meta">
+                            <span class="victim-source">{{ v.source }}</span>
+                            <span class="sep">·</span>
+                            <time datetime="{{ v.date or '' }}">{{ v.date }}</time>
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ========== EDITORIAL DIVIDER ========== -->
+    <div class="editorial-divider" aria-hidden="true">
+        <span class="ed-line"></span>
+        <span class="ed-label">Full Feed · {{ articles|length }}{% if is_capped %}+{% endif %} {{ category }} {% if articles|length == 1 %}article{% else %}articles{% endif %}</span>
+        <span class="ed-line"></span>
+    </div>
+
+    <!-- ========== ARTICLE LIST ========== -->
+    <main class="feed">
+        <section class="article-list" id="article-list" aria-label="{{ category }} articles">
+            {% if articles %}
+                {% for a in articles %}
+                <article class="article" id="article-{{ loop.index }}">
+                    <div class="meta-top">
+                        <span class="dot-pip
+                            {%- if slug == 'ransomware' %} dot-ransom
+                            {%- elif slug == 'saas-breach' %} dot-saas
+                            {%- endif %}" aria-hidden="true"></span>
+                        <span class="category">{{ a.category or 'Uncategorized' }}</span>
+                        <span class="sep">·</span>
+                        <span class="source">{{ a.source_name or 'Unknown' }}</span>
+                    </div>
+                    <h3 class="title">
+                        {% if a.url %}<a href="{{ a.url }}" rel="noopener noreferrer">{{ a.title }}</a>{% else %}{{ a.title }}{% endif %}
+                    </h3>
+                    {% if a.summary %}<p class="summary">{{ a.summary }}</p>{% endif %}
+                    <div class="meta-bottom">
+                        <time datetime="{{ a.published_date or a.created_at or '' }}">{{ a.published_date or a.created_at }}</time>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <div class="feed-status">No {{ category }} articles in the current window.</div>
+            {% endif %}
+        </section>
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="site-footer">
+        <div class="row">
+            <div class="r-left">
+                <span>free to use</span>
+                <span class="sep">·</span>
+                <span>rss only</span>
+                <span class="sep">·</span>
+                <span>no accounts · no cookies · no ads</span>
+                <span class="sep">·</span>
+                <span>updates hourly</span>
+            </div>
+            <span class="aegis">
+                <span class="n">//</span>
+                <span class="t">aegis</span>
+                <span class="r">contributor</span>
+            </span>
+        </div>
+        <div class="row license-row">
+            <a href="/license" class="license-link">enterprise license required</a>
+        </div>
+    </footer>
+
+</div>
+
+<script type="text/javascript" src="/static/category.js" defer></script>
+</body>
+</html>

@@ -813,6 +813,15 @@ async function loadTopStory() {
     }
 }
 
+// Categories that have dedicated Spotlight pages — clicking these tags
+// navigates to the route instead of client-side filtering. Keep in sync
+// with _SPOTLIGHT_SLUGS in app.py. Source of truth is the server route;
+// this map only exists to provide the same UX for the homepage filter rail.
+const SPOTLIGHT_CATEGORY_HREFS = {
+    "Ransomware":  "/category/ransomware",
+    "SaaS Breach": "/category/saas-breach",
+};
+
 async function loadCategories() {
     if (categoriesLoaded) return;
     try {
@@ -832,6 +841,13 @@ async function loadCategories() {
             btn.type = "button";
             btn.dataset.category = cat.category;
             btn.dataset.dynamic = "true";
+            // Spotlight categories get a data-href that the click handler
+            // uses to navigate instead of client-side filtering.
+            const spotlightHref = SPOTLIGHT_CATEGORY_HREFS[cat.category];
+            if (spotlightHref) {
+                btn.dataset.href = spotlightHref;
+                btn.setAttribute("aria-label", `Open ${cat.category} spotlight page`);
+            }
             btn.textContent = cat.category.toLowerCase();
             filterContainer.appendChild(btn);
         });
@@ -846,6 +862,14 @@ if (filterContainer) {
     filterContainer.addEventListener("click", (e) => {
         const button = e.target.closest(".tag");
         if (!button) return;
+        // Spotlight tags navigate to the dedicated route. We use the
+        // server-built _SPOTLIGHT_SLUGS allowlist (mirrored in
+        // SPOTLIGHT_CATEGORY_HREFS) — no user input ever reaches the URL.
+        const href = button.dataset.href;
+        if (href) {
+            window.location.assign(href);
+            return;
+        }
         filterContainer.querySelectorAll(".tag").forEach((b) => b.classList.remove("on"));
         button.classList.add("on");
         currentCategory = button.dataset.category || "All";

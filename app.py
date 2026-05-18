@@ -1,5 +1,6 @@
 import atexit
 import os
+import re
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
@@ -7,7 +8,7 @@ from xml.sax.saxutils import escape as xml_escape
 
 import json as json_module
 import yaml
-from flask import Flask, jsonify, redirect, render_template, request
+from flask import Flask, abort, jsonify, redirect, render_template, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -753,6 +754,279 @@ def get_categories():
 
     resp = jsonify(categories)
     resp.headers["Cache-Control"] = "public, max-age=600"
+    return resp
+
+
+# ============================================================
+# Category Spotlight pages — /category/<slug>
+# ============================================================
+#
+# Dedicated landing pages for high-volume threat categories with computed
+# summary rollups in addition to the standard article list. Data is live
+# from the articles table — independent of the editorial top_story /
+# daily_briefing surfaces.
+#
+# Security boundary: the slug is validated against a fixed allowlist
+# (_SPOTLIGHT_SLUGS). The category string sent to SQL is ALWAYS the
+# allowlist value, never the raw slug. Unknown slugs return 404.
+#
+# Adding a new spotlight category = add an entry to _SPOTLIGHT_SLUGS.
+# The slug becomes the URL segment; the value must match articles.category
+# exactly (case-sensitive, since classifier.py emits exact strings).
+
+_SPOTLIGHT_SLUGS = {
+    "ransomware": "Ransomware",
+    "saas-breach": "SaaS Breach",
+}
+
+# Hardcoded fallback for "notable victims" stat until
+# config/notable_victims.yml ships (Noise Reduction Proposal 1).
+# Articles in the Ransomware category from these sources are counted
+# as notable-victim coverage (these outlets do editorial filtering
+# before publishing).
+# TODO(noise-reduction): replace with notable_victims.yml keyword match.
+_NOTABLE_RANSOMWARE_SOURCES = frozenset((
+    "Bleeping Computer",
+    "BleepingComputer",
+    "The Record",
+    "SecurityWeek",
+    "Dark Reading",
+    "Krebs on Security",
+    "CISA",
+))
+
+# Ransomware.live titles follow a stable format:
+#   "🏴‍☠️ Qilin has just published a new victim : Acme Corp"
+# We skip the emoji + whitespace prefix, then capture the group name.
+# Anything that doesn't match falls back to "Unattributed" — we'd rather
+# under-attribute than misattribute. The leading `[^A-Za-z0-9]{0,20}`
+# is bounded to prevent ReDoS; group token is bounded too.
+_RANSOMWARE_GROUP_RE = re.compile(
+    r"^[^A-Za-z0-9]{0,20}([A-Za-z][A-Za-z0-9_\-\.]{0,39})\s+has\s+just\s+"
+    r"published\s+a\s+new\s+victim",
+    re.IGNORECASE,
+)
+
+# Defense-in-depth cap on article rows per spotlight page (the 30-day
+# prune keeps category counts modest, but cap independently).
+_SPOTLIGHT_ARTICLE_LIMIT = 200
+
+
+# Source allowlist for group-name extraction. The Ransomware.live title
+# format is structured ("<Group> has just published a new victim : X")
+# and trusted *because the source is trusted*. Any other source publishing
+# a title in that format could be a poisoned upstream feed planting fake
+# attribution — we deliberately do not extract from arbitrary sources.
+# Aegis: extends the trust boundary explicitly to the source level, not
+# just the title format.
+_RANSOMWARE_GROUP_TRUSTED_SOURCES = frozenset((
+    "Ransomware.live",
+))
+
+
+def _extract_ransomware_group(title, source_name=None):
+    """Return the threat-actor name from a Ransomware.live-style title,
+    or 'Unattributed' if the title doesn't match the known pattern OR
+    if the source is not on the trusted-extraction allowlist.
+
+    The source allowlist guards against title-format poisoning from a
+    compromised non-Ransomware.live RSS feed claiming attribution that
+    didn't happen. source_name=None disables the source check (used by
+    unit tests that pre-validate the title independently).
+
+    Defensive: handles None, empty string, and non-matching titles.
+    Normalizes capitalization so 'QILIN' and 'Qilin' roll up together.
+    """
+    if not title:
+        return "Unattributed"
+    # Source check (when caller provides one) — only Ransomware.live's
+    # structured titles are trusted for group attribution.
+    if source_name is not None and source_name not in _RANSOMWARE_GROUP_TRUSTED_SOURCES:
+        return "Unattributed"
+    match = _RANSOMWARE_GROUP_RE.match(title)
+    if not match:
+        return "Unattributed"
+    return match.group(1).strip().title()
+
+
+def _build_ransomware_summary(articles):
+    """Group ransomware articles by extracted threat actor.
+
+    Returns {"stats": {...}, "rows": [...]} where rows is sorted by
+    claim count desc with 'Unattributed' always last regardless of
+    count (visual hierarchy — known groups should lead).
+    """
+    groups = {}
+    notable_count = 0
+    for a in articles:
+        if a.get("source_name") in _NOTABLE_RANSOMWARE_SOURCES:
+            notable_count += 1
+        # Pass source_name so extraction is restricted to trusted feeds.
+        group_name = _extract_ransomware_group(
+            a.get("title"), a.get("source_name")
+        )
+        if group_name not in groups:
+            groups[group_name] = {
+                "group": group_name,
+                "count": 0,
+                "victims": [],
+            }
+        groups[group_name]["count"] += 1
+        groups[group_name]["victims"].append({
+            "title": a.get("title") or "",
+            "url": a.get("url") or "",
+            "date": a.get("published_date") or a.get("created_at") or "",
+            "source": a.get("source_name") or "",
+        })
+
+    rows = list(groups.values())
+    rows.sort(key=lambda r: (r["group"] == "Unattributed", -r["count"]))
+
+    stats = {
+        "total_claims": len(articles),
+        "active_groups": sum(1 for r in rows if r["group"] != "Unattributed"),
+        "notable_victims": notable_count,
+    }
+    return {"stats": stats, "rows": rows}
+
+
+def _build_saas_breach_summary(articles):
+    """Compute headline stats for the SaaS Breach spotlight page.
+
+    V1 deliberately does NOT cluster articles into 'breach incidents'
+    — title-token clustering was unreliable in testing (e.g. articles
+    about the same incident with different phrasings landed in
+    separate buckets, misleading the bar chart). The page instead
+    shows a clean recency-sorted list with diversity stats.
+
+    TODO(spotlight): revisit clustering when we have a brand-keyword
+    file (similar shape to notable_victims.yml) — then bars can scale
+    by per-incident coverage with confidence.
+
+    Returns {"stats": {...}, "rows": []} — empty rows tells the template
+    to skip the rollup section and render the article list directly.
+    """
+    seven_days_ago = (
+        datetime.now(timezone.utc) - timedelta(days=7)
+    ).date().isoformat()
+    recent = sum(
+        1 for a in articles
+        if (a.get("published_date") or a.get("created_at") or "") >= seven_days_ago
+    )
+    sources = {a.get("source_name") for a in articles if a.get("source_name")}
+
+    stats = {
+        "total_articles": len(articles),
+        "recent_7d": recent,
+        "sources_covering": len(sources),
+    }
+    return {"stats": stats, "rows": []}
+
+
+def _category_to_markdown(category_name, articles, summary):
+    """Markdown representation of a spotlight page for agent consumers."""
+    lines = [
+        f"# {category_name} — Spotlight\n",
+        f"*{len(articles)} articles (most recent first)*\n",
+    ]
+    if summary and summary.get("stats"):
+        lines.append("## Summary Stats\n")
+        for key, value in summary["stats"].items():
+            label = key.replace("_", " ").title()
+            lines.append(f"- **{label}:** {value}")
+        lines.append("")
+    if summary and summary.get("rows"):
+        lines.append("## Group Activity\n")
+        for row in summary["rows"]:
+            lines.append(
+                f"- **{row['group']}** — {row['count']} "
+                f"claim{'s' if row['count'] != 1 else ''}"
+            )
+        lines.append("")
+    lines.append("## Articles\n")
+    for a in articles:
+        lines.append(f"### {a.get('title', 'Untitled')}\n")
+        lines.append(f"- **Source:** {a.get('source_name', 'Unknown')}")
+        published = a.get("published_date") or a.get("created_at") or ""
+        lines.append(f"- **Published:** {published}")
+        if a.get("url"):
+            lines.append(f"- **URL:** {a['url']}")
+        summary_text = a.get("summary", "")
+        if summary_text:
+            lines.append(f"\n{summary_text[:300]}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+@app.route("/category/<slug>")
+@limiter.limit("60 per minute")
+def category_spotlight(slug):
+    """Spotlight landing page for a high-volume threat category.
+
+    Slug is validated against a fixed allowlist (_SPOTLIGHT_SLUGS). The
+    category string passed to SQL is the allowlist value, never the
+    raw slug, so user input never reaches the query as data OR as an
+    identifier. Unknown slugs return Flask's default 404 HTML page.
+    """
+    category = _SPOTLIGHT_SLUGS.get(slug)
+    if category is None:
+        abort(404)
+
+    conn = get_db()
+    try:
+        rows = conn.execute(
+            "SELECT title, summary, url, published_date, created_at, "
+            "source_name, category FROM articles WHERE category = ? "
+            "ORDER BY COALESCE(published_date, created_at) DESC LIMIT ?",
+            (category, _SPOTLIGHT_ARTICLE_LIMIT),
+        ).fetchall()
+    finally:
+        conn.close()
+
+    articles = [dict(row) for row in rows]
+    # Same scheme allowlist as the homepage / Atom feed — prevents
+    # javascript:/data: hrefs from reaching the SSR template.
+    for a in articles:
+        a["url"] = _safe_entry_url(a.get("url"))
+
+    if slug == "ransomware":
+        summary = _build_ransomware_summary(articles)
+    elif slug == "saas-breach":
+        summary = _build_saas_breach_summary(articles)
+    else:
+        # Unreachable given the allowlist guard above, but explicit > implicit
+        summary = {"stats": {}, "rows": []}
+
+    # is_capped tells the template whether the DB query hit the row limit.
+    # Single source of truth — template no longer hard-codes the magic number.
+    is_capped = len(articles) >= _SPOTLIGHT_ARTICLE_LIMIT
+
+    if _wants_markdown():
+        md_resp = _md_response(
+            _category_to_markdown(category, articles, summary)
+        )
+        # Same URL serves HTML or markdown — Vary on Accept prevents a
+        # shared cache from serving the wrong representation. The
+        # _md_response helper is shared across routes that have the
+        # same dual-representation pattern (homepage, /api/*) — those
+        # have the same gap; tracked separately, out of Spotlight scope.
+        md_resp.headers["Vary"] = "Accept"
+        return md_resp
+
+    resp = render_template(
+        "category.html",
+        category=category,
+        slug=slug,
+        articles=articles,
+        summary=summary,
+        is_capped=is_capped,
+    )
+    resp = app.make_response(resp)
+    resp.headers["Cache-Control"] = "public, max-age=300"
+    # Vary on Accept — same URL serves HTML or markdown depending on
+    # the Accept header. Without this, a shared cache could serve the
+    # wrong representation. Aegis: cheap defense-in-depth.
+    resp.headers["Vary"] = "Accept"
     return resp
 
 
