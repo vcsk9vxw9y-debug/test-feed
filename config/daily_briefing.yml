@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-18T03:56:00Z"
+generated_at: "2026-05-18T23:12:42Z"
 actions:
   - severity: "critical"
-    title: "NGINX CVE-2026-42945 — Day 6, active exploitation confirmed"
-    description: "Heap buffer overflow in ngx_http_rewrite_module now confirmed exploited in the wild. Worker crashes and possible RCE. Affects nginx 0.6.27-1.30.0 and Plus R32-R36."
-    action: "Upgrade nginx to 1.30.1 (stable) or 1.31.0 (mainline) immediately. Audit rewrite configs for unnamed PCRE captures. Inventory all nginx instances including containers and ingress controllers."
+    title: "NGINX Rift CVE-2026-42945 — Day 6, exploitation spreading over the weekend"
+    description: "Censys now counts ~5.7M internet-exposed nginx servers running vulnerable versions. VulnCheck-confirmed exploitation began May 16; tier-1 weekend reporting (The Register, Help Net Security, SecurityWeek) shows attack volume continuing to climb."
+    action: "Upgrade nginx to 1.30.1 (stable) or 1.31.0 (mainline) immediately, or nginx Plus to R32 P6 / R36 P4. Audit rewrite configs for the unnamed-PCRE-capture + ? pattern; swap to named captures as a stopgap. Inventory all nginx instances including containers, ingress controllers, and CDN edges."
   - severity: "critical"
-    title: "Grafana token breach — codebase exfiltrated, extortion underway"
-    description: "Grafana GitHub token compromise led to full codebase download. Attacker is actively extorting Grafana Labs. Multiple outlets reporting. Supply-chain risk for orgs running Grafana."
-    action: "Rotate all Grafana API keys and service account tokens. Audit Grafana instance configurations for embedded secrets. Monitor Grafana advisories for IOCs and compromised build artifacts."
+    title: "Ivanti EPMM CVE-2026-6973 — authenticated RCE chained from January creds"
+    description: "Improper-input-validation flaw in on-prem EPMM (before 12.6.1.1 / 12.7.0.1 / 12.8.0.1) being exploited by chaining admin credentials harvested via CVE-2026-1340 (Jan 2026). CISA KEV; federal deadline May 10 already passed."
+    action: "Patch EPMM to 12.6.1.1 / 12.7.0.1 / 12.8.0.1 or later immediately. Rotate ALL admin credentials that touched EPMM before this patch — assume January creds are compromised. Hunt for anomalous admin logins and unexpected device enrollments."
+  - severity: "critical"
+    title: "Exchange Server CVE-2026-42897 — XSS/spoofing, no permanent patch"
+    description: "Actively exploited via crafted emails targeting OWA. CISA KEV-listed May 15 with federal deadline May 29. Affects Exchange 2016, 2019, and Subscription Edition. Microsoft only offers EEMS/EOMT mitigations."
+    action: "Apply EEMS/EOMT mitigations on every on-prem Exchange host. Restrict OWA exposure to authenticated VPN where feasible. Hunt OWA logs for crafted-email payloads and abnormal script execution."
   - severity: "high"
-    title: "Tycoon2FA — M365 device-code phishing campaign active"
-    description: "Evolved phishing kit hijacking Microsoft 365 accounts via device-code authentication flow, bypassing traditional MFA protections."
-    action: "Block device-code authentication flow in Conditional Access policies. Hunt for anomalous OAuth token grants. Alert users to device-code phishing lures."
-  - severity: "high"
-    title: "Qilin ransomware — 4 victims in 24 hours across 3 continents"
-    description: "Qilin group claimed healthcare (Salter HealthCare), government (Malaysian municipal council), insurance, and commercial targets in a single day. Aggressive tempo increase."
-    action: "Review ransomware readiness posture. Validate offline backups. Ensure EDR coverage on endpoints in healthcare and government segments."
+    title: "Mini Shai-Hulud — TanStack / Mistral / UiPath supply-chain worm"
+    description: "TeamPCP-attributed worm has poisoned 169 npm package names + 2 PyPI packages across 373 malicious versions (April 29 + May 11 waves). Chains a GitHub Actions pull_request_target cache-poisoning trick with OIDC-token theft from the runner."
+    action: "Pin and hash-verify all npm/PyPI dependencies; rebuild lockfiles and audit installs for known IOCs. Block pull_request_target workflows that check out untrusted forks. Rotate any npm/PyPI publish tokens issued via GitHub Actions OIDC."
   - severity: "medium"
-    title: "CVE-2026-20182 Cisco SD-WAN — CISA deadline passed (May 17)"
-    description: "CVSS 10.0 auth bypass remediation deadline has now passed. Federal agencies without patches are non-compliant. Exploitation by UAT-8616 continues."
-    action: "Confirm Cisco SD-WAN patches are applied. Document compliance status for audit. Hunt for UAT-8616 indicators if patching was delayed."
+    title: "Cisco SD-WAN CVE-2026-20182 — KEV deadline lapsed yesterday"
+    description: "CVSS 10.0 authentication bypass exploited by UAT-8616. CISA federal deadline expired May 17 — non-compliance window is now open. Exploitation continues against unpatched Controllers and Managers."
+    action: "Confirm Cisco Catalyst SD-WAN Controller/Manager patches are applied and document compliance status. Hunt for UAT-8616 indicators (rogue vHub peer auth, NETCONF mods, unexpected SSH keys) on any host that was unpatched at any point."
 stats:
-  - label: "articles today"
-    value: 17
-    hot: false
-  - label: "active ransomware groups"
-    value: 2
-    hot: true
-  - label: "qilin victims (24h)"
-    value: 4
+  - label: "exposed nginx servers (censys)"
+    value: 5700000
     hot: true
   - label: "days since nginx rift disclosure"
     value: 6
     hot: true
-  - label: "tier-1 sources reporting"
-    value: 0
+  - label: "open kev deadlines this week"
+    value: 2
     hot: true
+  - label: "supply-chain pkg versions poisoned"
+    value: 373
+    hot: true
+  - label: "tier-1 outlets covering nginx rift today"
+    value: 4
+    hot: false
