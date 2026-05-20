@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten daily; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-18T23:12:42Z"
+generated_at: "2026-05-20T13:08:36Z"
 actions:
   - severity: "critical"
-    title: "NGINX Rift CVE-2026-42945 — Day 6, exploitation spreading over the weekend"
-    description: "Censys now counts ~5.7M internet-exposed nginx servers running vulnerable versions. VulnCheck-confirmed exploitation began May 16; tier-1 weekend reporting (The Register, Help Net Security, SecurityWeek) shows attack volume continuing to climb."
-    action: "Upgrade nginx to 1.30.1 (stable) or 1.31.0 (mainline) immediately, or nginx Plus to R32 P6 / R36 P4. Audit rewrite configs for the unnamed-PCRE-capture + ? pattern; swap to named captures as a stopgap. Inventory all nginx instances including containers, ingress controllers, and CDN edges."
+    title: "Drupal PSA-2026-05-18 — emergency core patch lands today 17:00-21:00 UTC, severity 20/25"
+    description: "Drupal will release a 'highly critical' security update for all supported branches (11.3.x, 11.2.x, 10.6.x, 10.5.x) plus best-effort patches for 11.1.x, 10.4.x and manual back-ports to Drupal 8.9 / 9.5. The flaw is unauthenticated, requires no user interaction, and would let an attacker read or destroy all non-public site data. Exploits expected within hours."
+    action: "Pre-stage minor updates now so the security fix applies cleanly. Reserve admin coverage 17:00-21:00 UTC today and patch the moment the advisory drops. Inventory every Drupal instance including unsupported 8.x/9.x sites. Stage rollbacks for custom/contrib modules and audit logs after patch."
   - severity: "critical"
-    title: "Ivanti EPMM CVE-2026-6973 — authenticated RCE chained from January creds"
-    description: "Improper-input-validation flaw in on-prem EPMM (before 12.6.1.1 / 12.7.0.1 / 12.8.0.1) being exploited by chaining admin credentials harvested via CVE-2026-1340 (Jan 2026). CISA KEV; federal deadline May 10 already passed."
-    action: "Patch EPMM to 12.6.1.1 / 12.7.0.1 / 12.8.0.1 or later immediately. Rotate ALL admin credentials that touched EPMM before this patch — assume January creds are compromised. Hunt for anomalous admin logins and unexpected device enrollments."
+    title: "Nx Console VS Code extension compromise (nrwl.angular-console 18.95.0) — credential stealer hit 2.2M-install ecosystem"
+    description: "On May 18 a malicious nrwl.angular-console v18.95.0 was published to the VS Code Marketplace and went live for ~11 minutes (14:36-14:47 CEST). It fetched a 498 KB payload from a dangling orphan commit in nrwl/nx and harvested GitHub, npm, AWS, HashiCorp Vault, Kubernetes, and 1Password secrets across HTTPS, GitHub API, and DNS tunneling — plus a persistent Python backdoor on macOS using GitHub Search as a dead-drop."
+    action: "Audit VS Code extension install logs for nrwl.angular-console 18.95.0 between 14:36 and 14:47 CEST on May 18. If installed, treat the developer's workstation as compromised: rotate every token in their keychain (GitHub, npm, AWS, Vault, kube creds, 1Password), revoke OIDC-issued publish tokens, scrub Python launchd/cron entries on macOS, and rebuild from clean image. Pin VS Code extensions and constrain auto-update for developer fleets."
   - severity: "critical"
-    title: "Exchange Server CVE-2026-42897 — XSS/spoofing, no permanent patch"
-    description: "Actively exploited via crafted emails targeting OWA. CISA KEV-listed May 15 with federal deadline May 29. Affects Exchange 2016, 2019, and Subscription Edition. Microsoft only offers EEMS/EOMT mitigations."
-    action: "Apply EEMS/EOMT mitigations on every on-prem Exchange host. Restrict OWA exposure to authenticated VPN where feasible. Hunt OWA logs for crafted-email payloads and abnormal script execution."
+    title: "NGINX Rift CVE-2026-42945 — Day 8, exploitation continuing against ~5.7M exposed servers"
+    description: "Censys still counts roughly 5.7M internet-exposed nginx servers running vulnerable versions; VulnCheck-confirmed exploitation since May 16 is ongoing per Help Net Security, SecurityWeek, and Security Affairs reporting through May 18-19. Unauthenticated RCE via single HTTP request when rewrite uses unnamed PCRE captures + ? in replacement."
+    action: "Upgrade nginx to 1.30.1 (stable) or 1.31.0 (mainline), or nginx Plus to R32 P6 / R36 P4. Audit rewrite configs for the unnamed-PCRE-capture + ? pattern; swap to named captures as a stopgap. Inventory all nginx instances including containers, ingress controllers, and CDN edges. If unpatched at any point, hunt access logs for crafted requests with +, %, or & in encoded paths."
+  - severity: "critical"
+    title: "Exchange Server CVE-2026-42897 — XSS/spoofing, KEV deadline T-9 days, still no permanent patch"
+    description: "Actively exploited via crafted emails targeting OWA. CISA KEV-listed May 15 with federal deadline May 29. Affects Exchange 2016, 2019, and Subscription Edition. Microsoft only offers EEMS/EOMT mitigations; new gap reporting May 19 confirms mitigation is not airtight."
+    action: "Apply EEMS/EOMT mitigations on every on-prem Exchange host and verify mitigation modules are enabled. Restrict OWA exposure to authenticated VPN where feasible. Hunt OWA logs for crafted-email payloads and abnormal script execution in mailbox sessions."
   - severity: "high"
-    title: "Mini Shai-Hulud — TanStack / Mistral / UiPath supply-chain worm"
-    description: "TeamPCP-attributed worm has poisoned 169 npm package names + 2 PyPI packages across 373 malicious versions (April 29 + May 11 waves). Chains a GitHub Actions pull_request_target cache-poisoning trick with OIDC-token theft from the runner."
-    action: "Pin and hash-verify all npm/PyPI dependencies; rebuild lockfiles and audit installs for known IOCs. Block pull_request_target workflows that check out untrusted forks. Rotate any npm/PyPI publish tokens issued via GitHub Actions OIDC."
-  - severity: "medium"
-    title: "Cisco SD-WAN CVE-2026-20182 — KEV deadline lapsed yesterday"
-    description: "CVSS 10.0 authentication bypass exploited by UAT-8616. CISA federal deadline expired May 17 — non-compliance window is now open. Exploitation continues against unpatched Controllers and Managers."
-    action: "Confirm Cisco Catalyst SD-WAN Controller/Manager patches are applied and document compliance status. Hunt for UAT-8616 indicators (rogue vHub peer auth, NETCONF mods, unexpected SSH keys) on any host that was unpatched at any point."
+    title: "Fox Tempest malware-signing-as-a-service disrupted by Microsoft"
+    description: "Microsoft seized infrastructure and revoked 1000+ short-lived (≤72h) code-signing certificates from a Microsoft Artifact Signing abuse ring active since May 2025. The certificates signed binaries spoofing Microsoft Teams, AnyDesk, PuTTY, and Webex, used by Rhysida, Inc, Qilin, and Akira ransomware affiliates."
+    action: "Add the revoked certificate thumbprints to EDR blocklists when Microsoft publishes IOCs. Hunt back 12 months for binaries signed by certificates issued through Azure Artifact Signing service tenants. Treat code-signing trust as an additional signal, not a verdict — enforce binary allowlisting and behavioral detection regardless of signing status."
 stats:
+  - label: "drupal severity score (20/25)"
+    value: 20
+    hot: true
+  - label: "hours until drupal patch window opens (utc)"
+    value: 4
+    hot: true
   - label: "exposed nginx servers (censys)"
     value: 5700000
     hot: true
-  - label: "days since nginx rift disclosure"
-    value: 6
+  - label: "vs code extension installs at risk (nx console)"
+    value: 2200000
     hot: true
-  - label: "open kev deadlines this week"
-    value: 2
-    hot: true
-  - label: "supply-chain pkg versions poisoned"
-    value: 373
-    hot: true
-  - label: "tier-1 outlets covering nginx rift today"
-    value: 4
+  - label: "fox tempest certs revoked"
+    value: 1000
     hot: false
