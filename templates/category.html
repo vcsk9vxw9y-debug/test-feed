@@ -70,10 +70,7 @@
             <a href="/" class="cat-back" aria-label="Back to feed">&larr; feed</a>
             <span class="cat-sep">/</span>
             <h2 class="cat-title">
-                <span class="dot-pip
-                    {%- if slug == 'ransomware' %} dot-ransom
-                    {%- elif slug == 'saas-breach' %} dot-saas
-                    {%- endif %}" aria-hidden="true"></span>
+                <span class="dot-pip {{ dot_class }}" aria-hidden="true"></span>
                 {{ category }}
             </h2>
             <span class="cat-flag">Spotlight</span>

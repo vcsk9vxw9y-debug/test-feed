@@ -3,6 +3,7 @@ import os
 import re
 import sqlite3
 from datetime import datetime, timedelta, timezone
+from typing import NamedTuple
 from urllib.parse import urlparse
 from xml.sax.saxutils import escape as xml_escape
 
@@ -801,30 +802,53 @@ def get_categories():
 # allowlist value, never the raw slug. Unknown slugs return 404.
 #
 # Adding a new spotlight category = add an entry to _SPOTLIGHT_SLUGS.
-# The slug becomes the URL segment; the value must match articles.category
-# exactly (case-sensitive, since classifier.py emits exact strings).
+# The slug becomes the URL segment; the category value must match
+# articles.category exactly (case-sensitive, since classifier.py emits
+# exact strings).
 #
-# Stage 2 (2026-05-21): expanded from the 2-entry rich-roster allowlist to
-# cover all 14 classifier categories. The rich roster treatment still only
-# fires for "ransomware" and "saas-breach"; other slugs render with a basic
-# stats summary + filtered article list via _build_default_summary(). Every
-# slug here is independently shareable as /category/<slug>.
+# Each entry is a Spotlight NamedTuple. Using a NamedTuple over a bare
+# 3-tuple gives the call sites attribute access (spec.dot_class) and lets
+# us add fields later without breaking every unpack site silently.
+#
+# Fields:
+#   - category : DB filter value + display string
+#   - dot_class: CSS class for the per-category .dot-pip in the
+#                category-header. Single source of truth — the template
+#                pulls this through, no hardcoded slug if/elif chain.
+#   - spotlight: "rich" runs the dedicated roster builder dispatched via
+#                _RICH_BUILDERS below (only valid where a builder exists,
+#                currently ransomware + saas-breach). "basic" runs
+#                _build_default_summary (stats only, no rollup).
+#
+# Flipping a category to "rich" requires the matching builder to exist —
+# code review catches mismatches. No runtime fallback by design.
+class Spotlight(NamedTuple):
+    category: str
+    dot_class: str
+    spotlight: str  # "rich" | "basic"
+
+
 _SPOTLIGHT_SLUGS = {
-    "ot-ics":               "OT/ICS",
-    "cloud-security":       "Cloud Security",
-    "saas-breach":          "SaaS Breach",
-    "ransomware":           "Ransomware",
-    "identity-access":      "Identity & Access",
-    "vulnerability":        "Vulnerability/CVE",
-    "nation-state-apt":     "Nation State/APT",
-    "malware":              "Malware/Infostealer",
-    "ai-security":          "AI Security",
-    "phishing":             "Phishing & Social Engineering",
-    "supply-chain":         "Supply Chain",
-    "mobile-security":      "Mobile Security",
-    "industry-policy":      "Industry/Policy",
-    "consumer-awareness":   "Consumer Awareness",
+    "ot-ics":             Spotlight("OT/ICS",                       "dot-ot",       "basic"),
+    "cloud-security":     Spotlight("Cloud Security",               "dot-cloud",    "basic"),
+    "saas-breach":        Spotlight("SaaS Breach",                  "dot-saas",     "rich"),
+    "ransomware":         Spotlight("Ransomware",                   "dot-ransom",   "rich"),
+    "identity-access":    Spotlight("Identity & Access",            "dot-identity", "basic"),
+    "vulnerability":      Spotlight("Vulnerability/CVE",            "dot-vuln",     "basic"),
+    "nation-state-apt":   Spotlight("Nation State/APT",             "dot-apt",      "basic"),
+    "malware":            Spotlight("Malware/Infostealer",          "dot-malware",  "basic"),
+    "ai-security":        Spotlight("AI Security",                  "dot-ai",       "basic"),
+    "phishing":           Spotlight("Phishing & Social Engineering","dot-phishing", "basic"),
+    "supply-chain":       Spotlight("Supply Chain",                 "dot-supply",   "basic"),
+    "mobile-security":    Spotlight("Mobile Security",              "dot-mobile",   "basic"),
+    "industry-policy":    Spotlight("Industry/Policy",              "dot-policy",   "basic"),
+    "consumer-awareness": Spotlight("Consumer Awareness",           "dot-uncat",    "basic"),
 }
+
+# Dispatch table for rich-spotlight summary builders. Defined after the
+# builder functions are declared (see below). Adding a new rich spotlight
+# = add one line to the dict near the route + flip the slug's
+# Spotlight.spotlight to "rich". No growing if/elif chain in the route.
 
 # Hardcoded fallback for "notable victims" stat until
 # config/notable_victims.yml ships (Noise Reduction Proposal 1).
@@ -1135,22 +1159,39 @@ def _build_saas_breach_summary(articles):
     return {"stats": stats, "rows": rows}
 
 
-def _build_default_summary(articles):
+def _humanize_days_ago(days):
+    """Convert an integer days-ago count into a short display string.
+    Used for the basic-summary 'last activity' stat. Falsy or non-int
+    input renders as the em-dash."""
+    if days is None or days == "" or days == "—":
+        return "—"
+    try:
+        days_int = int(days)
+    except (ValueError, TypeError):
+        return "—"
+    if days_int <= 0:
+        return "today"
+    if days_int == 1:
+        return "1d ago"
+    return f"{days_int}d ago"
+
+
+def _build_default_summary(articles, total_count=None):
     """Build a basic stats summary for any spotlight page that doesn't have
     a custom roster builder.
 
-    Stage 2 (2026-05-21): every category in _SPOTLIGHT_SLUGS now has a
-    dedicated URL. The 2 categories with rich roster treatment (ransomware,
-    saas-breach) call their own builders; the other 12 fall through to
-    this one. Returns rows=[] so the template's existing {% if summary.rows %}
-    guard suppresses the rollup section, and the page renders as
-    masthead → category header → stats → article list.
+    Returns {"stats": {...}, "rows": []} so the template's existing
+    {% if summary.rows %} guard suppresses the rollup section. Page
+    renders as masthead → category header → stats → article list.
 
-    Stats kept short and universally meaningful — total article count,
-    last-24h count, distinct sources covering, days since the most recent
-    article. No category-specific assumptions.
-
-    Returns {"stats": {...}, "rows": []}.
+    Stats are written as standalone, self-explanatory labels:
+      - in_feed       : true total in DB (pass total_count from a COUNT
+                        query — falls back to len(articles) which may be
+                        capped by _SPOTLIGHT_ARTICLE_LIMIT)
+      - last_24h      : articles published or created in the last 24h
+      - sources       : distinct source feeds covering the category
+      - last_activity : humanized days-ago string ("today", "1d ago",
+                        "Nd ago", or "—" when no articles)
     """
     now_utc = datetime.now(timezone.utc)
     twenty_four_hours_ago = (now_utc - timedelta(hours=24)).date().isoformat()
@@ -1171,19 +1212,18 @@ def _build_default_summary(articles):
     days_since_latest = "—"
     if latest_date:
         try:
-            # Accept both YYYY-MM-DD and ISO datetime forms.
             latest_dt = datetime.fromisoformat(latest_date.replace("Z", "+00:00"))
             if latest_dt.tzinfo is None:
                 latest_dt = latest_dt.replace(tzinfo=timezone.utc)
-            delta_days = (now_utc - latest_dt).days
-            days_since_latest = max(0, delta_days)
+            days_since_latest = max(0, (now_utc - latest_dt).days)
         except (ValueError, TypeError):
             days_since_latest = "—"
+    in_feed = total_count if total_count is not None else len(articles)
     stats = {
-        "total_articles": len(articles),
+        "in_feed": in_feed,
         "last_24h": recent_24h,
-        "sources_covering": len(sources),
-        "days_since_latest": days_since_latest,
+        "sources": len(sources),
+        "last_activity": _humanize_days_ago(days_since_latest),
     }
     return {"stats": stats, "rows": []}
 
@@ -1210,7 +1250,9 @@ def _crossover_categories_for(primary_slug):
         if primary_slug in org["appears_on"]:
             needed_slugs.update(org["appears_on"])
     return {
-        _SPOTLIGHT_SLUGS[s] for s in needed_slugs if s in _SPOTLIGHT_SLUGS
+        _SPOTLIGHT_SLUGS[s].category
+        for s in needed_slugs
+        if s in _SPOTLIGHT_SLUGS
     }
 
 
@@ -1249,19 +1291,36 @@ def _category_to_markdown(category_name, articles, summary):
     return "\n".join(lines)
 
 
+_RICH_BUILDERS = {
+    "ransomware":  _build_ransomware_summary,
+    "saas-breach": _build_saas_breach_summary,
+    # Stage 3 will add: "vulnerability":    _build_vuln_summary,
+    # Stage 4 will add: "nation-state-apt": _build_apt_summary,
+}
+
+
 @app.route("/category/<slug>")
 @limiter.limit("60 per minute")
 def category_spotlight(slug):
-    """Spotlight landing page for a high-volume threat category.
+    """Spotlight landing page for a threat category.
 
     Slug is validated against a fixed allowlist (_SPOTLIGHT_SLUGS). The
     category string passed to SQL is the allowlist value, never the
     raw slug, so user input never reaches the query as data OR as an
     identifier. Unknown slugs return Flask's default 404 HTML page.
+
+    Behavior depends on spec.spotlight ("rich" | "basic"):
+      - "rich"  : dispatch to _RICH_BUILDERS[slug] for a custom roster.
+                  Falls through to basic if no builder is registered
+                  (defensive — should never happen since the registry
+                  is paired with the _SPOTLIGHT_SLUGS entry in code).
+      - "basic" : _build_default_summary with rows=[]. Template's
+                  {% if summary.rows %} guard suppresses the rollup.
     """
-    category = _SPOTLIGHT_SLUGS.get(slug)
-    if category is None:
+    spec = _SPOTLIGHT_SLUGS.get(slug)
+    if spec is None:
         abort(404)
+    category = spec.category
 
     conn = get_db()
     try:
@@ -1271,6 +1330,15 @@ def category_spotlight(slug):
             "ORDER BY COALESCE(published_date, created_at) DESC LIMIT ?",
             (category, _SPOTLIGHT_ARTICLE_LIMIT),
         ).fetchall()
+        # Real DB count for the in_feed stat — the LIMIT'd article list
+        # above may be truncated, so len(articles) understates the total
+        # when a category exceeds _SPOTLIGHT_ARTICLE_LIMIT. One extra
+        # roundtrip, hits the same index, negligible.
+        total_count_row = conn.execute(
+            "SELECT COUNT(*) AS n FROM articles WHERE category = ?",
+            (category,),
+        ).fetchone()
+        total_count = total_count_row["n"] if total_count_row else len(rows)
     finally:
         conn.close()
 
@@ -1280,40 +1348,45 @@ def category_spotlight(slug):
     for a in articles:
         a["url"] = _safe_entry_url(a.get("url"))
 
-    if slug == "ransomware":
-        summary = _build_ransomware_summary(articles)
-    elif slug == "saas-breach":
-        # Crossover handling: an org with appears_on=['saas-breach', 'ransomware']
-        # may have coverage that classified into Ransomware. Broaden the article
-        # window for ROSTER matching so those rows render with their "also in
-        # Ransomware" link. The article LIST below the divider keeps the narrow
-        # category-filtered set above — that's still SaaS Breach articles only.
-        crossover_cats = _crossover_categories_for(slug)
-        if crossover_cats - {category}:
-            conn = get_db()
-            try:
-                placeholders = ",".join("?" * len(crossover_cats))
-                xrows = conn.execute(
-                    f"SELECT title, summary, url, published_date, created_at, "
-                    f"source_name, category FROM articles "
-                    f"WHERE category IN ({placeholders}) "
-                    f"ORDER BY COALESCE(published_date, created_at) DESC "
-                    f"LIMIT ?",
-                    (*sorted(crossover_cats), _SPOTLIGHT_ARTICLE_LIMIT * 2),
-                ).fetchall()
-            finally:
-                conn.close()
-            roster_articles = [dict(r) for r in xrows]
-            for a in roster_articles:
-                a["url"] = _safe_entry_url(a.get("url"))
+    if spec.spotlight == "rich":
+        builder = _RICH_BUILDERS.get(slug)
+        if builder is None:
+            # Defensive fallback — should be impossible if the registry
+            # is kept in sync with _SPOTLIGHT_SLUGS. Degrade to basic
+            # rather than 500.
+            summary = _build_default_summary(articles, total_count=total_count)
+        elif slug == "saas-breach":
+            # Crossover handling: an org with
+            # appears_on=['saas-breach', 'ransomware'] may have coverage
+            # that classified into Ransomware. Broaden the article window
+            # for ROSTER matching so those rows render with their "also
+            # in Ransomware" link. The article LIST below the divider
+            # keeps the narrow category-filtered set above.
+            crossover_cats = _crossover_categories_for(slug)
+            if crossover_cats - {category}:
+                conn = get_db()
+                try:
+                    placeholders = ",".join("?" * len(crossover_cats))
+                    xrows = conn.execute(
+                        f"SELECT title, summary, url, published_date, created_at, "
+                        f"source_name, category FROM articles "
+                        f"WHERE category IN ({placeholders}) "
+                        f"ORDER BY COALESCE(published_date, created_at) DESC "
+                        f"LIMIT ?",
+                        (*sorted(crossover_cats), _SPOTLIGHT_ARTICLE_LIMIT * 2),
+                    ).fetchall()
+                finally:
+                    conn.close()
+                roster_articles = [dict(r) for r in xrows]
+                for a in roster_articles:
+                    a["url"] = _safe_entry_url(a.get("url"))
+            else:
+                roster_articles = articles
+            summary = builder(roster_articles)
         else:
-            roster_articles = articles
-        summary = _build_saas_breach_summary(roster_articles)
+            summary = builder(articles)
     else:
-        # All other allowlisted slugs render with the basic-stats summary.
-        # The template's {% if summary.rows %} guard skips the rollup
-        # section automatically since rows=[].
-        summary = _build_default_summary(articles)
+        summary = _build_default_summary(articles, total_count=total_count)
 
     # is_capped tells the template whether the DB query hit the row limit.
     # Single source of truth — template no longer hard-codes the magic number.
@@ -1335,6 +1408,7 @@ def category_spotlight(slug):
         "category.html",
         category=category,
         slug=slug,
+        dot_class=spec.dot_class,
         articles=articles,
         summary=summary,
         is_capped=is_capped,
