@@ -1167,6 +1167,203 @@ mark {
     white-space: nowrap;
 }
 
+/* ---- SaaS Breach roster (sits inside the shared .rollup skeleton) ----
+   The category.js click delegator targets .group-row by class, so .group-row.saas
+   inherits all expand/collapse behavior unchanged. These styles only add the
+   org-roster visual layer on top of the base row. The actor cluster and severity
+   class names below are constrained server-side via the _NOTABLE_ORG_ACTOR_CLUSTERS
+   and _NOTABLE_ORG_SEVERITIES allowlists in app.py — not free-form input. */
+
+:root {
+    --violet-soft: rgba(197, 162, 255, 0.10);
+    --violet-dim:  #7e63b8;
+}
+
+.group-row.saas .group-row-main {
+    display: grid;
+    grid-template-columns: 28px 1fr 260px;
+    gap: 0;
+    padding: 14px 0;
+    align-items: stretch;
+}
+
+.saas-rail {
+    position: relative;
+    margin-right: 14px;
+    background: var(--surface-2);
+    border-radius: 1px;
+    min-height: 56px;
+    overflow: visible;
+}
+.saas-rail .fill {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 70%;
+    background: linear-gradient(180deg, var(--violet) 0%, var(--violet-dim) 100%);
+    opacity: 0.85;
+    border-radius: 1px 1px 0 0;
+    transition: opacity var(--ease);
+}
+.group-row.saas:hover .saas-rail .fill { opacity: 1; }
+.group-row.saas.crit .saas-rail .fill {
+    background: linear-gradient(180deg, var(--coral) 0%, #aa3540 100%);
+}
+.saas-rail .tick {
+    position: absolute; top: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--type-3);
+}
+.group-row.saas.fresh .saas-rail .tick {
+    background: var(--coral);
+    box-shadow: 0 0 0 0 rgba(255, 78, 94, 0.55);
+    animation: saasPulse 2.4s ease-out infinite;
+}
+@keyframes saasPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 78, 94, 0.45); }
+    70%  { box-shadow: 0 0 0 8px rgba(255, 78, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 78, 94, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .group-row.saas.fresh .saas-rail .tick { animation: none; }
+}
+
+.saas-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    justify-content: center;
+}
+.saas-org {
+    color: var(--type);
+    font-family: var(--mono);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.saas-platform {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--violet);
+    background: var(--violet-soft);
+    border: 1px solid var(--violet-dim);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-weight: 500;
+}
+.saas-tags {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.saas-tag {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--type-3);
+    border: 1px solid var(--line-hot);
+    padding: 1px 6px;
+    border-radius: 2px;
+    text-decoration: none;
+}
+a.saas-tag.saas-crossover {
+    color: var(--violet);
+    border-color: var(--violet-dim);
+    background: var(--violet-soft);
+}
+a.saas-tag.saas-crossover:hover {
+    color: var(--type);
+    background: rgba(197, 162, 255, 0.18);
+}
+a.saas-tag.saas-crossover:focus-visible {
+    outline: 1px solid var(--violet);
+    outline-offset: 2px;
+}
+
+.saas-meta {
+    border-left: 1px solid var(--line);
+    padding-left: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+}
+.saas-actor {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--type);
+    padding: 2px 8px 2px 5px;
+    border: 1px solid var(--line-hot);
+    border-radius: 999px;
+    width: max-content;
+    max-width: 100%;
+    background: var(--surface-2);
+    letter-spacing: 0.02em;
+}
+.saas-actor .sw {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--type-3);
+    flex-shrink: 0;
+}
+.saas-actor.a-unattrib { color: var(--type-2); }
+.saas-actor.a-unattrib .sw { background: var(--type-3); }
+.saas-actor.a-shiny .sw    { background: var(--coral); }
+.saas-actor.a-teampcp .sw  { background: var(--sky); }
+.saas-actor.a-qilin .sw    { background: var(--rose); }
+.saas-actor.a-lapsus .sw   { background: var(--amber); }
+
+.saas-exposure {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: var(--mono);
+}
+.saas-exposure .v {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--type);
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+.saas-exposure .u {
+    font-size: 10px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--type-3);
+}
+/* Holly: qualitative exposure values (codebase, undisclosed) drop the
+   big numeric treatment so they don't pretend to be data. Both v and u
+   render as a compact label pair — preserves the column rhythm. */
+.saas-exposure.qualitative .v {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--type-2);
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    font-variant-numeric: normal;
+}
+.saas-time {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--type-3);
+    letter-spacing: 0.06em;
+}
+.saas-time .rel { color: var(--type-2); }
+.saas-time .sep { color: var(--type-4); margin: 0 6px; }
+.group-row.saas.fresh .saas-time .rel { color: var(--coral); }
+
 /* ========================= MOBILE ========================= */
 @media (max-width: 720px) {
     .wrap { padding: 0 20px; }
@@ -1182,4 +1379,16 @@ mark {
     .summary-stats { gap: 20px; }
     .summary-stats .stat { min-width: 100px; }
     .summary-stats .stat-value { font-size: 22px; }
+    /* SaaS roster mobile — collapse meta column under main */
+    .group-row.saas .group-row-main {
+        grid-template-columns: 22px 1fr;
+    }
+    .saas-meta {
+        grid-column: 2 / 3;
+        border-left: 0;
+        border-top: 1px dashed var(--line);
+        padding-left: 0;
+        padding-top: 10px;
+        margin-top: 6px;
+    }
 }

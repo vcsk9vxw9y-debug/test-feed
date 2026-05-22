@@ -113,6 +113,32 @@ SaaS Breach:
   - hubspot
   - atlassian
   - shinyhunters
+  # Named SaaS-breach threat actors — 2024/2025 roster
+  - scattered spider
+  - lapsus$
+  - lapsus
+  - muddled libra
+  - octo tempest
+  - storm-0501
+  - storm 0501
+  - unc3944
+  # 2026 Q1 emerging SaaS actors (Aegis audit April 2026)
+  - shiny hunters
+  - alphv breach
+  # 2026 Q2 emerging SaaS actors (Peter Parker maintenance 18-May-2026)
+  - teampcp
+  - mini shai-hulud
+  - shai-hulud
+  - uat-8616
+  # Active SaaS / supply-chain campaigns — 2026 Q2 (Peter Parker maintenance 18-May-2026)
+  - canvas breach
+  - instructure breach
+  - grafana token
+  - grafana breach
+  - medtronic breach
+  - cushman wakefield
+  - trivy breach
+  - tanstack compromise
   # OAuth / token abuse
   - oauth token
   - oauth abuse
@@ -122,6 +148,19 @@ SaaS Breach:
   - stolen token
   - bearer token
   - authentication token
+  # OIDC / GitHub Actions token theft (Peter Parker maintenance 18-May-2026)
+  - oidc token
+  - oidc-token
+  - github actions token
+  - actions token theft
+  - workflow token theft
+  - pull_request_target
+  # Device-code / consent phishing for SaaS (Peter Parker maintenance 18-May-2026)
+  - device code phishing
+  - device-code phishing
+  - consent phishing
+  - illicit consent grant
+  - tycoon2fa
   # Leaked / exposed credentials
   - credential harvesting
   - leaked password
@@ -159,6 +198,12 @@ SaaS Breach:
   - fly.io
   - render.com
   - auth0
+  # AI / MCP SaaS attack surface (Peter Parker maintenance 18-May-2026)
+  - mcp server breach
+  - mcp token
+  - ai integration breach
+  - rag pipeline breach
+  - copilot connector
   # Note: `context.ai` intentionally NOT here. Context.ai is an AI product;
   # it lives in AI Security. The Vercel-via-Context.ai crossover still fires
   # SaaS Breach through the `vercel` keyword — no need to double-book.

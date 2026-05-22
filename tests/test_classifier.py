@@ -961,5 +961,182 @@ class SanityTests(unittest.TestCase):
         )
 
 
+class Stage1SaaSBreachExpansionTests(unittest.TestCase):
+    """Lock in the 2026-05-18 SaaS Breach keyword expansion (Stage 1 of the
+    category-pages roadmap).
+
+    Three categories of test:
+      1. Named SaaS-breach actors → SaaS Breach
+      2. 2026 Q2 active campaigns (Canvas, Grafana, Trivy, TanStack/Mistral) →
+         SaaS Breach
+      3. New attack-pattern terms (OIDC theft, device-code phishing, MCP
+         breach surface) → SaaS Breach
+
+    Crossover guard: Shai-Hulud-family terms appear in SaaS Breach AND in
+    Supply Chain via the existing `shai-hulud` keyword. SaaS Breach is
+    priority 3 and Supply Chain is priority 11, so SaaS Breach must win
+    when both fire. If this regresses, someone reshuffled category priority
+    or moved a keyword.
+    """
+
+    # --- Named SaaS-breach threat actors ---
+
+    def test_scattered_spider_is_saas_breach(self):
+        self.assertEqual(
+            classify_article(
+                "Scattered Spider hits another casino with social-engineering campaign",
+                "",
+            ),
+            "SaaS Breach",
+        )
+
+    def test_lapsus_dollar_is_saas_breach(self):
+        # The `lapsus$` keyword with the literal $ — make sure the YAML
+        # didn't drop it during parsing.
+        self.assertEqual(
+            classify_article("Lapsus$ resurfaces in extortion wave", ""),
+            "SaaS Breach",
+        )
+
+    def test_octo_tempest_is_saas_breach(self):
+        self.assertEqual(
+            classify_article("Octo Tempest leverages stolen tokens against M365", ""),
+            "SaaS Breach",
+        )
+
+    def test_uat_8616_is_saas_breach(self):
+        # UAT-8616 is an APT actor. SaaS Breach (prio 3) wins over Nation
+        # State/APT (prio 7) when both could fire — the SaaS Breach roster
+        # tracks orgs hit, and the spotlight surfaces this row.
+        self.assertEqual(
+            classify_article("UAT-8616 SaaS abuse campaign expands", ""),
+            "SaaS Breach",
+        )
+
+    # --- 2026 Q2 campaigns ---
+
+    def test_canvas_breach_is_saas_breach(self):
+        self.assertEqual(
+            classify_article(
+                "Canvas breach: ShinyHunters claim 275M student records",
+                "",
+            ),
+            "SaaS Breach",
+        )
+
+    def test_instructure_breach_is_saas_breach(self):
+        self.assertEqual(
+            classify_article("Instructure breach impacts 8,809 institutions", ""),
+            "SaaS Breach",
+        )
+
+    def test_grafana_token_breach_is_saas_breach(self):
+        self.assertEqual(
+            classify_article("Grafana token theft enables codebase exfiltration", ""),
+            "SaaS Breach",
+        )
+
+    def test_medtronic_breach_is_saas_breach(self):
+        self.assertEqual(
+            classify_article("Medtronic breach exposes millions of records", ""),
+            "SaaS Breach",
+        )
+
+    def test_trivy_breach_is_saas_breach(self):
+        self.assertEqual(
+            classify_article("Trivy breach compromises 1,000+ SaaS environments", ""),
+            "SaaS Breach",
+        )
+
+    def test_tanstack_compromise_is_saas_breach(self):
+        self.assertEqual(
+            classify_article("TanStack compromise spans 169 npm packages", ""),
+            "SaaS Breach",
+        )
+
+    # --- Crossover: Shai-Hulud must land in SaaS Breach, not Supply Chain ---
+
+    def test_shai_hulud_is_saas_breach_not_supply_chain(self):
+        # SaaS Breach priority (3) wins over Supply Chain priority (11).
+        # If this fails, either category priority got reshuffled or
+        # `shai-hulud` was removed from SaaS Breach.
+        self.assertEqual(
+            classify_article("Shai-Hulud worm spreads via npm tokens", ""),
+            "SaaS Breach",
+        )
+
+    def test_mini_shai_hulud_is_saas_breach(self):
+        self.assertEqual(
+            classify_article("Mini Shai-Hulud poisons TanStack and Mistral AI", ""),
+            "SaaS Breach",
+        )
+
+    def test_generic_supply_chain_still_works(self):
+        # Regression guard: a generic supply-chain story with NO SaaS terms
+        # should still land in Supply Chain. If we accidentally over-broadened
+        # SaaS Breach keywords, this catches it.
+        self.assertEqual(
+            classify_article(
+                "Open-source maintainers warn of expanding supply chain risk in package ecosystems",
+                "",
+            ),
+            "Supply Chain",
+        )
+
+    # --- New attack-pattern terms ---
+
+    def test_oidc_token_theft_is_saas_breach(self):
+        self.assertEqual(
+            classify_article("GitHub Actions token theft via OIDC abuse", ""),
+            "SaaS Breach",
+        )
+
+    def test_pull_request_target_is_saas_breach(self):
+        # The exact Actions trigger string — used in Mini Shai-Hulud coverage.
+        self.assertEqual(
+            classify_article("pull_request_target abuse poisons CI cache", ""),
+            "SaaS Breach",
+        )
+
+    def test_device_code_phishing_is_saas_breach(self):
+        self.assertEqual(
+            classify_article(
+                "Device-code phishing kit targets M365 accounts",
+                "",
+            ),
+            "SaaS Breach",
+        )
+
+    def test_tycoon2fa_is_saas_breach(self):
+        self.assertEqual(
+            classify_article("Tycoon2FA evolves to bypass M365 MFA", ""),
+            "SaaS Breach",
+        )
+
+    def test_consent_phishing_is_saas_breach(self):
+        self.assertEqual(
+            classify_article(
+                "Consent phishing campaign abuses illicit consent grants",
+                "",
+            ),
+            "SaaS Breach",
+        )
+
+    def test_mcp_server_breach_is_saas_breach(self):
+        self.assertEqual(
+            classify_article("MCP server breach exposes integration tokens", ""),
+            "SaaS Breach",
+        )
+
+    def test_rag_pipeline_breach_is_saas_breach(self):
+        self.assertEqual(
+            classify_article(
+                "RAG pipeline breach leaks internal corpus to attackers",
+                "",
+            ),
+            "SaaS Breach",
+        )
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

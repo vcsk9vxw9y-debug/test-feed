@@ -1,0 +1,169 @@
+# Notable Orgs — canonical org list for the SaaS Breach spotlight roster.
+#
+# Each entry represents one breached org. The roster on /category/saas-breach
+# is built by walking this file in order and counting matching articles in
+# the DB via the `aliases` arrays.
+#
+# Schema (every field required unless marked optional):
+#   canonical     : Display name for the row. Single source of truth.
+#   platform      : Short label rendered in the row's platform pill (e.g. "Canvas LMS").
+#   sector        : Tag rendered on the row (e.g. "education", "devtools").
+#   aliases       : List of substrings to match against article title + summary.
+#                   Case-insensitive. Match if ANY alias appears.
+#   actor         : Threat actor / cluster the breach is attributed to.
+#                   Use "Unattributed" if unknown.
+#   actor_cluster : One of: shiny, teampcp, qilin, lapsus, unattrib. Drives
+#                   the actor-pill swatch color in the template.
+#   exposure_value: Display value shown in the roster row (e.g. "275M", "500K+", "codebase").
+#   exposure_unit : Short label under the value (e.g. "records", "salesforce records").
+#   severity      : critical | high | medium. Drives the rail color.
+#   fresh         : true if the incident is within 24h of the most recent article.
+#                   The template uses this to render the pulsing coral tick.
+#   published_at  : ISO 8601 date of the headline incident.
+#   appears_on    : List of category-spotlight slugs this org appears on.
+#                   Crossover handling is option B (inclusive) — orgs hit by
+#                   ransomware actors whose breach involved SaaS data appear on
+#                   BOTH saas-breach AND ransomware spotlights. Topline stats
+#                   dedupe on canonical name so no double-counting.
+#   notes         : Optional. Operator-only context, not rendered on the page.
+
+- canonical: "Instructure"
+  platform: "Canvas LMS"
+  sector: "education"
+  aliases:
+    - "instructure"
+    - "canvas lms"
+    - "canvas breach"
+    - "canvas instructure"
+    - "instructure breach"
+    - "canvas dump"
+  actor: "ShinyHunters"
+  actor_cluster: "shiny"
+  exposure_value: "275M"
+  exposure_unit: "records"
+  severity: "critical"
+  fresh: true
+  published_at: "2026-05-18"
+  appears_on:
+    - "saas-breach"
+  notes: "Largest education-sector SaaS breach of 2026. Identity-infrastructure-grade — Canvas is the LMS for 8,809 K-12 + higher-ed tenants."
+
+- canonical: "Grafana Labs"
+  platform: "GitHub"
+  sector: "devtools"
+  # JB hardening 2026-05-18: dropped bare "grafana labs" because it would
+  # over-match on unrelated Grafana product news. Breach-specific aliases
+  # only.
+  aliases:
+    - "grafana breach"
+    - "grafana github"
+    - "grafana token"
+    - "grafana codebase"
+  actor: "Unattributed"
+  actor_cluster: "unattrib"
+  exposure_value: "codebase"
+  exposure_unit: "full exfil"
+  severity: "critical"
+  fresh: true
+  published_at: "2026-05-17"
+  appears_on:
+    - "saas-breach"
+  notes: "GitHub token compromise enabled full source-code download. Active extortion attempt by attacker."
+
+- canonical: "Medtronic"
+  platform: "SaaS suite"
+  sector: "healthcare"
+  # JB hardening 2026-05-18: dropped bare "medtronic" because it would
+  # over-match on unrelated Medtronic product/FDA news. Breach-specific
+  # aliases only.
+  aliases:
+    - "medtronic breach"
+    - "medtronic data"
+  actor: "ShinyHunters"
+  actor_cluster: "shiny"
+  exposure_value: "millions"
+  exposure_unit: "records · est"
+  severity: "critical"
+  fresh: false
+  published_at: "2026-05-15"
+  appears_on:
+    - "saas-breach"
+  notes: "PHI exposure. Part of the broader ShinyHunters campaign that hit Canvas and Cushman & Wakefield."
+
+- canonical: "Cushman & Wakefield"
+  platform: "Salesforce"
+  sector: "commercial real estate"
+  aliases:
+    - "cushman & wakefield"
+    - "cushman and wakefield"
+    - "cushman wakefield"
+    - "c&w salesforce"
+  actor: "ShinyHunters"
+  actor_cluster: "shiny"
+  exposure_value: "500K+"
+  exposure_unit: "salesforce records"
+  severity: "high"
+  fresh: false
+  published_at: "2026-05-14"
+  appears_on:
+    - "saas-breach"
+  notes: "OAuth-grant abuse. Same actor cluster as Canvas and Medtronic."
+
+- canonical: "Trivy users"
+  platform: "SaaS envs"
+  sector: "devtools"
+  aliases:
+    - "trivy breach"
+    - "trivy supply chain"
+    - "trivy compromise"
+  actor: "Lapsus$"
+  actor_cluster: "lapsus"
+  exposure_value: "1,000+"
+  exposure_unit: "saas envs"
+  severity: "high"
+  fresh: false
+  published_at: "2026-05-13"
+  appears_on:
+    - "saas-breach"
+  notes: "Supply-chain compromise reached 1,000+ SaaS environments. Lapsus$ joins the extortion wave."
+
+- canonical: "TanStack / Mistral / UiPath"
+  platform: "npm + PyPI"
+  sector: "devtools / ai"
+  aliases:
+    - "tanstack compromise"
+    - "tanstack supply chain"
+    - "mini shai-hulud"
+    - "mini shai hulud"
+    - "shai-hulud"
+    - "mistral ai supply chain"
+    - "uipath supply chain"
+    - "teampcp"
+  actor: "TeamPCP"
+  actor_cluster: "teampcp"
+  exposure_value: "373"
+  exposure_unit: "pkg versions"
+  severity: "high"
+  fresh: false
+  published_at: "2026-05-12"
+  appears_on:
+    - "saas-breach"
+  notes: "Mini Shai-Hulud worm. 169 npm names + 2 PyPI packages poisoned via GitHub Actions cache + OIDC token theft. New supply-chain primitive: bypasses npm credential rotation entirely."
+
+- canonical: "Salter HealthCare"
+  platform: "M365 / files"
+  sector: "healthcare"
+  aliases:
+    - "salter healthcare"
+    - "salter health"
+  actor: "Qilin"
+  actor_cluster: "qilin"
+  exposure_value: "undisclosed"
+  exposure_unit: "claim posted"
+  severity: "medium"
+  fresh: false
+  published_at: "2026-05-12"
+  appears_on:
+    - "saas-breach"
+    - "ransomware"
+  notes: "Ransomware-into-extortion crossover — exfil before encryption. Healthcare SaaS dependencies impacted. Appears on BOTH spotlights per option-B crossover handling. Template renders 'also in Ransomware' link."

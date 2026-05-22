@@ -93,7 +93,7 @@
     </section>
 
     {#- ========== GROUP ROLLUP (Ransomware) ========== -#}
-    {% if summary and summary.rows %}
+    {% if slug == 'ransomware' and summary and summary.rows %}
     <section class="rollup" aria-label="Group activity rollup">
         <h3 class="rollup-head">
             <span>Group Activity</span>
@@ -112,6 +112,75 @@
                     {% for v in row.victims %}
                     <li class="victim">
                         <span class="victim-title">{{ v.title }}</span>
+                        <span class="victim-meta">
+                            <span class="victim-source">{{ v.source }}</span>
+                            <span class="sep">·</span>
+                            <time datetime="{{ v.date or '' }}">{{ v.date }}</time>
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {#- ========== ORG ROLLUP (SaaS Breach) ========== -#}
+    {#- Rows come from _build_saas_breach_summary() which validates every
+        entry of config/notable_orgs.yml against an allowlist of
+        actor_cluster and severity values. The CSS class names below
+        derived from row.actor_cluster / row.severity are therefore
+        constrained to a fixed set — not free-form. -#}
+    {% if slug == 'saas-breach' and summary and summary.rows %}
+    <section class="rollup" aria-label="Recently breached orgs rollup">
+        <h3 class="rollup-head">
+            <span>Recently Breached Orgs</span>
+            <span class="rollup-meta">{{ summary.rows|length }} org{% if summary.rows|length != 1 %}s{% endif %} · click row to expand</span>
+        </h3>
+        <div class="rollup-rows">
+            {% for row in summary.rows %}
+            <div class="group-row saas{% if row.severity == 'critical' %} crit{% endif %}{% if row.fresh %} fresh{% endif %}" data-group="{{ row.canonical }}" tabindex="0" role="button" aria-expanded="false" aria-label="Expand {{ row.canonical }} breach details">
+                <div class="group-row-main">
+                    <div class="saas-rail" aria-hidden="true">
+                        <span class="tick"></span>
+                        <div class="fill"></div>
+                    </div>
+                    <div class="saas-main">
+                        <div class="saas-org">
+                            {{ row.canonical }}
+                            <span class="saas-platform">{{ row.platform }}</span>
+                        </div>
+                        <div class="saas-tags">
+                            <span class="saas-tag">{{ row.sector }}</span>
+                            {% if row.also_in %}
+                                {% for other_slug in row.also_in %}
+                                <a class="saas-tag saas-crossover" href="/category/{{ other_slug }}">also in {{ other_slug|replace('-', ' ')|title }}</a>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="saas-meta">
+                        <span class="saas-actor a-{{ row.actor_cluster }}">
+                            <span class="sw" aria-hidden="true"></span>{{ row.actor }}
+                        </span>
+                        <div class="saas-exposure{% if row.exposure_qualitative %} qualitative{% endif %}">
+                            <span class="v">{{ row.exposure_value }}</span>
+                            <span class="u">{{ row.exposure_unit }}</span>
+                        </div>
+                        <div class="saas-time">
+                            <span class="rel">{{ row.article_count }} article{% if row.article_count != 1 %}s{% endif %}</span>
+                            <span class="sep">·</span>
+                            <time datetime="{{ row.published_at or '' }}">{{ row.published_at }}</time>
+                        </div>
+                    </div>
+                </div>
+                <ul class="group-victims" hidden>
+                    {% for v in row.articles %}
+                    <li class="victim">
+                        <span class="victim-title">
+                            {% if v.url %}<a href="{{ v.url }}" rel="noopener noreferrer">{{ v.title }}</a>{% else %}{{ v.title }}{% endif %}
+                        </span>
                         <span class="victim-meta">
                             <span class="victim-source">{{ v.source }}</span>
                             <span class="sep">·</span>

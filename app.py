@@ -23,6 +23,36 @@ DAILY_BRIEFING_REQUIRED = ("actions", "generated_at")
 THREAT_CONTEXT_PATH = os.path.join(os.path.dirname(__file__), "config", "threat_context.yml")
 THREAT_CONTEXT_REQUIRED = ("generated_at", "landscape_summary")
 
+NOTABLE_ORGS_PATH = os.path.join(os.path.dirname(__file__), "config", "notable_orgs.yml")
+# Every entry in notable_orgs.yml must carry these keys. Anything missing
+# is silently rejected so a malformed YAML edit can't crash the spotlight.
+_NOTABLE_ORG_REQUIRED = (
+    "canonical", "platform", "sector", "aliases", "actor",
+    "actor_cluster", "exposure_value", "exposure_unit",
+    "severity", "fresh", "published_at", "appears_on",
+)
+# Allowlist for constrained string fields. Defense-in-depth — prevents a
+# malformed entry from smuggling unexpected CSS class names into the
+# template via actor_cluster or severity.
+_NOTABLE_ORG_ACTOR_CLUSTERS = frozenset(
+    ("shiny", "teampcp", "qilin", "lapsus", "unattrib")
+)
+_NOTABLE_ORG_SEVERITIES = frozenset(("critical", "high", "medium"))
+_SEVERITY_RANK = {"critical": 3, "high": 2, "medium": 1}
+# Defensive limits on aliases — guards against a typo'd or malicious YAML
+# entry causing a pathological match storm.
+#   Minimum length 4 chars: rejects 1-3 char aliases that would over-match
+#   ("m" matches everything, "ai" matches half of 2026 coverage).
+#   Maximum 32 aliases per entry: any legitimate org needs far fewer.
+_NOTABLE_ORG_ALIAS_MIN_LEN = 4
+_NOTABLE_ORG_ALIAS_MAX_COUNT = 32
+# Hard ceiling on notable_orgs.yml size before yaml.safe_load. PyYAML's
+# safe_load prevents arbitrary object construction but does NOT protect
+# against YAML aliases / billion-laughs / pathologically large files.
+# 1 MB is ~50x the largest plausible brand file. Files larger than this
+# fail validation and the spotlight degrades to V1 behavior.
+_NOTABLE_ORGS_MAX_BYTES = 1_048_576
+
 # Hard ceiling on article count — prevents unbounded DB growth even if
 # the 30-day rolling prune can't keep up (e.g., feed floods, new source
 # onboarding bursts). Oldest articles beyond this cap are deleted.
@@ -890,37 +920,228 @@ def _build_ransomware_summary(articles):
     return {"stats": stats, "rows": rows}
 
 
-def _build_saas_breach_summary(articles):
-    """Compute headline stats for the SaaS Breach spotlight page.
+def _load_notable_orgs():
+    """Load and schema-validate config/notable_orgs.yml.
 
-    V1 deliberately does NOT cluster articles into 'breach incidents'
-    — title-token clustering was unreliable in testing (e.g. articles
-    about the same incident with different phrasings landed in
-    separate buckets, misleading the bar chart). The page instead
-    shows a clean recency-sorted list with diversity stats.
+    Returns a list of validated org dicts, or [] on any of:
+      - file missing
+      - YAML parse error
+      - top-level not a list
+      - all entries fail validation
 
-    TODO(spotlight): revisit clustering when we have a brand-keyword
-    file (similar shape to notable_victims.yml) — then bars can scale
-    by per-incident coverage with confidence.
+    Every entry must carry the keys in _NOTABLE_ORG_REQUIRED, with
+    actor_cluster and severity constrained to the allowlists above.
+    Aliases are normalized to lowercase + stripped, must be at least
+    _NOTABLE_ORG_ALIAS_MIN_LEN characters, and capped at
+    _NOTABLE_ORG_ALIAS_MAX_COUNT per entry.
 
-    Returns {"stats": {...}, "rows": []} — empty rows tells the template
-    to skip the rollup section and render the article list directly.
+    appears_on values are filtered against _SPOTLIGHT_SLUGS — unknown
+    slugs are dropped so the template never renders a /category/<x>
+    link to a non-existent spotlight page.
+
+    JB: degrades gracefully — if the brand file is broken the
+    spotlight page falls back to V1 behavior (rows=[]) rather than
+    crashing the request.
     """
-    seven_days_ago = (
-        datetime.now(timezone.utc) - timedelta(days=7)
+    if not os.path.exists(NOTABLE_ORGS_PATH):
+        return []
+    try:
+        # Aegis: refuse to parse files larger than the hard ceiling. Defense
+        # against pathologically large or aliased YAML — safe_load alone
+        # does not guard against billion-laughs / quadratic-blowup attacks.
+        if os.path.getsize(NOTABLE_ORGS_PATH) > _NOTABLE_ORGS_MAX_BYTES:
+            return []
+        with open(NOTABLE_ORGS_PATH, "r", encoding="utf-8") as fh:
+            data = yaml.safe_load(fh) or []
+    except (OSError, yaml.YAMLError):
+        return []
+    if not isinstance(data, list):
+        return []
+    validated = []
+    for entry in data:
+        if not isinstance(entry, dict):
+            continue
+        if not all(k in entry for k in _NOTABLE_ORG_REQUIRED):
+            continue
+        aliases_raw = entry.get("aliases") or []
+        if not isinstance(aliases_raw, list):
+            continue
+        # Normalize + length-guard each alias, then cap the list at
+        # _NOTABLE_ORG_ALIAS_MAX_COUNT. Short aliases (<4 chars) are dropped
+        # because they would over-match against arbitrary article text.
+        aliases = [
+            a.lower().strip()
+            for a in aliases_raw
+            if isinstance(a, str) and len(a.strip()) >= _NOTABLE_ORG_ALIAS_MIN_LEN
+        ]
+        aliases = aliases[:_NOTABLE_ORG_ALIAS_MAX_COUNT]
+        if not aliases:
+            continue
+        appears_on_raw = entry.get("appears_on") or []
+        if not isinstance(appears_on_raw, list):
+            continue
+        # Filter appears_on against the actual spotlight allowlist so a
+        # malformed YAML edit can never produce a link to a non-existent
+        # spotlight page. Strings only; unknown slugs dropped silently.
+        appears_on = [
+            s for s in appears_on_raw
+            if isinstance(s, str) and s in _SPOTLIGHT_SLUGS
+        ]
+        if entry.get("actor_cluster") not in _NOTABLE_ORG_ACTOR_CLUSTERS:
+            continue
+        if entry.get("severity") not in _NOTABLE_ORG_SEVERITIES:
+            continue
+        validated.append({
+            "canonical": str(entry["canonical"]),
+            "platform": str(entry["platform"]),
+            "sector": str(entry["sector"]),
+            "aliases": aliases,
+            "actor": str(entry["actor"]),
+            "actor_cluster": str(entry["actor_cluster"]),
+            "exposure_value": str(entry["exposure_value"]),
+            "exposure_unit": str(entry["exposure_unit"]),
+            "severity": str(entry["severity"]),
+            "fresh": bool(entry["fresh"]),
+            "published_at": str(entry["published_at"]),
+            "appears_on": appears_on,
+        })
+    return validated
+
+
+def _build_saas_breach_summary(articles):
+    """Build the SaaS Breach spotlight roster from notable_orgs.yml.
+
+    For each org in the brand file whose appears_on list contains
+    "saas-breach", count the articles whose title or summary contains
+    any of the org's aliases (case-insensitive substring match). Orgs
+    with zero matching articles are omitted — the roster shows only
+    orgs with active coverage in the current article window.
+
+    Returns {"stats": {...}, "rows": [...]} matching the template
+    contract. Rows are ordered by severity (critical first), then
+    published_at desc, then canonical asc.
+
+    Backward-compat: if notable_orgs.yml is missing or invalid,
+    returns rows=[] and basic stats — the template's
+    {% if summary.rows %} guard suppresses the rollup section and
+    the page renders as before.
+
+    Scaling: matching is O(orgs * articles * aliases). With the current
+    target of <50 orgs, <500 articles, <32 aliases each, that's <800K
+    substring checks per page render — well under 100ms. If the brand
+    file grows past ~100 orgs, consider precompiling aliases into a
+    single combined regex per org, or switching to an inverted index.
+    """
+    orgs = [
+        o for o in _load_notable_orgs()
+        if "saas-breach" in o["appears_on"]
+    ]
+
+    # Precompute lowercase title+summary haystacks once per article.
+    twenty_four_hours_ago = (
+        datetime.now(timezone.utc) - timedelta(hours=24)
     ).date().isoformat()
-    recent = sum(
-        1 for a in articles
-        if (a.get("published_date") or a.get("created_at") or "") >= seven_days_ago
-    )
-    sources = {a.get("source_name") for a in articles if a.get("source_name")}
+    recent_24h_count = 0
+    haystacks = []
+    for a in articles:
+        published = a.get("published_date") or a.get("created_at") or ""
+        if published >= twenty_four_hours_ago:
+            recent_24h_count += 1
+        title = (a.get("title") or "").lower()
+        summary = (a.get("summary") or "").lower()
+        haystacks.append((a, title + " " + summary))
+
+    rows = []
+    matched_canonicals = set()
+    for org in orgs:
+        org_articles = []
+        for a, hay in haystacks:
+            if any(alias in hay for alias in org["aliases"]):
+                org_articles.append({
+                    "title": a.get("title") or "",
+                    "url": a.get("url") or "",
+                    "source": a.get("source_name") or "",
+                    "date": a.get("published_date") or a.get("created_at") or "",
+                })
+        if not org_articles:
+            continue
+        matched_canonicals.add(org["canonical"])
+        org_articles.sort(
+            key=lambda v: v.get("date") or "", reverse=True
+        )
+        # Crossover handling (option B, inclusive): if this org appears on
+        # ransomware too, surface a link in the template via also_in.
+        also_in = [
+            slug for slug in org["appears_on"] if slug != "saas-breach"
+        ]
+        # Qualitative exposure values ("codebase", "undisclosed") get
+        # smaller label-style rendering so they don't break the column's
+        # numeric rhythm. Holly call: number-and-unit pattern reads as data;
+        # word-as-value styled like data reads like a bug.
+        exposure_qualitative = not (
+            org["exposure_value"] and org["exposure_value"][0].isdigit()
+        )
+        rows.append({
+            "canonical": org["canonical"],
+            "platform": org["platform"],
+            "sector": org["sector"],
+            "actor": org["actor"],
+            "actor_cluster": org["actor_cluster"],
+            "exposure_value": org["exposure_value"],
+            "exposure_unit": org["exposure_unit"],
+            "exposure_qualitative": exposure_qualitative,
+            "severity": org["severity"],
+            "fresh": org["fresh"],
+            "published_at": org["published_at"],
+            "article_count": len(org_articles),
+            "articles": org_articles,
+            "also_in": also_in,
+        })
+
+    # Stable-sort in reverse importance order so the final order is:
+    # severity desc → published_at desc → canonical asc.
+    rows.sort(key=lambda r: r["canonical"])
+    rows.sort(key=lambda r: r["published_at"] or "", reverse=True)
+    rows.sort(key=lambda r: -_SEVERITY_RANK.get(r["severity"], 0))
+
+    distinct_actors = {
+        r["actor"] for r in rows
+        if r["actor"] and r["actor"] != "Unattributed"
+    }
 
     stats = {
+        "orgs_breached": len(matched_canonicals),
+        "recent_24h": recent_24h_count,
+        "active_actors": len(distinct_actors),
         "total_articles": len(articles),
-        "recent_7d": recent,
-        "sources_covering": len(sources),
     }
-    return {"stats": stats, "rows": []}
+    return {"stats": stats, "rows": rows}
+
+
+def _crossover_categories_for(primary_slug):
+    """Return the set of article CATEGORIES (not slugs) needed for roster
+    matching on primary_slug, given the orgs in notable_orgs.yml.
+
+    Crossover orgs declare appears_on with multiple spotlight slugs. If an
+    org appears_on both 'saas-breach' and 'ransomware', its coverage may be
+    classified by the article classifier into Ransomware (because the
+    Ransomware keywords fire first) — but we still want that coverage to
+    surface on the SaaS Breach roster row for that org. This helper tells
+    the route which article categories to query.
+
+    Returns the primary category plus any extra category referenced by any
+    roster org's appears_on. Always a subset of _SPOTLIGHT_SLUGS values, so
+    SQL placeholders are bounded.
+    """
+    if primary_slug not in _SPOTLIGHT_SLUGS:
+        return set()
+    needed_slugs = {primary_slug}
+    for org in _load_notable_orgs():
+        if primary_slug in org["appears_on"]:
+            needed_slugs.update(org["appears_on"])
+    return {
+        _SPOTLIGHT_SLUGS[s] for s in needed_slugs if s in _SPOTLIGHT_SLUGS
+    }
 
 
 def _category_to_markdown(category_name, articles, summary):
@@ -992,7 +1213,32 @@ def category_spotlight(slug):
     if slug == "ransomware":
         summary = _build_ransomware_summary(articles)
     elif slug == "saas-breach":
-        summary = _build_saas_breach_summary(articles)
+        # Crossover handling: an org with appears_on=['saas-breach', 'ransomware']
+        # may have coverage that classified into Ransomware. Broaden the article
+        # window for ROSTER matching so those rows render with their "also in
+        # Ransomware" link. The article LIST below the divider keeps the narrow
+        # category-filtered set above — that's still SaaS Breach articles only.
+        crossover_cats = _crossover_categories_for(slug)
+        if crossover_cats - {category}:
+            conn = get_db()
+            try:
+                placeholders = ",".join("?" * len(crossover_cats))
+                xrows = conn.execute(
+                    f"SELECT title, summary, url, published_date, created_at, "
+                    f"source_name, category FROM articles "
+                    f"WHERE category IN ({placeholders}) "
+                    f"ORDER BY COALESCE(published_date, created_at) DESC "
+                    f"LIMIT ?",
+                    (*sorted(crossover_cats), _SPOTLIGHT_ARTICLE_LIMIT * 2),
+                ).fetchall()
+            finally:
+                conn.close()
+            roster_articles = [dict(r) for r in xrows]
+            for a in roster_articles:
+                a["url"] = _safe_entry_url(a.get("url"))
+        else:
+            roster_articles = articles
+        summary = _build_saas_breach_summary(roster_articles)
     else:
         # Unreachable given the allowlist guard above, but explicit > implicit
         summary = {"stats": {}, "rows": []}
