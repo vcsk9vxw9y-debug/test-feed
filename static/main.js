@@ -49,6 +49,7 @@ const categoryMap = {
     "Supply Chain":                  { cat: "supply" },
     "Mobile Security":               { cat: "mobile" },
     "Industry/Policy":               { cat: "policy" },
+    "Consumer Awareness":            { cat: "uncat" },
     "Uncategorized":                 { cat: "uncat" },
 };
 
@@ -814,12 +815,26 @@ async function loadTopStory() {
 }
 
 // Categories that have dedicated Spotlight pages — clicking these tags
-// navigates to the route instead of client-side filtering. Keep in sync
-// with _SPOTLIGHT_SLUGS in app.py. Source of truth is the server route;
-// this map only exists to provide the same UX for the homepage filter rail.
+// navigates to the route instead of client-side filtering. Mirror of
+// _SPOTLIGHT_SLUGS in app.py (server is source of truth; this only
+// duplicates the slug map for client-side navigation). Every category
+// in _SPOTLIGHT_SLUGS gets a href so clicking the filter chip jumps
+// to the dedicated /category/<slug> page.
 const SPOTLIGHT_CATEGORY_HREFS = {
-    "Ransomware":  "/category/ransomware",
-    "SaaS Breach": "/category/saas-breach",
+    "OT/ICS":                          "/category/ot-ics",
+    "Cloud Security":                  "/category/cloud-security",
+    "SaaS Breach":                     "/category/saas-breach",
+    "Ransomware":                      "/category/ransomware",
+    "Identity & Access":               "/category/identity-access",
+    "Vulnerability/CVE":               "/category/vulnerability",
+    "Nation State/APT":                "/category/nation-state-apt",
+    "Malware/Infostealer":             "/category/malware",
+    "AI Security":                     "/category/ai-security",
+    "Phishing & Social Engineering":   "/category/phishing",
+    "Supply Chain":                    "/category/supply-chain",
+    "Mobile Security":                 "/category/mobile-security",
+    "Industry/Policy":                 "/category/industry-policy",
+    "Consumer Awareness":              "/category/consumer-awareness",
 };
 
 async function loadCategories() {
