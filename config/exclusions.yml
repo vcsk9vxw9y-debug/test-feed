@@ -21,6 +21,9 @@
   - How CrowdStrike is  # self-congratulatory marketing framing ("How CrowdStrike is stopping X…")
   - CrowdStrike Expands  # business expansion announcements, not threat intel
 
+"Dark Reading":
+  - "[virtual event]"   # future-dated event listings, not threat intel; pollute the feed with un-happened dates
+
 "Reddit r/netsec":
   - path for entry-level
   - now hiring

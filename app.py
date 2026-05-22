@@ -803,10 +803,27 @@ def get_categories():
 # Adding a new spotlight category = add an entry to _SPOTLIGHT_SLUGS.
 # The slug becomes the URL segment; the value must match articles.category
 # exactly (case-sensitive, since classifier.py emits exact strings).
-
+#
+# Stage 2 (2026-05-21): expanded from the 2-entry rich-roster allowlist to
+# cover all 14 classifier categories. The rich roster treatment still only
+# fires for "ransomware" and "saas-breach"; other slugs render with a basic
+# stats summary + filtered article list via _build_default_summary(). Every
+# slug here is independently shareable as /category/<slug>.
 _SPOTLIGHT_SLUGS = {
-    "ransomware": "Ransomware",
-    "saas-breach": "SaaS Breach",
+    "ot-ics":               "OT/ICS",
+    "cloud-security":       "Cloud Security",
+    "saas-breach":          "SaaS Breach",
+    "ransomware":           "Ransomware",
+    "identity-access":      "Identity & Access",
+    "vulnerability":        "Vulnerability/CVE",
+    "nation-state-apt":     "Nation State/APT",
+    "malware":              "Malware/Infostealer",
+    "ai-security":          "AI Security",
+    "phishing":             "Phishing & Social Engineering",
+    "supply-chain":         "Supply Chain",
+    "mobile-security":      "Mobile Security",
+    "industry-policy":      "Industry/Policy",
+    "consumer-awareness":   "Consumer Awareness",
 }
 
 # Hardcoded fallback for "notable victims" stat until
@@ -1118,6 +1135,59 @@ def _build_saas_breach_summary(articles):
     return {"stats": stats, "rows": rows}
 
 
+def _build_default_summary(articles):
+    """Build a basic stats summary for any spotlight page that doesn't have
+    a custom roster builder.
+
+    Stage 2 (2026-05-21): every category in _SPOTLIGHT_SLUGS now has a
+    dedicated URL. The 2 categories with rich roster treatment (ransomware,
+    saas-breach) call their own builders; the other 12 fall through to
+    this one. Returns rows=[] so the template's existing {% if summary.rows %}
+    guard suppresses the rollup section, and the page renders as
+    masthead → category header → stats → article list.
+
+    Stats kept short and universally meaningful — total article count,
+    last-24h count, distinct sources covering, days since the most recent
+    article. No category-specific assumptions.
+
+    Returns {"stats": {...}, "rows": []}.
+    """
+    now_utc = datetime.now(timezone.utc)
+    twenty_four_hours_ago = (now_utc - timedelta(hours=24)).date().isoformat()
+    recent_24h = 0
+    sources = set()
+    latest_date = ""
+    for a in articles:
+        published = a.get("published_date") or a.get("created_at") or ""
+        if published >= twenty_four_hours_ago:
+            recent_24h += 1
+        source = a.get("source_name")
+        if source:
+            sources.add(source)
+        if published > latest_date:
+            latest_date = published
+    # Days since latest published article. Robust to malformed dates —
+    # falls back to "—" rather than raising if the column is unusable.
+    days_since_latest = "—"
+    if latest_date:
+        try:
+            # Accept both YYYY-MM-DD and ISO datetime forms.
+            latest_dt = datetime.fromisoformat(latest_date.replace("Z", "+00:00"))
+            if latest_dt.tzinfo is None:
+                latest_dt = latest_dt.replace(tzinfo=timezone.utc)
+            delta_days = (now_utc - latest_dt).days
+            days_since_latest = max(0, delta_days)
+        except (ValueError, TypeError):
+            days_since_latest = "—"
+    stats = {
+        "total_articles": len(articles),
+        "last_24h": recent_24h,
+        "sources_covering": len(sources),
+        "days_since_latest": days_since_latest,
+    }
+    return {"stats": stats, "rows": []}
+
+
 def _crossover_categories_for(primary_slug):
     """Return the set of article CATEGORIES (not slugs) needed for roster
     matching on primary_slug, given the orgs in notable_orgs.yml.
@@ -1240,8 +1310,10 @@ def category_spotlight(slug):
             roster_articles = articles
         summary = _build_saas_breach_summary(roster_articles)
     else:
-        # Unreachable given the allowlist guard above, but explicit > implicit
-        summary = {"stats": {}, "rows": []}
+        # All other allowlisted slugs render with the basic-stats summary.
+        # The template's {% if summary.rows %} guard skips the rollup
+        # section automatically since rows=[].
+        summary = _build_default_summary(articles)
 
     # is_capped tells the template whether the DB query hit the row limit.
     # Single source of truth — template no longer hard-codes the magic number.
