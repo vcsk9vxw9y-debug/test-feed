@@ -24,7 +24,9 @@ DAILY_BRIEFING_REQUIRED = ("actions", "generated_at")
 THREAT_CONTEXT_PATH = os.path.join(os.path.dirname(__file__), "config", "threat_context.yml")
 THREAT_CONTEXT_REQUIRED = ("generated_at", "landscape_summary")
 
-NOTABLE_ORGS_PATH = os.path.join(os.path.dirname(__file__), "config", "notable_orgs.yml")
+NOTABLE_ORGS_PATH   = os.path.join(os.path.dirname(__file__), "config", "notable_orgs.yml")
+NOTABLE_CVES_PATH   = os.path.join(os.path.dirname(__file__), "config", "notable_cves.yml")
+NOTABLE_ACTORS_PATH = os.path.join(os.path.dirname(__file__), "config", "notable_actors.yml")
 # Every entry in notable_orgs.yml must carry these keys. Anything missing
 # is silently rejected so a malformed YAML edit can't crash the spotlight.
 _NOTABLE_ORG_REQUIRED = (
@@ -47,12 +49,45 @@ _SEVERITY_RANK = {"critical": 3, "high": 2, "medium": 1}
 #   Maximum 32 aliases per entry: any legitimate org needs far fewer.
 _NOTABLE_ORG_ALIAS_MIN_LEN = 4
 _NOTABLE_ORG_ALIAS_MAX_COUNT = 32
-# Hard ceiling on notable_orgs.yml size before yaml.safe_load. PyYAML's
+# Hard ceiling on brand-file size before yaml.safe_load. PyYAML's
 # safe_load prevents arbitrary object construction but does NOT protect
 # against YAML aliases / billion-laughs / pathologically large files.
 # 1 MB is ~50x the largest plausible brand file. Files larger than this
-# fail validation and the spotlight degrades to V1 behavior.
+# fail validation and the spotlight degrades gracefully.
 _NOTABLE_ORGS_MAX_BYTES = 1_048_576
+_NOTABLE_FILE_MAX_BYTES = 1_048_576
+
+# ----- notable_cves.yml schema constants -----
+_NOTABLE_CVE_REQUIRED = (
+    "id", "vendor", "product", "affected", "patched_in", "cvss",
+    "cvss_vector", "summary", "status", "kev_listed", "disclosed",
+    "patch_state", "actor", "aliases", "appears_on",
+)
+_NOTABLE_CVE_STATUSES = frozenset(
+    ("actively_exploited", "kev_observed", "poc_pending")
+)
+_NOTABLE_CVE_PATCH_STATES = frozenset(("shipped", "mitigation", "unfixed"))
+# CVE IDs must match this pattern. Defense against template-side surprises
+# if a malformed entry slipped past the rest of the validation.
+_CVE_ID_RE = re.compile(r"^CVE-\d{4}-\d{4,7}$")
+
+# ----- notable_actors.yml schema constants -----
+_NOTABLE_ACTOR_REQUIRED = (
+    "name", "origin", "status", "description", "activity", "ttps",
+    "victim_count", "victim_label", "last_seen", "sectors", "aliases",
+    "appears_on",
+)
+_NOTABLE_ACTOR_STATUSES = frozenset(("active", "warm", "dormant"))
+# Fixed sector order; the heat strip renders cells in this order. Used by
+# both the loader (to constrain keys) and the template (to iterate).
+_APT_SECTORS = (
+    "government", "defense", "telecom", "energy", "finance", "healthcare",
+    "education", "critical_infra", "manufacturing", "retail", "media",
+    "nonprofit",
+)
+# Valid cell values. Strings: only "active" allowed (renders coral pulse).
+# Ints: 0–3 (heat ramp). Anything else is normalized to 0.
+_APT_SECTOR_HIT_INT = frozenset((0, 1, 2, 3))
 
 # Hard ceiling on article count — prevents unbounded DB growth even if
 # the 30-day rolling prune can't keep up (e.g., feed floods, new source
@@ -834,8 +869,8 @@ _SPOTLIGHT_SLUGS = {
     "saas-breach":        Spotlight("SaaS Breach",                  "dot-saas",     "rich"),
     "ransomware":         Spotlight("Ransomware",                   "dot-ransom",   "rich"),
     "identity-access":    Spotlight("Identity & Access",            "dot-identity", "basic"),
-    "vulnerability":      Spotlight("Vulnerability/CVE",            "dot-vuln",     "basic"),
-    "nation-state-apt":   Spotlight("Nation State/APT",             "dot-apt",      "basic"),
+    "vulnerability":      Spotlight("Vulnerability/CVE",            "dot-vuln",     "rich"),
+    "nation-state-apt":   Spotlight("Nation State/APT",             "dot-apt",      "rich"),
     "malware":            Spotlight("Malware/Infostealer",          "dot-malware",  "basic"),
     "ai-security":        Spotlight("AI Security",                  "dot-ai",       "basic"),
     "phishing":           Spotlight("Phishing & Social Engineering","dot-phishing", "basic"),
@@ -1159,6 +1194,359 @@ def _build_saas_breach_summary(articles):
     return {"stats": stats, "rows": rows}
 
 
+def _load_notable_cves():
+    """Load and schema-validate config/notable_cves.yml.
+
+    Returns a list of validated CVE dicts. Same fail-closed posture as
+    _load_notable_orgs: missing file, parse error, oversized file, or
+    any malformed entry yields a degraded list (entries failing
+    validation are silently dropped).
+    """
+    if not os.path.exists(NOTABLE_CVES_PATH):
+        return []
+    try:
+        if os.path.getsize(NOTABLE_CVES_PATH) > _NOTABLE_FILE_MAX_BYTES:
+            return []
+        with open(NOTABLE_CVES_PATH, "r", encoding="utf-8") as fh:
+            data = yaml.safe_load(fh) or []
+    except (OSError, yaml.YAMLError):
+        return []
+    if not isinstance(data, list):
+        return []
+    validated = []
+    for entry in data:
+        if not isinstance(entry, dict):
+            continue
+        if not all(k in entry for k in _NOTABLE_CVE_REQUIRED):
+            continue
+        # ID gate — defense against XSS via malformed CVE strings in
+        # template attribute positions.
+        cve_id = entry.get("id", "")
+        if not isinstance(cve_id, str) or not _CVE_ID_RE.match(cve_id):
+            continue
+        if entry.get("status") not in _NOTABLE_CVE_STATUSES:
+            continue
+        if entry.get("patch_state") not in _NOTABLE_CVE_PATCH_STATES:
+            continue
+        aliases_raw = entry.get("aliases") or []
+        if not isinstance(aliases_raw, list):
+            continue
+        aliases = [
+            a.lower().strip()
+            for a in aliases_raw
+            if isinstance(a, str) and len(a.strip()) >= _NOTABLE_ORG_ALIAS_MIN_LEN
+        ][:_NOTABLE_ORG_ALIAS_MAX_COUNT]
+        if not aliases:
+            continue
+        appears_on_raw = entry.get("appears_on") or []
+        if not isinstance(appears_on_raw, list):
+            continue
+        appears_on = [
+            s for s in appears_on_raw
+            if isinstance(s, str) and s in _SPOTLIGHT_SLUGS
+        ]
+        try:
+            cvss = float(entry.get("cvss"))
+        except (ValueError, TypeError):
+            continue
+        if cvss < 0 or cvss > 10:
+            continue
+        tags_raw = entry.get("tags") or []
+        tags = [str(t) for t in tags_raw if isinstance(t, str)] if isinstance(tags_raw, list) else []
+        validated.append({
+            "id": cve_id,
+            "vendor": str(entry["vendor"]),
+            "product": str(entry["product"]),
+            "affected": str(entry["affected"]),
+            "patched_in": str(entry["patched_in"]),
+            "cvss": cvss,
+            "cvss_vector": str(entry["cvss_vector"]),
+            "cwe": str(entry.get("cwe") or ""),
+            "summary": str(entry["summary"]),
+            "status": str(entry["status"]),
+            "kev_listed": bool(entry["kev_listed"]),
+            "kev_added": str(entry.get("kev_added") or ""),
+            "kev_deadline": str(entry.get("kev_deadline") or ""),
+            "disclosed": str(entry["disclosed"]),
+            "patch_state": str(entry["patch_state"]),
+            "actor": str(entry["actor"]),
+            "tags": tags,
+            "aliases": aliases,
+            "appears_on": appears_on,
+        })
+    return validated
+
+
+def _build_vuln_summary(articles):
+    """Build the Vulnerability/CVE spotlight roster.
+
+    Each CVE row gets a status tier and a horizontal exploitation
+    timeline (disclosed → today → KEV deadline). Rows ordered:
+      1. Within tier: by CVSS desc, then disclosed desc
+      2. Tier order: actively_exploited → kev_observed → poc_pending
+
+    The template groups by tier via the 'status' field on each row.
+    """
+    cves = [
+        c for c in _load_notable_cves()
+        if "vulnerability" in c["appears_on"]
+    ]
+    haystacks = []
+    for a in articles:
+        title = (a.get("title") or "").lower()
+        summary = (a.get("summary") or "").lower()
+        haystacks.append((a, title + " " + summary))
+
+    now_utc = datetime.now(timezone.utc)
+    today_iso = now_utc.date().isoformat()
+
+    rows = []
+    for cve in cves:
+        cve_articles = []
+        for a, hay in haystacks:
+            if any(alias in hay for alias in cve["aliases"]):
+                cve_articles.append({
+                    "title": a.get("title") or "",
+                    "url": a.get("url") or "",
+                    "source": a.get("source_name") or "",
+                    "date": a.get("published_date") or a.get("created_at") or "",
+                })
+        cve_articles.sort(
+            key=lambda v: v.get("date") or "", reverse=True
+        )
+        # Compute timeline values. disclosed_days_ago is positive.
+        # kev_days_until is positive if before deadline, negative if lapsed.
+        disclosed_days_ago = None
+        try:
+            disclosed_dt = datetime.fromisoformat(cve["disclosed"])
+            if disclosed_dt.tzinfo is None:
+                disclosed_dt = disclosed_dt.replace(tzinfo=timezone.utc)
+            disclosed_days_ago = max(0, (now_utc - disclosed_dt).days)
+        except (ValueError, TypeError):
+            pass
+        kev_days_until = None
+        kev_lapsed = False
+        if cve["kev_listed"] and cve["kev_deadline"]:
+            try:
+                deadline_dt = datetime.fromisoformat(cve["kev_deadline"])
+                if deadline_dt.tzinfo is None:
+                    deadline_dt = deadline_dt.replace(tzinfo=timezone.utc)
+                delta = (deadline_dt - now_utc).days
+                kev_days_until = delta
+                kev_lapsed = delta < 0
+            except (ValueError, TypeError):
+                pass
+        # Timeline track widths (% of the total bar):
+        #   past_pct  — disclosed-to-today portion
+        #   future_pct— today-to-deadline portion
+        # Sum to ~100; rendered as inline style widths in template.
+        if disclosed_days_ago is not None and kev_days_until is not None:
+            total = max(1, disclosed_days_ago + max(0, abs(kev_days_until)))
+            past_pct = int(round(100 * disclosed_days_ago / total))
+            past_pct = max(2, min(96, past_pct))
+        elif disclosed_days_ago is not None:
+            # No KEV — show disclosed-only with a placeholder future area.
+            past_pct = min(50, max(8, disclosed_days_ago * 4))
+        else:
+            past_pct = 8
+        future_pct = 100 - past_pct
+        rows.append({
+            **cve,
+            "article_count": len(cve_articles),
+            "articles": cve_articles,
+            "disclosed_days_ago": disclosed_days_ago,
+            "kev_days_until": kev_days_until,
+            "kev_lapsed": kev_lapsed,
+            "past_pct": past_pct,
+            "future_pct": future_pct,
+            "is_critical": cve["cvss"] >= 9.0,
+        })
+
+    _STATUS_RANK = {
+        "actively_exploited": 0,
+        "kev_observed": 1,
+        "poc_pending": 2,
+    }
+    rows.sort(key=lambda r: r["disclosed"] or "", reverse=True)
+    rows.sort(key=lambda r: r["cvss"], reverse=True)
+    rows.sort(key=lambda r: _STATUS_RANK.get(r["status"], 99))
+
+    # Stats
+    actively_exploited = sum(1 for r in rows if r["status"] == "actively_exploited")
+    kev_lapsed_count = sum(1 for r in rows if r["kev_lapsed"])
+    newest_kev_id = ""
+    newest_kev_date = ""
+    for r in rows:
+        if r["kev_listed"] and r["kev_added"] > newest_kev_date:
+            newest_kev_date = r["kev_added"]
+            newest_kev_id = r["id"]
+
+    stats = {
+        "actively_exploited": actively_exploited,
+        "kev_deadlines_lapsed": kev_lapsed_count,
+        "tracked_cves": len(rows),
+        "newest_kev_add": newest_kev_id or "—",
+    }
+    return {"stats": stats, "rows": rows}
+
+
+def _load_notable_actors():
+    """Load and schema-validate config/notable_actors.yml.
+
+    Same fail-closed posture as the org/CVE loaders.
+    """
+    if not os.path.exists(NOTABLE_ACTORS_PATH):
+        return []
+    try:
+        if os.path.getsize(NOTABLE_ACTORS_PATH) > _NOTABLE_FILE_MAX_BYTES:
+            return []
+        with open(NOTABLE_ACTORS_PATH, "r", encoding="utf-8") as fh:
+            data = yaml.safe_load(fh) or []
+    except (OSError, yaml.YAMLError):
+        return []
+    if not isinstance(data, list):
+        return []
+    validated = []
+    for entry in data:
+        if not isinstance(entry, dict):
+            continue
+        if not all(k in entry for k in _NOTABLE_ACTOR_REQUIRED):
+            continue
+        if entry.get("status") not in _NOTABLE_ACTOR_STATUSES:
+            continue
+        aliases_raw = entry.get("aliases") or []
+        if not isinstance(aliases_raw, list):
+            continue
+        aliases = [
+            a.lower().strip()
+            for a in aliases_raw
+            if isinstance(a, str) and len(a.strip()) >= _NOTABLE_ORG_ALIAS_MIN_LEN
+        ][:_NOTABLE_ORG_ALIAS_MAX_COUNT]
+        if not aliases:
+            continue
+        appears_on_raw = entry.get("appears_on") or []
+        if not isinstance(appears_on_raw, list):
+            continue
+        appears_on = [
+            s for s in appears_on_raw
+            if isinstance(s, str) and s in _SPOTLIGHT_SLUGS
+        ]
+        # TTPs — list of {id, label} dicts
+        ttps_raw = entry.get("ttps") or []
+        ttps = []
+        if isinstance(ttps_raw, list):
+            for t in ttps_raw:
+                if isinstance(t, dict) and "id" in t and "label" in t:
+                    ttps.append({"id": str(t["id"]), "label": str(t["label"])})
+        # Sectors — normalize to a fixed-order list of {name, hit} dicts.
+        # The strip renders 12 cells regardless; missing keys become 0.
+        sectors_raw = entry.get("sectors") or {}
+        sectors = []
+        for sector_key in _APT_SECTORS:
+            raw = sectors_raw.get(sector_key) if isinstance(sectors_raw, dict) else 0
+            if raw == "active":
+                hit_class = "hit-active"
+            elif isinstance(raw, int) and raw in _APT_SECTOR_HIT_INT:
+                hit_class = f"hit-{raw}" if raw > 0 else ""
+            else:
+                hit_class = ""
+            sectors.append({
+                "key": sector_key,
+                # Display name with proper capitalization for the cell tooltip.
+                "name": sector_key.replace("_", " ").title(),
+                "hit_class": hit_class,
+            })
+        tags_raw = entry.get("tags") or []
+        tags = [str(t) for t in tags_raw if isinstance(t, str)] if isinstance(tags_raw, list) else []
+        validated.append({
+            "name": str(entry["name"]),
+            "origin": str(entry["origin"]),
+            "status": str(entry["status"]),
+            "tracked_by": str(entry.get("tracked_by") or ""),
+            "description": str(entry["description"]),
+            "activity": str(entry["activity"]),
+            "ttps": ttps,
+            "victim_count": str(entry["victim_count"]),
+            "victim_label": str(entry["victim_label"]),
+            "last_seen": str(entry["last_seen"]),
+            "sectors": sectors,
+            "tags": tags,
+            "aliases": aliases,
+            "appears_on": appears_on,
+        })
+    return validated
+
+
+def _build_apt_summary(articles):
+    """Build the Nation State/APT spotlight roster.
+
+    Each row = one tracked actor with sector targeting heat-map data.
+    Grouped by status tier (active → warm → dormant). Within a tier,
+    sorted by last_seen desc (active actors first), then by name asc.
+    """
+    actors = [
+        a for a in _load_notable_actors()
+        if "nation-state-apt" in a["appears_on"]
+    ]
+    haystacks = []
+    for a in articles:
+        title = (a.get("title") or "").lower()
+        summary = (a.get("summary") or "").lower()
+        haystacks.append((a, title + " " + summary))
+
+    rows = []
+    for actor in actors:
+        actor_articles = []
+        for a, hay in haystacks:
+            if any(alias in hay for alias in actor["aliases"]):
+                actor_articles.append({
+                    "title": a.get("title") or "",
+                    "url": a.get("url") or "",
+                    "source": a.get("source_name") or "",
+                    "date": a.get("published_date") or a.get("created_at") or "",
+                })
+        actor_articles.sort(
+            key=lambda v: v.get("date") or "", reverse=True
+        )
+        rows.append({
+            **actor,
+            "article_count": len(actor_articles),
+            "articles": actor_articles,
+        })
+
+    _STATUS_RANK = {"active": 0, "warm": 1, "dormant": 2}
+    rows.sort(key=lambda r: r["name"])
+    rows.sort(key=lambda r: _STATUS_RANK.get(r["status"], 99))
+
+    # Stats
+    active_count = sum(1 for r in rows if r["status"] == "active")
+    # Hottest sector: which sector has the most "active" cells across rows
+    sector_counts = {s: 0 for s in _APT_SECTORS}
+    nexus_counts = {}
+    for r in rows:
+        for s in r["sectors"]:
+            if s["hit_class"] == "hit-active":
+                sector_counts[s["key"]] += 2
+            elif s["hit_class"] == "hit-3":
+                sector_counts[s["key"]] += 1
+        # Extract nation code from origin (first 2-3 chars before space/dot)
+        origin = r["origin"]
+        if " " in origin:
+            code = origin.split(" ", 1)[0]
+            if len(code) <= 3 and code.isupper():
+                nexus_counts[code] = nexus_counts.get(code, 0) + 1
+    hottest_sector = max(sector_counts, key=sector_counts.get) if any(sector_counts.values()) else "—"
+    most_active_nexus = max(nexus_counts, key=nexus_counts.get) if nexus_counts else "—"
+
+    stats = {
+        "active_campaigns": active_count,
+        "tracked_actors": len(rows),
+        "most_active_nexus": most_active_nexus,
+        "hottest_sector": hottest_sector.replace("_", " "),
+    }
+    return {"stats": stats, "rows": rows}
+
+
 def _humanize_days_ago(days):
     """Convert an integer days-ago count into a short display string.
     Used for the basic-summary 'last activity' stat. Falsy or non-int
@@ -1292,10 +1680,10 @@ def _category_to_markdown(category_name, articles, summary):
 
 
 _RICH_BUILDERS = {
-    "ransomware":  _build_ransomware_summary,
-    "saas-breach": _build_saas_breach_summary,
-    # Stage 3 will add: "vulnerability":    _build_vuln_summary,
-    # Stage 4 will add: "nation-state-apt": _build_apt_summary,
+    "ransomware":       _build_ransomware_summary,
+    "saas-breach":      _build_saas_breach_summary,
+    "vulnerability":    _build_vuln_summary,
+    "nation-state-apt": _build_apt_summary,
 }
 
 

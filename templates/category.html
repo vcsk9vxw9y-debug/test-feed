@@ -192,6 +192,234 @@
     </section>
     {% endif %}
 
+    {#- ========== CVE ROSTER (Vulnerability/CVE) ==========
+        Rows come from _build_vuln_summary(), which validates every CVE
+        entry against status/patch_state allowlists and the CVE-ID regex.
+        Class names derived from row.status / row.patch_state are
+        constrained server-side — not free-form. -#}
+    {% if slug == 'vulnerability' and summary and summary.rows %}
+    <section class="rollup" aria-label="CVE activity tracker">
+        <h3 class="rollup-head">
+            <span>Active CVE Tracker</span>
+            <span class="rollup-meta">{{ summary.rows|length }} CVE{% if summary.rows|length != 1 %}s{% endif %} · grouped by exploitation status · click row to expand</span>
+        </h3>
+        <div class="rollup-rows">
+            {%- set ns = namespace(last_status='') -%}
+            {%- for row in summary.rows -%}
+            {%- if row.status != ns.last_status -%}
+                {%- set ns.last_status = row.status -%}
+                <div class="tier-head tier-{{ row.status|replace('_', '-') }}">
+                    <span class="ln"></span>
+                    <span class="label">
+                        {%- if row.status == 'actively_exploited' -%}Actively exploited
+                        {%- elif row.status == 'kev_observed' -%}KEV-listed · in-the-wild observed
+                        {%- elif row.status == 'poc_pending' -%}Patched · no public exploitation yet
+                        {%- endif -%}
+                    </span>
+                    <span class="count">
+                        {%- set _count = summary.rows | selectattr('status', 'equalto', row.status) | list | length -%}
+                        {{ _count }}
+                    </span>
+                    <span class="ln"></span>
+                </div>
+            {%- endif -%}
+            <div class="group-row vuln{% if row.is_critical %} crit{% endif %}{% if row.kev_lapsed %} kev-lapsed{% endif %}{% if not row.kev_listed %} no-kev{% endif %}" tabindex="0" role="button" aria-expanded="false" aria-label="Expand {{ row.id }} details">
+                <div class="group-row-main">
+                    <div class="vuln-top">
+                        <div class="vuln-id-block">
+                            <div class="vuln-id">{{ row.id }}</div>
+                            <div class="vuln-product-line">
+                                <span>{{ row.vendor }}</span>
+                                <span class="dot"></span>
+                                <span>{{ row.product }}</span>
+                                <span class="dot"></span>
+                                <span class="ver">{{ row.affected }}</span>
+                            </div>
+                            <div class="vuln-summary">{{ row.summary }}</div>
+                        </div>
+                        <span class="vuln-status s-{{ row.status|replace('_', '-') }}">
+                            <span class="pip" aria-hidden="true"></span>
+                            {%- if row.status == 'actively_exploited' -%}actively exploited
+                            {%- elif row.status == 'kev_observed' -%}kev · in the wild
+                            {%- elif row.status == 'poc_pending' -%}poc pending
+                            {%- endif -%}
+                        </span>
+                    </div>
+                    <div class="vuln-mid">
+                        <span class="vuln-cvss-chip">
+                            <span class="v">{{ row.cvss }}</span>
+                            <span class="sep">·</span>
+                            <span class="vec">{{ row.cvss_vector }}</span>
+                        </span>
+                        {% for tag in row.tags %}
+                        <span class="vuln-tag{% if 'KEV' in tag or 'kev' in tag %} kev-tag{% endif %}">{{ tag }}</span>
+                        {% endfor %}
+                        {% if row.cwe %}<span class="vuln-tag">{{ row.cwe }}</span>{% endif %}
+                        <span class="vuln-patch-chip {{ row.patch_state }}">
+                            <span class="pip" aria-hidden="true"></span>
+                            <span class="lbl">
+                                {%- if row.patch_state == 'shipped' -%}PATCH
+                                {%- elif row.patch_state == 'mitigation' -%}MITIGATE
+                                {%- else -%}UNFIXED
+                                {%- endif -%}
+                            </span>
+                            <b>{{ row.patched_in }}</b>
+                        </span>
+                    </div>
+                    <div class="vuln-timeline">
+                        <div class="stamp">
+                            <span class="lbl">disclosed</span>
+                            <span class="val">
+                                {%- if row.disclosed_days_ago == 0 -%}today
+                                {%- elif row.disclosed_days_ago == 1 -%}1 day ago
+                                {%- elif row.disclosed_days_ago is not none -%}{{ row.disclosed_days_ago }} days ago
+                                {%- else -%}—
+                                {%- endif -%}
+                            </span>
+                        </div>
+                        <div class="vuln-track" aria-hidden="true">
+                            <div class="past" style="width: {{ row.past_pct }}%;"></div>
+                            <div class="now" style="left: {{ row.past_pct }}%;"></div>
+                            <div class="future" style="width: {{ row.future_pct }}%;"></div>
+                        </div>
+                        <div class="stamp right{% if row.kev_lapsed %} lapsed{% endif %}{% if not row.kev_listed %} no-kev{% endif %}">
+                            <span class="lbl">{% if row.kev_listed %}kev deadline{% else %}kev{% endif %}</span>
+                            <span class="val">
+                                {%- if not row.kev_listed -%}not listed
+                                {%- elif row.kev_days_until is none -%}—
+                                {%- elif row.kev_days_until < 0 -%}T+{{ row.kev_days_until|abs }} lapsed
+                                {%- else -%}T-{{ row.kev_days_until }} days
+                                {%- endif -%}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <ul class="group-victims" hidden>
+                    {% if row.articles %}
+                    {% for v in row.articles %}
+                    <li class="victim">
+                        <span class="victim-title">
+                            {% if v.url %}<a href="{{ v.url }}" rel="noopener noreferrer">{{ v.title }}</a>{% else %}{{ v.title }}{% endif %}
+                        </span>
+                        <span class="victim-meta">
+                            <span class="victim-source">{{ v.source }}</span>
+                            <span class="sep">·</span>
+                            <time datetime="{{ v.date or '' }}">{{ v.date }}</time>
+                        </span>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <li class="victim"><span class="victim-meta">No matching feed coverage in the current window.</span></li>
+                    {% endif %}
+                </ul>
+            </div>
+            {%- endfor -%}
+        </div>
+    </section>
+    {% endif %}
+
+    {#- ========== APT ROSTER (Nation State/APT) ==========
+        Rows come from _build_apt_summary(), which validates every actor
+        entry against the status allowlist and normalizes sector cells.
+        sectors list is fixed-order (12 keys) with hit_class derived from
+        the YAML — server-side allowlisted. -#}
+    {% if slug == 'nation-state-apt' and summary and summary.rows %}
+    <section class="rollup" aria-label="APT activity tracker">
+        <h3 class="rollup-head">
+            <span>Active APT Roster</span>
+            <span class="rollup-meta">{{ summary.rows|length }} actor{% if summary.rows|length != 1 %}s{% endif %} · grouped by activity status · click row to expand</span>
+        </h3>
+        <div class="rollup-rows">
+            {%- set ns = namespace(last_status='') -%}
+            {%- for row in summary.rows -%}
+            {%- if row.status != ns.last_status -%}
+                {%- set ns.last_status = row.status -%}
+                <div class="tier-head tier-apt-{{ row.status }}">
+                    <span class="ln"></span>
+                    <span class="label">
+                        {%- if row.status == 'active' -%}Active campaigns · last 7 days
+                        {%- elif row.status == 'warm' -%}Warm · ongoing campaigns (8-30d)
+                        {%- elif row.status == 'dormant' -%}Dormant · pre-positioned · awaiting use
+                        {%- endif -%}
+                    </span>
+                    <span class="count">
+                        {%- set _count = summary.rows | selectattr('status', 'equalto', row.status) | list | length -%}
+                        {{ _count }}
+                    </span>
+                    <span class="ln"></span>
+                </div>
+            {%- endif -%}
+            <div class="group-row apt{% if row.status == 'active' %} active{% endif %}" tabindex="0" role="button" aria-expanded="false" aria-label="Expand {{ row.name }} details">
+                <div class="group-row-main">
+                    <div class="apt-top">
+                        <div class="apt-id-block">
+                            <div class="apt-actor-name">{{ row.name }}</div>
+                            <div class="apt-origin-line">
+                                <span class="nexus">{{ row.origin }}</span>
+                                {% if row.tracked_by %}
+                                <span class="dot"></span>
+                                <span>tracked by {{ row.tracked_by }}</span>
+                                {% endif %}
+                                <span class="dot"></span>
+                                <span>{{ row.description }}</span>
+                            </div>
+                            <div class="apt-aliases-line"><b>Activity:</b> {{ row.activity }}</div>
+                        </div>
+                        <span class="apt-status s-{{ row.status }}">
+                            <span class="pip" aria-hidden="true"></span>
+                            {%- if row.status == 'active' -%}active · {{ row.last_seen }}
+                            {%- elif row.status == 'warm' -%}warm · {{ row.last_seen }}
+                            {%- elif row.status == 'dormant' -%}dormant · {{ row.last_seen }}
+                            {%- endif -%}
+                        </span>
+                    </div>
+                    <div class="apt-mid">
+                        <span class="apt-victim-chip">
+                            <span class="v">{{ row.victim_count }}</span>
+                            <span class="lbl">{{ row.victim_label }}</span>
+                        </span>
+                        {% for ttp in row.ttps %}
+                        <span class="apt-tag">{{ ttp.id }} · {{ ttp.label }}</span>
+                        {% endfor %}
+                        {% for tag in row.tags %}
+                        <span class="apt-tag{% if 'CISA' in tag or 'ED' in tag %} ed-tag{% endif %}">{{ tag }}</span>
+                        {% endfor %}
+                        <span class="apt-lastseen-chip">
+                            <span class="lbl">LAST SEEN</span>
+                            <b>{{ row.last_seen }}</b>
+                        </span>
+                    </div>
+                    <div class="apt-sectors" aria-label="Sector targeting">
+                        <span class="label">SECTORS</span>
+                        {% for s in row.sectors %}
+                        <span class="apt-cell{% if s.hit_class %} {{ s.hit_class }}{% endif %}" data-name="{{ s.name }}"></span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <ul class="group-victims" hidden>
+                    {% if row.articles %}
+                    {% for v in row.articles %}
+                    <li class="victim">
+                        <span class="victim-title">
+                            {% if v.url %}<a href="{{ v.url }}" rel="noopener noreferrer">{{ v.title }}</a>{% else %}{{ v.title }}{% endif %}
+                        </span>
+                        <span class="victim-meta">
+                            <span class="victim-source">{{ v.source }}</span>
+                            <span class="sep">·</span>
+                            <time datetime="{{ v.date or '' }}">{{ v.date }}</time>
+                        </span>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <li class="victim"><span class="victim-meta">No matching feed coverage in the current window.</span></li>
+                    {% endif %}
+                </ul>
+            </div>
+            {%- endfor -%}
+        </div>
+    </section>
+    {% endif %}
+
     <!-- ========== EDITORIAL DIVIDER ========== -->
     <div class="editorial-divider" aria-hidden="true">
         <span class="ed-line"></span>

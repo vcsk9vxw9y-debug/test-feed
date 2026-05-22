@@ -1,0 +1,224 @@
+# Notable CVEs — curated CVE list for the Vulnerability/CVE spotlight roster.
+#
+# The roster is populated by walking this file and matching against the
+# article DB via the `aliases` arrays (case-insensitive substring).
+#
+# Schema (every field required unless marked optional):
+#   id              : CVE ID, e.g. "CVE-2026-41091"
+#   vendor          : Vendor + product display string ("Microsoft Defender")
+#   product         : More specific product line ("Malware Protection Engine")
+#   affected        : Affected version range, free text
+#   patched_in      : Target version a defender should patch to
+#   cvss            : CVSS v3.1 base score (number)
+#   cvss_vector     : Vector string ("AV:L/AC:L/PR:L/UI:N")
+#   cwe             : Optional CWE identifier ("CWE-59")
+#   summary         : One-sentence defender summary
+#   status          : actively_exploited | kev_observed | poc_pending
+#                     Drives the right-side status pill + tier grouping.
+#   kev_listed      : bool — true if on CISA KEV catalog
+#   kev_added       : ISO date the CVE was added to KEV (or empty if not)
+#   kev_deadline    : ISO date of the KEV federal remediation deadline
+#                     (or empty if not on KEV)
+#   disclosed       : ISO date of public disclosure
+#   patch_state     : shipped | mitigation | unfixed
+#                     Drives the colored dot on the patch chip.
+#   actor           : Threat actor attribution; "Unattributed" if unknown
+#   tags            : Optional list of small chips for the row
+#   aliases         : List of substrings used to match articles for this CVE
+#   appears_on      : List of spotlight slugs this CVE appears on
+#                     (currently always ["vulnerability"]).
+#   notes           : Optional operator-only comment, not rendered
+
+- id: "CVE-2026-41091"
+  vendor: "Microsoft Defender"
+  product: "Malware Protection Engine"
+  affected: "Engine ≤ 1.1.26030.3008"
+  patched_in: "Engine 1.1.26040.8+"
+  cvss: 7.8
+  cvss_vector: "AV:L/AC:L/PR:L/UI:N"
+  cwe: "CWE-59"
+  summary: "Link-following EoP — any local low-priv user reaches SYSTEM via the AV scanner itself."
+  status: "actively_exploited"
+  kev_listed: true
+  kev_added: "2026-05-21"
+  kev_deadline: "2026-06-03"
+  disclosed: "2026-05-21"
+  patch_state: "shipped"
+  actor: "Unattributed (campaigns: RedSun, UnDefend)"
+  tags:
+    - "CISA KEV · added today"
+    - "campaigns: RedSun, UnDefend"
+  aliases:
+    - "cve-2026-41091"
+    - "defender zero-day"
+    - "malware protection engine"
+    - "link following defender"
+    - "redsun campaign"
+    - "undefend"
+  appears_on:
+    - "vulnerability"
+
+- id: "CVE-2026-42945"
+  vendor: "NGINX"
+  product: "ngx_http_rewrite_module"
+  affected: "0.6.27 – 1.30.0; nginx Plus R32–R36"
+  patched_in: "nginx 1.30.1 / 1.31.0"
+  cvss: 9.2
+  cvss_vector: "AV:N/AC:L/PR:N/UI:N"
+  cwe: "CWE-122"
+  summary: "NGINX Rift — heap buffer overflow in rewrite module. ~5.7M exposed servers. Day 9, PoC widely weaponized."
+  status: "actively_exploited"
+  kev_listed: true
+  kev_added: "2026-05-16"
+  kev_deadline: "2026-05-19"
+  disclosed: "2026-05-13"
+  patch_state: "shipped"
+  actor: "Multiple groups (PoC weaponized)"
+  tags:
+    - "CISA KEV · lapsed"
+    - "5.7M exposed"
+    - "unauth RCE"
+  aliases:
+    - "cve-2026-42945"
+    - "nginx rift"
+    - "nginx rewrite"
+    - "ngx_http_rewrite"
+  appears_on:
+    - "vulnerability"
+
+- id: "CVE-2026-20182"
+  vendor: "Cisco Catalyst SD-WAN"
+  product: "Controller / Manager"
+  affected: "On-prem + SD-WAN Cloud deployments"
+  patched_in: "SD-WAN Manager / Controller (latest)"
+  cvss: 10.0
+  cvss_vector: "AV:N/AC:L/PR:N/UI:N"
+  cwe: "CWE-287"
+  summary: "Authentication bypass — masquerade as vHub peer to skip cert verification. CISA Emergency Directive 26-03."
+  status: "actively_exploited"
+  kev_listed: true
+  kev_added: "2026-05-14"
+  kev_deadline: "2026-05-17"
+  disclosed: "2026-05-14"
+  patch_state: "shipped"
+  actor: "UAT-8616 (Cisco Talos)"
+  tags:
+    - "ED 26-03 · lapsed"
+    - "attributed: UAT-8616"
+    - "auth bypass"
+  aliases:
+    - "cve-2026-20182"
+    - "cisco sd-wan"
+    - "catalyst sd-wan"
+    - "uat-8616"
+    - "ed 26-03"
+  appears_on:
+    - "vulnerability"
+
+- id: "CVE-2026-42897"
+  vendor: "Microsoft Exchange Server"
+  product: "On-prem 2016 · 2019 · Subscription Ed."
+  affected: "Exchange 2016, 2019, Subscription Edition"
+  patched_in: "No permanent patch — EEMS/EOMT mitigations only"
+  cvss: 8.1
+  cvss_vector: "AV:N/AC:H/PR:N/UI:R"
+  cwe: "CWE-79"
+  summary: "Exchange XSS/spoofing zero-day via crafted emails targeting OWA. No permanent patch available."
+  status: "actively_exploited"
+  kev_listed: true
+  kev_added: "2026-05-15"
+  kev_deadline: "2026-05-29"
+  disclosed: "2026-05-15"
+  patch_state: "mitigation"
+  actor: "Unattributed"
+  tags:
+    - "CISA KEV"
+    - "no permanent patch"
+    - "XSS / spoof"
+  aliases:
+    - "cve-2026-42897"
+    - "exchange zero-day"
+    - "owa zero-day"
+  appears_on:
+    - "vulnerability"
+
+- id: "CVE-2026-31431"
+  vendor: "Linux Kernel"
+  product: "AF_ALG · 'Copy Fail'"
+  affected: "Kernel pre-6.18.22 / 6.19.12 / 7.0"
+  patched_in: "6.18.22 / 6.19.12 / 7.0"
+  cvss: 7.8
+  cvss_vector: "AV:L/AC:L/PR:L/UI:N"
+  cwe: "CWE-787"
+  summary: "Local privilege escalation chained with web-app RCE for ransomware deployment."
+  status: "actively_exploited"
+  kev_listed: true
+  kev_added: "2026-05-08"
+  kev_deadline: "2026-05-15"
+  disclosed: "2026-05-10"
+  patch_state: "shipped"
+  actor: "Multiple ransomware ops"
+  tags:
+    - "CISA KEV · lapsed"
+    - "ransomware chain"
+    - "local root"
+  aliases:
+    - "cve-2026-31431"
+    - "copy fail"
+    - "af_alg"
+  appears_on:
+    - "vulnerability"
+
+- id: "CVE-2026-6973"
+  vendor: "Ivanti EPMM"
+  product: "On-prem Endpoint Manager Mobile"
+  affected: "< 12.6.1.1 / 12.7.0.1 / 12.8.0.1"
+  patched_in: "12.6.1.1+"
+  cvss: 7.2
+  cvss_vector: "AV:N/AC:L/PR:H/UI:N"
+  cwe: "CWE-20"
+  summary: "Authenticated RCE — chained with admin credentials harvested via CVE-2026-1340 (January)."
+  status: "kev_observed"
+  kev_listed: true
+  kev_added: "2026-05-03"
+  kev_deadline: "2026-05-10"
+  disclosed: "2026-05-01"
+  patch_state: "shipped"
+  actor: "Unattributed"
+  tags:
+    - "CISA KEV · lapsed"
+    - "credential chain"
+    - "authd RCE"
+  aliases:
+    - "cve-2026-6973"
+    - "ivanti epmm"
+  appears_on:
+    - "vulnerability"
+
+- id: "CVE-2026-9082"
+  vendor: "Drupal Core"
+  product: "SA-CORE-2026-004 · PostgreSQL"
+  affected: "11.x and 10.x branches with PostgreSQL backend"
+  patched_in: "11.3.x / 10.6.x / 10.5.x"
+  cvss: 6.5
+  cvss_vector: "AV:N/AC:L/PR:N/UI:N"
+  cwe: "CWE-89"
+  summary: "Anonymous SQL injection on PostgreSQL-backed Drupal sites. Drupal Security Team rated 20/25 (highly critical)."
+  status: "poc_pending"
+  kev_listed: false
+  kev_added: ""
+  kev_deadline: ""
+  disclosed: "2026-05-20"
+  patch_state: "shipped"
+  actor: "Pre-exploitation"
+  tags:
+    - "unauth SQLi"
+    - "postgres only"
+    - "drupal score: 20/25"
+  aliases:
+    - "cve-2026-9082"
+    - "drupal sa-core-2026-004"
+    - "drupal sql injection"
+    - "sa-core-2026"
+  appears_on:
+    - "vulnerability"

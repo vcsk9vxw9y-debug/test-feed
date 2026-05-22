@@ -1,0 +1,255 @@
+# Notable Actors — curated APT/nation-state actor list for the
+# Nation State/APT spotlight roster.
+#
+# Schema:
+#   name              : Canonical actor name ("UAT-8616", "APT29", etc.)
+#   origin            : Display string for the origin pill
+#                       ("CN · state-sponsored", "unattributed nexus")
+#   status            : active | warm | dormant
+#                       Drives the right-side status pill + tier grouping.
+#                       - active : in-the-wild activity last 7 days
+#                       - warm   : ongoing activity within 8-30 days
+#                       - dormant: pre-positioned / quiet (>30d)
+#   tracked_by        : Optional research org that publishes coverage
+#   description       : One-sentence capability profile
+#   activity          : One-sentence summary of current/recent activity
+#   ttps              : List of {id, label} dicts — MITRE ATT&CK techniques
+#   victim_count      : Display string for the victim chip ("15+", "9", "12")
+#   victim_label      : Label under the count ("confirmed victims", "tracked sectors")
+#   last_seen         : Humanized last-seen display ("today", "4d ago", "2026-04")
+#   sectors           : 12-cell heat map. Each entry is one of:
+#                         "active"  — coral pulse (current campaign)
+#                         3         — heavy historic targeting
+#                         2         — medium historic targeting
+#                         1         — light historic targeting
+#                         0         — no observed targeting
+#                       Fixed 12-key order rendered in the strip:
+#                         government, defense, telecom, energy, finance,
+#                         healthcare, education, critical_infra,
+#                         manufacturing, retail, media, nonprofit
+#   tags              : Optional small chips (e.g. "CISA ED 26-03")
+#   aliases           : List of substrings for article matching
+#   appears_on        : ["nation-state-apt"]
+
+- name: "UAT-8616"
+  origin: "unattributed nexus"
+  status: "active"
+  tracked_by: "Cisco Talos"
+  description: "Sophisticated capability profile · suspected nation-state."
+  activity: "Cisco SD-WAN exploitation chain. Masquerades as vHub peer to skip cert verification, modifies NETCONF, plants SSH keys, escalates to root."
+  ttps:
+    - id: "T1190"
+      label: "exploit public app"
+    - id: "T1078.004"
+      label: "cloud creds"
+  victim_count: "15+"
+  victim_label: "confirmed victims"
+  last_seen: "today"
+  sectors:
+    government: "active"
+    defense: 3
+    telecom: 2
+    energy: 1
+    finance: 0
+    healthcare: 0
+    education: 0
+    critical_infra: 2
+    manufacturing: 0
+    retail: 0
+    media: 0
+    nonprofit: 0
+  tags:
+    - "CISA ED 26-03"
+  aliases:
+    - "uat-8616"
+    - "uat 8616"
+  appears_on:
+    - "nation-state-apt"
+
+- name: "CL-STA-1132"
+  origin: "CN · state-sponsored"
+  status: "active"
+  tracked_by: "Unit 42"
+  description: "PAN-OS exploitation specialist · active since April 9, 2026."
+  activity: "Palo Alto User-ID Authentication Portal compromise. Patches racing exploitation against unpatched instances."
+  ttps:
+    - id: "T1190"
+      label: "perimeter"
+    - id: "T1133"
+      label: "VPN/SSL"
+    - id: "T1059"
+      label: "cmd exec"
+  victim_count: "11"
+  victim_label: "confirmed victims"
+  last_seen: "2d ago"
+  sectors:
+    government: 3
+    defense: 3
+    telecom: 2
+    energy: 1
+    finance: 0
+    healthcare: 0
+    education: 0
+    critical_infra: 2
+    manufacturing: 1
+    retail: 0
+    media: 0
+    nonprofit: 0
+  tags: []
+  aliases:
+    - "cl-sta-1132"
+    - "palo alto pan-os exploitation"
+  appears_on:
+    - "nation-state-apt"
+
+- name: "MuddyWater"
+  origin: "IR · state-sponsored"
+  status: "active"
+  tracked_by: "Microsoft, Mandiant"
+  description: "MOIS-linked · aliases: Static Kitten · Mercury · Earth Vetala."
+  activity: "Microsoft Teams credential-theft campaign with false-flag ransomware lures. Uses external Teams tenants to deliver phishing."
+  ttps:
+    - id: "T1566.003"
+      label: "IM phish"
+    - id: "T1110"
+      label: "cred stuff"
+    - id: "T1036"
+      label: "false-flag"
+  victim_count: "9"
+  victim_label: "confirmed victims"
+  last_seen: "4d ago"
+  sectors:
+    government: 3
+    defense: 2
+    telecom: 1
+    energy: 0
+    finance: 2
+    healthcare: 0
+    education: 1
+    critical_infra: 0
+    manufacturing: 0
+    retail: 0
+    media: 1
+    nonprofit: 0
+  tags: []
+  aliases:
+    - "muddywater"
+    - "muddy water"
+    - "static kitten"
+    - "earth vetala"
+  appears_on:
+    - "nation-state-apt"
+
+- name: "Salt Typhoon"
+  origin: "CN · state-sponsored"
+  status: "warm"
+  tracked_by: "Microsoft, FBI/CISA"
+  description: "MSS-linked · aliases: RedMike · GhostEmperor · FamousSparrow."
+  activity: "Telecom infiltration since 2023. VPN compromise, encrypted C2 over HTTPS, authentication manipulation."
+  ttps:
+    - id: "T1133"
+      label: "VPN compromise"
+    - id: "T1071.001"
+      label: "HTTPS C2"
+    - id: "T1556"
+      label: "auth manip"
+  victim_count: "8"
+  victim_label: "confirmed victims"
+  last_seen: "2026-04"
+  sectors:
+    government: 2
+    defense: 1
+    telecom: 3
+    energy: 0
+    finance: 0
+    healthcare: 0
+    education: 0
+    critical_infra: 1
+    manufacturing: 0
+    retail: 0
+    media: 1
+    nonprofit: 0
+  tags: []
+  aliases:
+    - "salt typhoon"
+    - "redmike"
+    - "ghostemperor"
+    - "ghost emperor"
+    - "famoussparrow"
+  appears_on:
+    - "nation-state-apt"
+
+- name: "APT29"
+  origin: "RU · state-sponsored"
+  status: "warm"
+  tracked_by: "Microsoft, Mandiant"
+  description: "SVR-linked · aliases: Cozy Bear · Midnight Blizzard · NOBELIUM."
+  activity: "Long-running diplomatic and supply-chain targeting. MFA-bypass and token-theft specialists."
+  ttps:
+    - id: "T1195.002"
+      label: "supply chain"
+    - id: "T1556.006"
+      label: "MFA bypass"
+    - id: "T1098"
+      label: "token theft"
+  victim_count: "14"
+  victim_label: "tracked victims"
+  last_seen: "1w ago"
+  sectors:
+    government: 3
+    defense: 2
+    telecom: 0
+    energy: 0
+    finance: 0
+    healthcare: 0
+    education: 0
+    critical_infra: 0
+    manufacturing: 0
+    retail: 0
+    media: 2
+    nonprofit: 1
+  tags: []
+  aliases:
+    - "apt29"
+    - "cozy bear"
+    - "midnight blizzard"
+    - "nobelium"
+  appears_on:
+    - "nation-state-apt"
+
+- name: "Volt Typhoon"
+  origin: "CN · state-sponsored"
+  status: "dormant"
+  tracked_by: "Microsoft, NSA/CISA"
+  description: "LOTL specialists · aliases: Bronze Silhouette · Vanguard Panda."
+  activity: "US critical-infrastructure pre-positioning. Living-off-the-land techniques to avoid detection during long-dwell access."
+  ttps:
+    - id: "T1078"
+      label: "valid accounts"
+    - id: "T1059.001"
+      label: "powershell"
+    - id: "T1090"
+      label: "proxy"
+  victim_count: "12"
+  victim_label: "tracked sectors"
+  last_seen: "2026-03"
+  sectors:
+    government: 2
+    defense: 0
+    telecom: 2
+    energy: 3
+    finance: 0
+    healthcare: 0
+    education: 0
+    critical_infra: 3
+    manufacturing: 1
+    retail: 0
+    media: 0
+    nonprofit: 0
+  tags: []
+  aliases:
+    - "volt typhoon"
+    - "bronze silhouette"
+    - "vanguard panda"
+  appears_on:
+    - "nation-state-apt"

@@ -59,6 +59,23 @@ html, body {
     color: var(--type);
     min-height: 100vh;
 }
+
+/* View Transitions — smooth same-origin navigation between the homepage
+   feed and the /category/<slug> spotlight pages. Native browser API;
+   degrades gracefully (older browsers just see a normal navigation).
+   220ms cross-fade is fast enough to feel instant without being janky. */
+@view-transition { navigation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 220ms;
+    animation-timing-function: cubic-bezier(.2, .6, .2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 1ms;
+    }
+}
 body {
     font-family: var(--sans);
     font-size: 15px;
@@ -1368,6 +1385,503 @@ a.saas-tag.saas-crossover:focus-visible {
 .saas-time .sep { color: var(--type-4); margin: 0 6px; }
 .group-row.saas.fresh .saas-time .rel { color: var(--coral); }
 
+/* ---- Tier dividers (shared by Vuln + APT rosters) ----
+   Replaces the basic .rollup-head when rows are grouped by status.
+   The label color signals the tier urgency. */
+.tier-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0 6px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--type-3);
+}
+.tier-head:first-of-type { margin-top: 0; }
+.tier-head .ln { flex: 1; height: 1px; background: var(--line); }
+.tier-head .label { padding: 0 4px; }
+.tier-head .count {
+    color: var(--type-3); font-weight: 400;
+    padding-left: 6px;
+    border-left: 1px solid var(--line-hot);
+    margin-left: 6px;
+}
+.tier-head.tier-actively-exploited .label { color: var(--coral); }
+.tier-head.tier-kev-observed .label { color: var(--amber); }
+.tier-head.tier-poc-pending .label { color: var(--mint); }
+.tier-head.tier-apt-active .label { color: var(--coral); }
+.tier-head.tier-apt-warm .label { color: var(--rose); }
+.tier-head.tier-apt-dormant .label { color: var(--type-3); }
+
+/* ---- CVE / Vuln roster ----
+   CVE ID is the anchor (20px mono). Bottom-edge exploitation timeline
+   is the design moment: disclosed → today → KEV deadline. Allowlisted
+   class names (server-side) → no CSS injection surface. */
+:root {
+    --coral-dim: #aa3540;
+    --amber-darker: #b08515;
+    --mint-soft: rgba(95, 229, 184, 0.10);
+    --mint-dim:  #2f9b78;
+}
+
+.group-row.vuln {
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    transition: background var(--ease);
+    outline: none;
+}
+.group-row.vuln:hover { background: var(--surface); }
+.group-row.vuln:focus-visible {
+    background: var(--surface);
+    outline: 1px solid rgba(251, 191, 36, 0.35);
+    outline-offset: -1px;
+}
+.group-row.vuln[aria-expanded="true"] { background: var(--surface); }
+.group-row.vuln .group-row-main {
+    display: grid;
+    grid-template-rows: auto auto auto;
+    gap: 8px;
+    padding: 16px 0;
+}
+
+.vuln-top {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: start;
+}
+.vuln-id-block { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.vuln-id {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.005em;
+    color: var(--type);
+    line-height: 1;
+}
+.group-row.vuln.crit .vuln-id { color: var(--coral); }
+.vuln-product-line {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--amber);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+.vuln-product-line .dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--amber-darker);
+}
+.vuln-product-line .ver { color: var(--type-3); }
+.vuln-summary {
+    font-family: var(--sans);
+    font-size: 13.5px;
+    color: var(--type-2);
+    line-height: 1.45;
+    max-width: 620px;
+    margin-top: 8px;
+}
+
+/* Status pill (right edge of vuln-top) */
+.vuln-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 2px;
+    white-space: nowrap;
+}
+.vuln-status .pip {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+.vuln-status.s-actively-exploited {
+    color: var(--coral);
+    border: 1px solid var(--coral-dim);
+    background: rgba(255, 78, 94, 0.12);
+}
+.vuln-status.s-actively-exploited .pip {
+    box-shadow: 0 0 0 0 rgba(255, 78, 94, 0.55);
+    animation: vulnPulse 2.4s ease-out infinite;
+}
+@keyframes vulnPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 78, 94, 0.45); }
+    70%  { box-shadow: 0 0 0 8px rgba(255, 78, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 78, 94, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .vuln-status.s-actively-exploited .pip { animation: none; }
+}
+.vuln-status.s-kev-observed {
+    color: var(--amber);
+    border: 1px solid var(--amber-darker);
+    background: rgba(251, 191, 36, 0.10);
+}
+.vuln-status.s-poc-pending {
+    color: var(--type);
+    border: 1px solid var(--line-hot);
+    background: var(--surface-2);
+}
+
+/* CVSS chip + tags + patch chip row */
+.vuln-mid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    font-family: var(--mono);
+}
+.vuln-cvss-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 2px;
+    border: 1px solid var(--line-hot);
+    background: var(--surface-2);
+}
+.vuln-cvss-chip .v {
+    font-size: 13px; font-weight: 700; color: var(--type);
+    font-variant-numeric: tabular-nums;
+}
+.group-row.vuln.crit .vuln-cvss-chip .v { color: var(--coral); }
+.vuln-cvss-chip .vec { color: var(--type-3); font-size: 10px; letter-spacing: 0.05em; }
+.vuln-cvss-chip .sep { color: var(--type-4); }
+
+.vuln-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--type-3);
+    border: 1px solid var(--line-hot);
+    padding: 2px 7px;
+    border-radius: 2px;
+}
+.vuln-tag.kev-tag {
+    color: var(--coral);
+    border-color: rgba(255, 78, 94, 0.5);
+    background: rgba(255, 78, 94, 0.12);
+}
+
+.vuln-patch-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    color: var(--type-2);
+    padding: 3px 8px;
+    border-radius: 2px;
+    border: 1px solid var(--line-hot);
+    background: var(--surface-2);
+    margin-left: auto;
+}
+.vuln-patch-chip .pip { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.vuln-patch-chip.shipped .pip {
+    background: var(--mint);
+    box-shadow: 0 0 6px rgba(95, 229, 184, 0.4);
+}
+.vuln-patch-chip.mitigation .pip { background: var(--amber); }
+.vuln-patch-chip.unfixed .pip { background: var(--coral); }
+.vuln-patch-chip b { color: var(--type); font-weight: 600; }
+.vuln-patch-chip .lbl { color: var(--type-3); }
+
+/* Horizontal exploitation timeline — the design anchor */
+.vuln-timeline {
+    display: grid;
+    grid-template-columns: 96px 1fr 110px;
+    gap: 12px;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--type-3);
+}
+.vuln-timeline .stamp { display: flex; flex-direction: column; gap: 1px; }
+.vuln-timeline .stamp .lbl { color: var(--type-3); font-size: 9.5px; letter-spacing: 0.10em; }
+.vuln-timeline .stamp .val { color: var(--type); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
+.vuln-timeline .stamp.right { text-align: right; align-items: flex-end; }
+.vuln-timeline .stamp.lapsed .val { color: var(--coral); }
+.vuln-timeline .stamp.no-kev .val { color: var(--type-3); font-weight: 400; }
+
+.vuln-track {
+    position: relative;
+    height: 6px;
+    background: var(--surface-2);
+    border-radius: 3px;
+    overflow: visible;
+}
+.vuln-track .past {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, var(--amber-darker) 0%, var(--amber) 100%);
+    border-radius: 3px 0 0 3px;
+    opacity: 0.75;
+}
+.group-row.vuln.crit .vuln-track .past {
+    background: linear-gradient(90deg, var(--coral-dim) 0%, var(--coral) 100%);
+}
+.vuln-track .now {
+    position: absolute; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--type);
+    border: 2px solid var(--bg);
+    z-index: 2;
+}
+.vuln-track .future {
+    position: absolute; right: 0; top: 0; bottom: 0;
+    background: rgba(251, 191, 36, 0.10);
+    border: 1px solid var(--amber-darker);
+    border-radius: 0 3px 3px 0;
+}
+.group-row.vuln.kev-lapsed .vuln-track .future {
+    background: rgba(255, 78, 94, 0.12);
+    border-color: var(--coral-dim);
+}
+.group-row.vuln.no-kev .vuln-track .future {
+    background: var(--surface-3);
+    border: 1px dashed var(--line-hot);
+}
+
+/* ---- APT actor roster ----
+   Actor name is the anchor (22px mono). Bottom row is the sector
+   targeting heat strip — 12 cells, one per industry, brightness
+   scaled by recent activity in that sector. */
+.group-row.apt {
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    transition: background var(--ease);
+    outline: none;
+}
+.group-row.apt:hover { background: var(--surface); }
+.group-row.apt:focus-visible {
+    background: var(--surface);
+    outline: 1px solid rgba(244, 114, 182, 0.35);
+    outline-offset: -1px;
+}
+.group-row.apt[aria-expanded="true"] { background: var(--surface); }
+.group-row.apt .group-row-main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 0;
+}
+
+.apt-top {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: start;
+}
+.apt-id-block { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.apt-actor-name {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.005em;
+    color: var(--type);
+    line-height: 1;
+}
+.group-row.apt.active .apt-actor-name { color: var(--coral); }
+
+.apt-origin-line {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--rose);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+.apt-origin-line .dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: rgba(168, 63, 126, 1);  /* rose-dim equivalent */
+}
+.apt-origin-line .nexus { color: var(--type-3); }
+.apt-aliases-line {
+    font-family: var(--sans);
+    font-size: 13.5px;
+    color: var(--type-2);
+    line-height: 1.45;
+    max-width: 620px;
+    margin-top: 8px;
+}
+.apt-aliases-line b { color: var(--type-3); font-weight: 500; }
+
+/* APT status pill */
+.apt-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 2px;
+    white-space: nowrap;
+}
+.apt-status .pip {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+.apt-status.s-active {
+    color: var(--coral);
+    border: 1px solid var(--coral-dim);
+    background: rgba(255, 78, 94, 0.12);
+}
+.apt-status.s-active .pip {
+    box-shadow: 0 0 0 0 rgba(255, 78, 94, 0.55);
+    animation: aptPulse 2.4s ease-out infinite;
+}
+@keyframes aptPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 78, 94, 0.45); }
+    70%  { box-shadow: 0 0 0 8px rgba(255, 78, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 78, 94, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .apt-status.s-active .pip { animation: none; }
+}
+.apt-status.s-warm {
+    color: var(--rose);
+    border: 1px solid rgba(168, 63, 126, 1);
+    background: rgba(244, 114, 182, 0.10);
+}
+.apt-status.s-dormant {
+    color: var(--type-2);
+    border: 1px solid var(--line-hot);
+    background: var(--surface-2);
+}
+
+/* APT middle row — TTP tags + victim count + last seen chip */
+.apt-mid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    font-family: var(--mono);
+}
+.apt-victim-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 2px;
+    border: 1px solid var(--line-hot);
+    background: var(--surface-2);
+}
+.apt-victim-chip .v {
+    font-size: 13px; font-weight: 700; color: var(--type);
+    font-variant-numeric: tabular-nums;
+}
+.apt-victim-chip .lbl {
+    color: var(--type-3); font-size: 10px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+}
+.apt-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--type-3);
+    border: 1px solid var(--line-hot);
+    padding: 2px 7px;
+    border-radius: 2px;
+}
+.apt-tag.ed-tag {
+    color: var(--coral);
+    border-color: rgba(255, 78, 94, 0.5);
+    background: rgba(255, 78, 94, 0.12);
+}
+.apt-lastseen-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    color: var(--type-2);
+    padding: 3px 8px;
+    border-radius: 2px;
+    border: 1px solid var(--line-hot);
+    background: var(--surface-2);
+    margin-left: auto;
+}
+.apt-lastseen-chip .lbl { color: var(--type-3); }
+.apt-lastseen-chip b { color: var(--type); font-weight: 600; }
+.group-row.apt.active .apt-lastseen-chip b { color: var(--coral); }
+
+/* Sector heat strip — the APT design anchor */
+.apt-sectors {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--type-3);
+    padding-top: 4px;
+}
+.apt-sectors .label { color: var(--type-3); margin-right: 8px; min-width: 60px; }
+.apt-cell {
+    width: 22px;
+    height: 14px;
+    background: var(--line-hot);
+    border-radius: 1px;
+    position: relative;
+    transition: background var(--ease);
+}
+.apt-cell::after {
+    content: attr(data-name);
+    position: absolute;
+    bottom: 100%; left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-3);
+    color: var(--type);
+    padding: 4px 8px;
+    border: 1px solid var(--line-hot);
+    border-radius: 2px;
+    font-size: 9.5px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ease);
+    margin-bottom: 4px;
+    z-index: 10;
+}
+.apt-cell:hover::after { opacity: 1; }
+.apt-cell.hit-1 { background: rgba(168, 63, 126, 1); opacity: 0.55; }
+.apt-cell.hit-2 { background: rgba(168, 63, 126, 1); opacity: 0.85; }
+.apt-cell.hit-3 { background: var(--rose); }
+.apt-cell.hit-active { background: var(--coral); }
+
 /* ========================= MOBILE ========================= */
 @media (max-width: 720px) {
     .wrap { padding: 0 20px; }
@@ -1395,4 +1909,16 @@ a.saas-tag.saas-crossover:focus-visible {
         padding-top: 10px;
         margin-top: 6px;
     }
+    /* Vuln mobile */
+    .vuln-top { grid-template-columns: 1fr; }
+    .vuln-status { align-self: start; }
+    .vuln-patch-chip { margin-left: 0; }
+    .vuln-timeline { grid-template-columns: 1fr; gap: 6px; }
+    .vuln-timeline .stamp.right { text-align: left; align-items: flex-start; }
+    /* APT mobile */
+    .apt-top { grid-template-columns: 1fr; }
+    .apt-status { align-self: start; }
+    .apt-lastseen-chip { margin-left: 0; }
+    .apt-sectors { flex-wrap: wrap; }
+    .apt-sectors .label { min-width: 0; margin-right: 4px; }
 }
