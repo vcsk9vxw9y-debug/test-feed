@@ -2,41 +2,41 @@
 # active:false and the frontend hides the briefing block entirely.
 # This file is overwritten each run; do not manually edit unless testing.
 active: true
-generated_at: "2026-05-23T17:00:00Z"
+generated_at: "2026-05-23T22:00:00Z"
 actions:
   - severity: "critical"
-    title: "CVE-2026-41091 Microsoft Defender — CISA June 3 federal deadline (T-11 days), verify engine ≥ 1.1.26040.8 now"
-    description: "Actively exploited zero-day in the Microsoft Malware Protection Engine (Day 3). Any local low-privilege user escalates to SYSTEM via a CWE-59 link-following weakness in Defender's scanning engine. CISA KEV, June 3 federal deadline. Campaigns RedSun and UnDefend confirmed exploiting in the wild."
-    action: "Run `Get-MpComputerStatus | Select AMEngineVersion` on every Windows host — engine must be ≥ 1.1.26040.8. Force update via WSUS/Intune/SCCM for delayed-update paths (VDI, air-gapped endpoints, GPO-disabled Defender). Hunt EDR/SIEM telemetry for low-privilege processes creating symbolic links or directory junctions in protected paths co-occurring with Defender scan events."
+    title: "TeamPCP Mini Shai-Hulud Worm (Day 1) — Rotate GitHub OIDC tokens, AWS IAM keys, Vault secrets if pip install or npm install ran since May 11"
+    description: "Self-replicating supply chain worm (Mini Shai-Hulud / CVE-2026-45321) has poisoned 500+ versions across 170+ npm and PyPI packages with 518M combined downloads. The worm steals OIDC tokens from CI/CD pipelines and uses them to publish backdoored packages the pipeline can write to, achieving autonomous self-propagation. It is the first malware to defeat SLSA Build Level 3 attestations. Payload: AWS IAM credentials, HashiCorp Vault secrets, GitHub tokens, all CI environment variables. Active expansion wave confirmed today. TeamPCP (UNC6780) campaign."
+    action: "Audit all CI/CD pipelines (GitHub Actions, GitLab CI, CircleCI) that ran pip install or npm install since May 11 against the confirmed poisoned package list (TanStack namespace, mistralai, guardrails-ai, durabletask, LiteLLM, Telnyx SDK, Bitwarden CLI, Aqua Trivy, Checkmarx KICS, UiPath Python SDK). If any match: rotate GitHub OIDC tokens, npm/PyPI publish tokens, AWS IAM CI credentials, and HashiCorp Vault dynamic secrets immediately. Check your package release history since May 11 for unauthorized versions. Restrict GitHub Actions `permissions: id-token: write` to only workflows that require it. Implement pip install --require-hashes via pip-tools as an emergency control."
   - severity: "critical"
-    title: "Laravel-Lang Supply Chain Breach (May 22) — rotate all cloud keys, CI/CD secrets, SSH keys if composer install ran after May 22"
-    description: "700+ GitHub repos in the Laravel-Lang organization were poisoned via fork-tag hijack on May 22. A 15-module, ~5,900-line PHP credential stealer exfiltrates AWS/GCP/Azure keys, Kubernetes tokens, HashiCorp Vault secrets, Docker credentials, CI/CD environment variables, SSH private keys, and browser-saved passwords — AES-256 encrypted, then self-deletes to hinder forensics. 233 package versions across laravel-lang/lang, /http-statuses, /attributes, and /actions affected."
-    action: "Check composer.lock for any laravel-lang/* package version installed after May 22. If found: rotate ALL cloud access keys, Kubernetes service account tokens, Vault secrets, CI/CD environment secrets, and SSH keys immediately — treat as fully compromised. Rebuild affected containers from pre-May 22 known-good images. Review AWS CloudTrail, GCP Audit Logs, Azure Activity Log, and Kubernetes audit logs for unauthorized API activity since May 22. On developer machines: rotate browser-saved passwords and wallet seeds."
+    title: "Laravel-Lang Supply Chain Breach (Day 2) — Composer environments that ran since May 22 are fully compromised; rotate all cloud keys and CI/CD secrets now"
+    description: "700+ GitHub repos in the Laravel-Lang organization poisoned via fork-tag hijack on May 22. A 15-module PHP credential stealer exfiltrates AWS/GCP/Azure keys, Kubernetes tokens, HashiCorp Vault secrets, Docker credentials, CI/CD environment variables, SSH private keys, and browser-saved passwords. 233 package versions across laravel-lang/lang, /http-statuses, /attributes, and /actions affected. Day 2 messaging: focus on environments that have not yet completed credential rotation."
+    action: "Check composer.lock for any laravel-lang/* package version resolved after May 22. If found: rotate ALL cloud access keys, Kubernetes service account tokens, Vault secrets, CI/CD secrets, and SSH keys — treat as fully compromised. Rebuild affected containers from pre-May 22 known-good images. Review AWS CloudTrail, GCP Audit Logs, Azure Activity Log, and Kubernetes audit logs for unauthorized API activity since May 22."
   - severity: "critical"
-    title: "Exchange CVE-2026-42897 — KEV deadline May 29 (T-6 days), no permanent patch, OWA restrict to VPN now"
-    description: "Actively exploited Exchange OWA reflected XSS: crafted emails execute arbitrary JavaScript in the victim's browser context, enabling session hijack. CISA KEV May 15, deadline May 29 (6 days remaining). Only EEMS/EOMT mitigations available — no permanent patch exists, and mitigation gaps were confirmed in reporting on May 19. Exchange 2016 Period 1 ESU (expired April 2026) customers will not receive the future permanent fix."
-    action: "Verify EEMS/EOMT mitigation modules are active and correctly configured on every on-prem Exchange instance. Restrict OWA to VPN/zero-trust access — the most reliable defense given confirmed mitigation gaps. Hunt OWA access logs for crafted-email delivery patterns and browser-side script execution anomalies. If running Exchange 2016 Period 1 ESU, begin migration planning immediately — the permanent patch will not be delivered to this version."
+    title: "Drupal CVE-2026-9082 — CISA KEV, federal deadline May 27 (T-4 days), 15,000 exploitation attempts across 65 countries"
+    description: "Unauthenticated SQL injection in Drupal Core's PostgreSQL EntityQuery condition handler (CVSS 6.5). CISA added to KEV May 22; federal deadline May 27 (4 days remaining). 15,000 exploitation attempts detected across 65 countries, targeting gaming and financial services sites. Affects all supported Drupal versions (8.0 to 11.3.9) on PostgreSQL backends only — MySQL/MariaDB/SQLite sites are not affected."
+    action: "Patch all PostgreSQL-backed Drupal sites to 11.3.10+ or apply SA-CORE-2026-004 immediately. Federal deadline is May 27 (T-4 days). Confirm database backend before declaring unaffected — MySQL/MariaDB/SQLite are not vulnerable. For unpatched internet-facing Drupal: restrict to authenticated access as a temporary mitigation. Review Drupal access logs for unusual JSON:API query patterns indicative of SQLi exploitation."
   - severity: "critical"
-    title: "Ubiquiti UniFi OS — three CVSS 10.0 unauthenticated RCE flaws (CVE-2026-34908/09/10), ~100K endpoints exposed"
-    description: "Ubiquiti patched three maximum-severity flaws in UniFi OS (May 22): improper access control (CVE-2026-34908, unauthorized system changes), path traversal (CVE-2026-34909, account compromise), and command injection (CVE-2026-34910). All unauthenticated, no user interaction, remotely exploitable. Affects UCG gateways, UDM series, UNVR recorders, UNAS storage. Censys-estimated ~100K endpoints internet-exposed."
-    action: "Update UniFi OS firmware immediately on all UCG/UDM/UNVR/UNAS devices. Restrict the UniFi OS management interface to a trusted management VLAN — do not expose to the internet. Audit device configuration and access logs for unauthorized changes if any interface was internet-accessible before patching. No confirmed in-the-wild exploitation yet, but CVSS 10.0 unauthenticated surface means exploitation timeline is short."
-  - severity: "high"
-    title: "NGINX Rift CVE-2026-42945 — Day 11, sustained exploitation, ~5.7M vulnerable servers still exposed"
-    description: "Unauthenticated heap buffer overflow RCE via a single HTTP request to nginx's rewrite module (unnamed PCRE captures with '?' in replacement). Day 11 of confirmed in-the-wild exploitation. Censys still counts ~5.7M internet-exposed vulnerable nginx instances. Multiple threat actors weaponizing public PoC, chaining with Linux kernel LPE (Copy Fail CVE-2026-31431, Dirty Frag variants) for full root access."
-    action: "Upgrade nginx to 1.30.1 (stable) or 1.31.0 (mainline), or nginx Plus to R32 P6 / R36 P4. Audit every rewrite rule for unnamed PCRE captures with '?' in the replacement string; replace with named captures as an immediate stopgap. Inventory all nginx instances including containers, Kubernetes ingress controllers, and CDN edge nodes. Verify Railway deployment nginx version."
+    title: "CVE-2026-41091 Microsoft Defender — CISA June 3 deadline (T-11 days), verify engine greater than or equal to 1.1.26040.8"
+    description: "Actively exploited zero-day in the Microsoft Malware Protection Engine (Day 4). CWE-59 link-following allows a local low-privilege user to escalate to SYSTEM via Defender's scanning engine running as SYSTEM. CISA KEV, June 3 federal deadline. RedSun and UnDefend campaigns confirmed actively exploiting."
+    action: "Run `Get-MpComputerStatus | Select AMEngineVersion` on all Windows hosts — engine must be >= 1.1.26040.8. Force update via WSUS/Intune/SCCM for delayed-update paths (VDI, air-gapped endpoints, GPO-disabled Defender). Hunt EDR/SIEM for low-privilege processes creating symbolic links or directory junctions in protected paths co-occurring with Defender scan events."
+  - severity: "critical"
+    title: "Exchange CVE-2026-42897 — CISA May 29 deadline (T-6 days), no permanent patch, restrict OWA to VPN now"
+    description: "Actively exploited Exchange OWA reflected XSS via crafted emails — arbitrary JavaScript executes in victim browser context enabling session hijack. CISA KEV, May 29 federal deadline (6 days remaining). No permanent patch; EEMS/EOMT mitigations only with confirmed gaps as of May 19. Exchange 2016 Period 1 ESU customers will not receive a permanent fix."
+    action: "Verify EEMS/EOMT mitigation modules are active and correctly configured on every on-prem Exchange instance. Restrict OWA to VPN/zero-trust access — the most reliable defense given confirmed mitigation gaps. Hunt OWA logs for crafted-email delivery patterns. Exchange 2016 Period 1 ESU: begin migration planning immediately — the permanent patch will not be delivered to this version."
 stats:
+  - label: "drupal kev deadline (days remaining)"
+    value: 4
+    hot: true
   - label: "exchange kev deadline (days remaining)"
     value: 6
     hot: true
   - label: "days to cisa defender june 3 deadline"
     value: 11
     hot: true
-  - label: "laravel-lang poisoned package versions"
-    value: 233
+  - label: "mini shai-hulud download reach (millions)"
+    value: 518
     hot: true
   - label: "nginx rift active exploitation day"
-    value: 11
+    value: 12
     hot: false
-  - label: "verizon dbir 2026: vuln exploitation pct of breaches"
-    value: 31
-    hot: true
