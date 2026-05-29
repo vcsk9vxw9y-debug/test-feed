@@ -19,7 +19,7 @@ stack_cves:
     package: "npm/PyPI/Crates.io ecosystem — TrapDoor cross-ecosystem supply chain + AI coding assistant poisoning campaign (no CVE assigned)"
     severity: "critical"
     in_requirements: false
-    action: "Active since May 19 — CAMPAIGN DAY 11. First detected May 22 by Socket.dev. 34 malicious packages, 384+ versions across npm, PyPI, AND Crates.io. Socket detection median 5min 27sec. PRIMARY THREAT VECTOR FOR OUR STACK: TrapDoor plants malicious .cursorrules and CLAUDE.md files using zero-width Unicode characters (U+200B, U+200C, U+200D) to hide malicious instructions tricking Claude Code, Cursor, and Copilot into running a fake 'security scan' that silently exfiltrates developer credentials. Confirmed link to prior CWE-78 command injection in Claude Code CLI (Phoenix Security, April 2026). Poisoned PRs submitted to browser-use, langchain-ai/langchain, langflow-ai/langflow. Persistence: Git hooks, shell hooks, systemd, cron, SSH key injection via trap-core.js shared payload. INDEPENDENT OF SYMJACK — TrapDoor uses hidden Unicode in AI config files; SymJack uses symlinks in repos to install MCP servers. Both target Claude Code but via entirely different vectors. IMMEDIATE ACTIONS: (1) grep -rP '[\x{200B}\x{200C}\x{200D}\x{FEFF}]' . on all CLAUDE.md and .cursorrules files — any hit is a TrapDoor IOC; (2) Review all PRs opened since May 19; (3) Inspect .git/hooks/; (4) Rotate AWS IAM keys, GitHub PATs, npm/PyPI publish tokens on any environment that ran unverified packages since May 19."
+    action: "Active since May 19 — CAMPAIGN DAY 11. First detected May 22 by Socket.dev. 34 malicious packages, 384+ versions across npm, PyPI, AND Crates.io. Socket detection median 5min 27sec. PRIMARY THREAT VECTOR FOR OUR STACK: TrapDoor plants malicious .cursorrules and CLAUDE.md files using zero-width Unicode characters (U+200B, U+200C, U+200D) to hide malicious instructions tricking Claude Code, Cursor, and Copilot into running a fake 'security scan' that silently exfiltrates developer credentials. Confirmed link to prior CWE-78 command injection in Claude Code CLI (Phoenix Security, April 2026). Poisoned PRs submitted to browser-use, langchain-ai/langchain, langflow-ai/langflow. Persistence: Git hooks, shell hooks, systemd, cron, SSH key injection via trap-core.js shared payload. INDEPENDENT OF SYMJACK — TrapDoor uses hidden Unicode in AI config files; SymJack uses symlinks in repos to install MCP servers. Both target Claude Code but via entirely different vectors. IMMEDIATE ACTIONS: (1) grep -rP '[\u200B\u200C\u200D\uFEFF]' . on all CLAUDE.md and .cursorrules files — any hit is a TrapDoor IOC; (2) Review all PRs opened since May 19; (3) Inspect .git/hooks/; (4) Rotate AWS IAM keys, GitHub PATs, npm/PyPI publish tokens on any environment that ran unverified packages since May 19."
 
   - id: "CVE-2026-39987"
     package: "marimo (Python reactive notebook — not in requirements.txt, affects ML/data science developer infrastructure)"
@@ -222,33 +222,9 @@ trending_techniques:
     mitre_id: "T1068"
     description: "CVE-2026-46333 — nine-year-old race condition in Linux kernel __ptrace_may_access() during process shutdown; Qualys published four working exploits (chage, ssh-keysign, pkexec, accounts-daemon) circulating publicly 9 days; any unprivileged local user can read /etc/shadow, exfiltrate SSH host private keys, or execute commands as root; extends NGINX Rift kill chain to full root + SSH key exfiltration."
 
-  - name: "BitLocker Recovery Environment Bypass via Malicious USB Boot Object (YellowKey)"
-    mitre_id: "T1200"
-    description: "CVE-2026-45585 (YellowKey, CVSS 6.8) — crafted FsTx folder on USB boots BitLocker-protected Windows into WinRE and triggers NTFS replay granting unrestricted shell access to encrypted volume; physical access required; PoC released May 13 by Nightmare Eclipse; no patch until June 10 (T-12 days); TPM+PIN is the mitigating control."
-
-  - name: "Trusted Windows Process Abuse for Privilege Escalation (GreenPlasma / CTFMON)"
-    mitre_id: "T1068"
-    description: "GreenPlasma (no CVE, companion to YellowKey and MiniPlasma) exploits ctfmon.exe (SYSTEM-level trusted process) to escalate privileges on Windows 11 and Server 2022/2026; PoC released May 13 by Nightmare Eclipse; no mitigation and no patch until June 10 (T-12 days)."
-
   - name: "Bulk CI/CD Workflow Backdooring via Mass Automated Repository Commits (Megalodon / TeamPCP)"
     mitre_id: "T1072"
     description: "Megalodon (TeamPCP, May 18): 5,718 commits to 5,561 distinct GitHub repos in 6 hours using four rotating CI-maintenance author names; two payload variants: SysDiag (active exfiltration — 449 GB, 575K files stolen) and Optimize-Build (dormant workflow_dispatch backdoor fireable via GitHub API); dormant backdoors persist in repos that patched the active variant without auditing all workflow files."
-
-  - name: "Open-Source Package Tag Poisoning via Repository Fork Hijack (Laravel-Lang / TeamPCP Wave)"
-    mitre_id: "T1195.001"
-    description: "Threat actors exploit GitHub fork-tag mechanism to rewrite version tags across multiple packages simultaneously, injecting credential-stealing RCE payloads that auto-execute via package manager autoloaders; Laravel-Lang (May 22: 700+ repos, 233 versions, 15-module PHP credential stealer) and TeamPCP GitHub internal breach via poisoned Nx Console VS Code extension are confirmed instances."
-
-  - name: "Hosting Server Root Escalation via Incorrect Privilege Assignment (LiteSpeed CVE-2026-48172)"
-    mitre_id: "T1068"
-    description: "CVE-2026-48172 — CVSS 10.0 incorrect privilege assignment in LiteSpeed User-End cPanel Plugin; single malformed API call to lsws.redisAble elevates any cPanel user to root; state-linked actor immediately weaponized for targeted campaigns against SE Asian government/military entities and MSP/hosting providers."
-
-  - name: "AI Platform Initial Access via Unauthenticated RCE (Langflow / MuddyWater)"
-    mitre_id: "T1190"
-    description: "MuddyWater (Iranian state actor, MOIS) exploiting CVE-2025-34291 in Langflow AI builder since January 23, 2026 — CVSS 9.4, no authentication required; state actors now treat AI workflow platforms as a new initial-access surface equivalent to VPN/firewall appliances; Flodric botnet also deployed via this vector; CISA KEV June 4 deadline (T-6 days)."
-
-  - name: "Security Tool as Malware Delivery Platform (Apex One CVE-2026-34926)"
-    mitre_id: "T1072"
-    description: "CVE-2026-34926 in Trend Micro Apex One enables attackers to modify the server key table and push malicious payloads to all connected endpoint agents through the legitimate security product update channel — bypassing behavioral and AV controls by design; CISA KEV June 4 deadline (T-6 days)."
 
   - name: "AV Engine Link-Following Privilege Escalation (Defender CWE-59)"
     mitre_id: "T1068"
@@ -265,10 +241,6 @@ trending_techniques:
   - name: "Web Infrastructure RCE via PCRE Heap Overflow (NGINX Rift, Day 19)"
     mitre_id: "T1190"
     description: "CVE-2026-42945 NGINX Rift — Day 19; single unauthenticated HTTP request triggers heap buffer overflow in ngx_http_rewrite_module via unnamed PCRE captures with '?' in replacement; ~5.7M exposed vulnerable nginx servers; chained with Linux kernel LPEs (Copy Fail, Dirty Frag, ssh-keysign-pwn) for full root compromise with SSH key exfiltration."
-
-  - name: "Network Infrastructure Takeover via CVSS 10.0 Authentication Bypass (Cisco SD-WAN / UAT-8616)"
-    mitre_id: "T1190"
-    description: "CVE-2026-20182 — CVSS 10.0 authentication bypass in Cisco Catalyst SD-WAN vdaemon DTLS peering; UAT-8616 (critical infrastructure targeting, ORB network overlap) uses post-exploitation for SSH key injection, NETCONF manipulation, root LPE via CVE-2022-20775, and log clearing."
 
   - name: "State-Sponsored Perimeter Exploitation with 50-Day Dwell (PAN-OS / CL-STA-1132)"
     mitre_id: "T1190"
@@ -295,10 +267,6 @@ active_campaigns:
     targets: "Aviation and software sector employees in Saudi Arabia, Australia, US (Wave 1-2); telecom and energy sectors across US, Europe, Middle East (Wave 3); developers searching for SQL Developer download via search engine (SEO poisoning)"
     technique: "Three campaign waves Feb-May 2026: (1) Feb: fake career opportunity ZIP -> AppDomain hijacking -> MiniJunk DLL; (2) Mar: trojanized Zoom installer -> MiniFast backdoor; (3) Apr-May: SEO-poisoned fake SQL Developer page (getsqldeveloper[.]com) -> MiniFast. AI-assisted malware development confirmed. MiniFast: HTTP C2 backdoor with remote command execution, file exfiltration, additional payload download."
 
-  - actor: "MuddyWater (MOIS-linked Iranian state actor) — DLL Sideloading Espionage Campaign Q1 2026"
-    targets: "Nine organizations across nine countries: industrial and electronics manufacturing, education, public sector, financial services, professional services; airports in the Middle East; US, Israel, Saudi Arabia, Turkey"
-    technique: "DLL side-loading using legitimately signed Fortemedia (fmapp.exe) and SentinelOne (sentinelmemoryscanner.exe) binaries. Major South Korean electronics manufacturer compromised one week (Feb 2026). MuddyWater simultaneously exploiting CVE-2025-34291 (Langflow RCE) — two independent attack vectors active simultaneously."
-
   - actor: "Glassworm (Russia-likely) — Developer-targeting supply chain botnet — C2 DISRUPTED May 26 14:00 UTC"
     targets: "Software developers using VSCode, Cursor, Windsurf, Positron IDEs via OpenVSX marketplace; npm/PyPI package consumers; GitHub contributors whose credentials were stolen"
     technique: "Trojanized VSCode/Cursor/Windsurf/Positron extensions on OpenVSX; malicious npm/PyPI packages with postinstall hooks; 300+ GitHub repos poisoned via stolen credentials. Persistence: Run registry keys (Windows), com.user.nodestart LaunchAgent (macOS). Artifacts: os.node, darwin.node. All four C2 channels severed May 26 (Solana, BitTorrent DHT, Google Calendar dead-drops, VPS). Previously infected machines remain infected — requires manual remediation."
@@ -306,14 +274,6 @@ active_campaigns:
   - actor: "TeamPCP (UNC6780) — Mini Shai-Hulud worm — MAIN WAVE CONCLUDED May 12 / toolkit 17 days public / SLSA bypass confirmed"
     targets: "Any CI/CD pipeline running pip install or npm install; Python and JavaScript package maintainers across PyPI and npm; GitHub internal repos (3,800 exfiltrated via Nx Console extension); copycat actors fully operational"
     technique: "Final stats: 1,055 compromised versions / 502 packages; 25,000+ GitHub repos credential-leaked; 2,500+ malicious repos created. Toolkit 17 days public. SLSA Build Level 3 bypass via stolen OIDC/Sigstore tokens confirmed. GitHub mandatory npm staged publishing 2FA gate now GA. SEPARATE FROM GLASSWORM, TRAPDOOR, AND SYMJACK."
-
-  - actor: "Unknown operators (two competing groups) — Ghost CMS CVE-2026-26980 ClickFix campaign"
-    targets: "Internet-accessible Ghost CMS installations (versions 3.24.0–6.19.0); end users visiting 700+ compromised sites"
-    technique: "CVE-2026-26980 (CVSS 9.4) unauthenticated blind SQLi extracts admin API key -> bulk JavaScript injection into all articles -> ClickFix fake-Cloudflare CAPTCHA iframe -> credential-stealing PowerShell execution. Two groups competing; some sites re-compromised multiple times per day."
-
-  - actor: "CL-STA-1132 (China-nexus state actor) — PAN-OS CVE-2026-0300 Day 50"
-    targets: "Organizations with internet-exposed Palo Alto Networks PAN-OS User-ID Authentication Portals; critical infrastructure sectors"
-    technique: "CVE-2026-0300 buffer overflow for unauthenticated remote root. Day 50 campaign (since April 9). Phase 2 patches released May 28 — all PAN-OS trains now patched. For unpatched instances since April 9: assume persistent access, lateral movement, credential exfiltration during 50-day dwell."
 
   - actor: "Unknown state-linked threat actor — CVE-2026-48172 LiteSpeed cPanel exploitation"
     targets: "Government and military entities in Southeast Asia; MSPs and hosting providers in Canada, South Africa, US"
@@ -331,18 +291,6 @@ active_campaigns:
     targets: "Organizations running Cisco Catalyst SD-WAN Controller or SD-WAN Manager internet-exposed on UDP 12346; critical infrastructure"
     technique: "CVE-2026-20182 CVSS 10.0 authentication bypass via vdaemon DTLS peering spoofing. Post-exploitation: SSH key injection, NETCONF manipulation, software downgrade to CVE-2022-20775 for root, extensive log clearing."
 
-  - actor: "RedSun / UnDefend — CVE-2026-41091 exploitation groups, Day 18"
-    targets: "Windows endpoints with unpatched Microsoft Malware Protection Engine (< 1.1.26040.8)"
-    technique: "CWE-59 link-following in Defender engine for local SYSTEM privilege escalation. Day 18 of confirmed exploitation. CISA KEV June 3 federal deadline (T-5 days)."
-
-  - actor: "MuddyWater (Iranian state-sponsored, MOIS-linked) / Flodric botnet"
-    targets: "Enterprises running Langflow AI platform, internet-exposed instances"
-    technique: "Exploiting CVE-2025-34291 (CVSS 9.4 unauthenticated RCE in Langflow) since January 23, 2026. CISA KEV June 4 deadline (T-6 days). Flodric botnet deployed via same vector. Dual-vector threat actor also running DLL sideloading espionage campaign."
-
-  - actor: "Multiple actors (NGINX Rift, Day 19)"
-    targets: "Internet-exposed nginx servers with rewrite-module configs (~5.7M vulnerable per Censys)"
-    technique: "CVE-2026-42945 heap overflow via crafted HTTP request. Day 19. Active chaining with Linux kernel LPEs (Copy Fail, Dirty Frag, ssh-keysign-pwn) for full root access with SSH key exfiltration."
-
   - actor: "Unknown (Exchange OWA XSS operators)"
     targets: "On-premises Exchange 2016, 2019, Subscription Edition users with OWA exposed"
     technique: "CVE-2026-42897 — crafted emails trigger reflected XSS in OWA browser context. Session hijacking confirmed. CISA KEV deadline EXPIRED May 29 EOD. No permanent patch; mitigation gaps confirmed May 19."
@@ -356,7 +304,7 @@ stack_intersection:
 
   - alert: "SymJack (T1195.001) — DIRECT CLAUDE CODE THREAT. Adversa AI confirmed SymJack against Claude Code specifically: malicious repository symlinks silently insert attacker-controlled MCP servers into Claude Code configuration during approved file operations. IMMEDIATE ACTIONS: (1) Update Claude Code to the latest hardened build — updated versions resolve symlinks before the approval prompt and show real destination paths; (2) Audit ~/.claude/mcp_servers and all .mcp.json files for unexpected server entries added after cloning any external repository; (3) Treat any unrecognized MCP server in configuration as a potential SymJack IOC and rotate all credentials from that session; (4) Never approve AI agent file operations from untrusted or unfamiliar repositories without manually inspecting symlink destinations. INDEPENDENT OF TRAPDOOR — separate attack vector, separate remediation."
 
-  - alert: "TrapDoor (T1195.001 + T1204.002) — CRITICAL STACK THREAT. Our CLAUDE.md file is a direct attack surface for TrapDoor's AI assistant poisoning technique. TrapDoor plants hidden zero-width Unicode instructions invisible to human reviewers but read and executed by Claude Code. Confirmed link to CWE-78 in Claude Code CLI (Phoenix Security April 2026). IMMEDIATE ACTIONS: (1) grep -P '[\x{200B}\x{200C}\x{200D}\x{FEFF}]' CLAUDE.md — any hit is a TrapDoor IOC; (2) Review all open PRs since May 19 for poisoned AI config files; (3) Inspect .git/hooks/ for unexpected scripts; (4) Verify all pip installs since May 19 were hash-verified. INDEPENDENT of Glassworm, Mini Shai-Hulud, and SymJack remediations."
+  - alert: "TrapDoor (T1195.001 + T1204.002) — CRITICAL STACK THREAT. Our CLAUDE.md file is a direct attack surface for TrapDoor's AI assistant poisoning technique. TrapDoor plants hidden zero-width Unicode instructions invisible to human reviewers but read and executed by Claude Code. Confirmed link to CWE-78 in Claude Code CLI (Phoenix Security April 2026). IMMEDIATE ACTIONS: (1) grep -rP '[\u200B\u200C\u200D\uFEFF]' CLAUDE.md — any hit is a TrapDoor IOC; (2) Review all open PRs since May 19 for poisoned AI config files; (3) Inspect .git/hooks/ for unexpected scripts; (4) Verify all pip installs since May 19 were hash-verified. INDEPENDENT of Glassworm, Mini Shai-Hulud, and SymJack remediations."
 
   - alert: "Gitea CVE-2026-27771 — DEVELOPER INFRASTRUCTURE ALERT. Any developer or CI/CD pipeline pulling container images from a self-hosted Gitea instance running < 1.26.2 may have had private images exfiltrated without authentication or access log trace. Gitea is not in requirements.txt — no action on the Flask app itself. Operator action: (1) Upgrade any Gitea instances to 1.26.2; (2) Audit container registry access logs for unauthenticated pulls back to May 2022; (3) Rotate all secrets, API keys, or configuration values embedded in private container images."
 
@@ -366,15 +314,7 @@ stack_intersection:
 
   - alert: "BadHost CVE-2026-48710 — AI TOOLING STACK ALERT. Starlette host-header auth bypass is not in our requirements.txt (Flask/gunicorn, not FastAPI/Starlette). No action on the Threat-Feed app itself. However: if Aegis uses MCP servers, Claude Code with MCP integrations, or any FastAPI-based tool in development workflow, those endpoints may be vulnerable. Patch to Starlette >= 1.0.1 on any MCP gateway or AI inference server."
 
-  - alert: "Mini Shai-Hulud SLSA provenance bypass (T1553.002) — SUPPLY CHAIN TRUST MODEL UPDATE. Mini Shai-Hulud produced malicious npm packages with valid SLSA Build Level 3 attestations via stolen OIDC/Sigstore tokens. GitHub mandatory npm staged publishing 2FA gate now GA — enable for any packages we publish. pip install --require-hashes via pip-tools remains the highest-leverage defense for our PyPI dependencies."
-
   - alert: "Mini Shai-Hulud (CVE-2026-45321, T1195.001) — Main attack wave concluded May 12; toolkit 17 days public. Our Python/Flask app installs from PyPI; requirements.txt packages remain off confirmed poisoned list but multi-actor expansion is unpredictable. pip install --require-hashes via pip-tools is THE SINGLE HIGHEST-LEVERAGE UNRESOLVED DEFENSIVE ACTION. Audit Railway/GitHub Actions workflows for unexpected package-publish permissions; rotate all GitHub OIDC tokens."
-
-  - alert: "Glassworm developer botnet (T1195.001) — C2 DISRUPTED May 26 (3 days ago) but developer machines REMAIN INFECTED. IMMEDIATE ACTIONS: (1) Audit Windows HKCU/HKLM Run keys and macOS ~/Library/LaunchAgents/ for persistence; (2) Search for os.node and darwin.node files; (3) Audit IDE extension directories for suspicious extensions since early 2026; (4) Rotate all developer credentials from IDE config and .env files."
-
-  - alert: "Megalodon CI/CD backdoor (T1072, May 18) — audit ALL .github/workflows/ files for unexpected workflows or modified triggers. Search git log .github/workflows/ since May 18 for commits from build-bot, auto-ci, ci-bot, pipeline-bot. Check for workflow_dispatch triggers not operator-added. Search git log for Megalodon ingest server IP: 216.126.225.129."
-
-  - alert: "CVE-2026-27205 Flask (in requirements.txt, in_requirements: true) — flask==3.1.3 is CONFIRMED PATCHED (CVE affects <= 3.1.2 only). No action required. Verify Railway deployment is running pinned 3.1.3 and not an older cached image."
 
   - alert: "CVE-2026-42945 NGINX Rift (Day 19) — verify nginx version in Railway deployment. If nginx < 1.30.1 / 1.31.0, upgrade immediately. Audit rewrite configs for unnamed PCRE captures with '?' in replacement. Active RCE-to-root chaining with Copy Fail + Dirty Frag + ssh-keysign-pwn is Day 19 ongoing."
 
@@ -384,19 +324,9 @@ stack_intersection:
 
   - alert: "CVE-2026-41089 Netlogon ACTIVE EXPLOITATION CONFIRMED (T1210) — Day 18, exploit <3 seconds, minimal forensic artifacts. Any Windows domain controller reachable on Netlogon RPC is at immediate risk. Apply KB5087539 (Server 2025) or equivalent on all DCs now. Block TCP 135/445 at perimeter to all domain controllers. Segment DCs onto isolated VLANs. This is the highest-urgency Windows infrastructure patch this cycle with confirmed active in-the-wild exploitation as of PM May 29."
 
-  - alert: "CVE-2026-41096 Windows DNS Client (CVSS 9.8, May PT) — not actively exploited in wild; requires DNS MitM position. Patch via May 2026 cumulative update on all Windows development hosts and domain controllers. Lower urgency than CVE-2026-41089 but same patch bundle covers both."
-
   - alert: "CVE-2026-41091 Defender LPE (CISA June 3, T-5 days) — Day 18 of RedSun/UnDefend exploitation. Run Get-MpComputerStatus | Select AMEngineVersion on all Windows development or CI/CD hosts; flag any host at < 1.1.26040.8 as actively at risk."
 
-  - alert: "Windows YellowKey (CVE-2026-45585) + GreenPlasma + MiniPlasma — three unpatched Nightmare Eclipse zero-days, all June 10 Patch Tuesday (T-12 days). Apply WinRE BootExecute mitigation for YellowKey; enable TPM+PIN BitLocker. NOTE: TrapDoor, SymJack, AND mouse5212-super-formatter all target Windows developer machines running Claude Code — additive risk on Windows developer endpoints. Silent Ransom Group physical USB is an additional physical threat vector."
-
   - alert: "CVE-2026-42897 Exchange OWA (CISA May 29 — DEADLINE NOW EXPIRED) — OWA restriction to VPN/zero-trust is mandatory. Confirmed mitigation gaps since May 19; EEMS/EOMT verification must be redone. If any on-prem Exchange is in partner infrastructure, escalate immediately. Federal agencies are now in non-compliance status."
-
-  - alert: "Nimbus Manticore / MiniFast (T1608.006) — SEO-poisoned fake SQL Developer page (getsqldeveloper[.]com) active. Any developer who searched 'SQL Developer download' between April-May 2026 may have received poisoned results. Audit developer machines for MiniFast IOCs (unexpected HTTP C2 beacons, new startup entries, anomalous outbound HTTP with encoded payloads)."
-
-  - alert: "MuddyWater DLL sideloading espionage (T1574.002) — dual-vector: CVE-2025-34291 Langflow RCE AND DLL sideloading across industrial/tech sectors. The sideloading technique abuses legitimately signed security vendor binaries (SentinelOne sentinelmemoryscanner.exe) — security tooling itself weaponized as cover. Audit any fmapp.exe or sentinelmemoryscanner.exe execution events not originating from verified parent processes."
-
-  - alert: "Ghost CMS CVE-2026-26980 ClickFix campaign — not in our Python/Flask stack. Verify bleach==6.3.0 (in requirements.txt) has no outstanding XSS bypass CVEs — our HTML rendering pipeline is an analogous downstream risk surface."
 
   - alert: "Verizon DBIR 2026 (published May 25) — supply chain breaches up 60%, now in 48% of all corporate breaches; 26% CISA KEV remediation rate; 43-day median patch time. PM May 29: CVE-2026-41089 Netlogon active exploitation confirmed today; CVE-2026-39987 Marimo LLM agent post-exploitation confirmed today (first AI agent in-the-wild attack); Exchange CVE-2026-42897 CISA KEV deadline now expired. Seven concurrent developer-targeting threats remain active (Mini Shai-Hulud toolkit / TrapDoor / SymJack / Glassworm residual / mouse5212-super-formatter / Silent Ransom Group physical USB / LLM agent post-exploitation class)."
 
